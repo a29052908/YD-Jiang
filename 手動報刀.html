@@ -1,0 +1,1174 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>手動報刀</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f5f4f0;
+  --card: #ffffff;
+  --border: #e0ddd6;
+  --accent: #1a1a2e;
+  --accent2: #e63946;
+  --green: #2d6a4f;
+  --green-light: #d8f3dc;
+  --blue: #1d3557;
+  --blue-light: #a8dadc;
+  --text: #1a1a2e;
+  --muted: #888680;
+  --dim: #c5c3bc;
+  --selected: #1a1a2e;
+  --selected-text: #ffffff;
+  --shadow: 0 2px 12px rgba(0,0,0,0.08);
+  --radius: 12px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Noto Sans TC', sans-serif;
+  min-height: 100vh;
+  padding-bottom: 120px;
+}
+
+/* Top bar */
+.topbar {
+  background: var(--accent);
+  color: white;
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.topbar-logo {
+  width: 36px;
+  height: 36px;
+  background: var(--accent2);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.topbar h1 {
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.sales-badge {
+  background: rgba(255,255,255,0.15);
+  border-radius: 20px;
+  padding: 5px 12px;
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 0.2s;
+}
+.sales-badge:hover { background: rgba(255,255,255,0.25); }
+
+/* Sales modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 200;
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+}
+.modal-overlay.show { display: flex; }
+
+.modal {
+  background: var(--card);
+  border-radius: 20px 20px 0 0;
+  padding: 24px 20px 40px;
+  width: 100%;
+  max-width: 500px;
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.modal h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  text-align: center;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 12px;
+}
+
+.sales-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.sales-option {
+  padding: 14px;
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  text-align: center;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 500;
+  transition: all 0.15s;
+}
+.sales-option:hover { border-color: var(--accent); }
+.sales-option.selected { border-color: var(--accent); background: var(--accent); color: white; }
+
+.new-sales-row {
+  display: flex;
+  gap: 8px;
+}
+
+.modal-input {
+  flex: 1;
+  padding: 12px 14px;
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  font-size: 15px;
+  font-family: 'Noto Sans TC', sans-serif;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.modal-input:focus { border-color: var(--accent); }
+
+.modal-btn {
+  padding: 12px 18px;
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'Noto Sans TC', sans-serif;
+  white-space: nowrap;
+}
+
+/* Main content */
+.content {
+  padding: 20px 16px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* Card */
+.card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 12px;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+}
+
+.card-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 12px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Date picker */
+.date-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.date-display {
+  flex: 1;
+  text-align: center;
+  font-size: 22px;
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--text);
+  letter-spacing: -0.5px;
+}
+
+.date-sub {
+  font-size: 12px;
+  color: var(--muted);
+  font-family: 'Noto Sans TC', sans-serif;
+  font-weight: 400;
+  display: block;
+  margin-top: 2px;
+}
+
+.date-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  border: 2px solid var(--border);
+  background: var(--bg);
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  transition: all 0.15s;
+  color: var(--text);
+}
+.date-btn:hover { border-color: var(--accent); background: var(--accent); color: white; }
+
+.date-today {
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 2px solid var(--border);
+  background: var(--bg);
+  font-size: 12px;
+  cursor: pointer;
+  color: var(--muted);
+  font-family: 'Noto Sans TC', sans-serif;
+  transition: all 0.15s;
+}
+.date-today:hover { border-color: var(--accent2); color: var(--accent2); }
+
+/* Button grid */
+.btn-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.btn-option {
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: 2px solid var(--border);
+  background: var(--bg);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  color: var(--text);
+  font-family: 'Noto Sans TC', sans-serif;
+  white-space: nowrap;
+}
+.btn-option:hover { border-color: var(--accent); }
+.btn-option.selected {
+  border-color: var(--selected);
+  background: var(--selected);
+  color: var(--selected-text);
+}
+
+.btn-option.region-priority {
+  border-color: #2d6a4f;
+  color: #2d6a4f;
+  background: #f0faf3;
+}
+.btn-option.region-priority.selected {
+  background: #2d6a4f;
+  color: white;
+  border-color: #2d6a4f;
+}
+
+/* 部位 + 品號 */
+.buwei-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.buwei-btn {
+  padding: 12px 8px;
+  border-radius: 10px;
+  border: 2px solid var(--border);
+  background: var(--bg);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: center;
+  color: var(--text);
+  font-family: 'Noto Sans TC', sans-serif;
+}
+.buwei-btn:hover { border-color: var(--accent); }
+.buwei-btn.selected {
+  border-color: var(--accent2);
+  background: var(--accent2);
+  color: white;
+}
+
+/* Product select */
+.product-section {
+  margin-top: 12px;
+  display: none;
+}
+.product-section.show { display: block; }
+
+.product-select {
+  width: 100%;
+  padding: 12px 14px;
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  font-size: 15px;
+  font-family: 'Noto Sans TC', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.2s;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 36px;
+}
+.product-select:focus { border-color: var(--accent); }
+
+/* Quantity */
+.qty-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.qty-display {
+  width: 60px;
+  height: 48px;
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+  background: var(--bg);
+}
+
+.qty-btns {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.qty-btn {
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 2px solid var(--border);
+  background: var(--bg);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--text);
+}
+.qty-btn:hover { border-color: var(--accent); }
+.qty-btn.plus { color: var(--green); border-color: #b7e4c7; background: #f0faf3; }
+.qty-btn.plus:hover { background: var(--green); color: white; border-color: var(--green); }
+.qty-btn.minus { color: var(--accent2); border-color: #ffc8ce; background: #fff5f6; }
+.qty-btn.minus:hover { background: var(--accent2); color: white; border-color: var(--accent2); }
+
+/* Add product button */
+.add-product-btn {
+  width: 100%;
+  margin-top: 14px;
+  padding: 13px;
+  border: 2px dashed var(--border);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--accent);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'Noto Sans TC', sans-serif;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.add-product-btn:hover { border-color: var(--accent); background: rgba(26,26,46,0.04); }
+
+/* Product list */
+.product-list {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.product-list-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.product-list-item .item-buwei {
+  background: var(--accent2);
+  color: white;
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.product-list-item .item-code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  color: var(--text);
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.product-list-item .item-qty {
+  background: var(--green-light);
+  color: var(--green);
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+  white-space: nowrap;
+}
+
+.product-list-item .item-remove {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: #ffe0e3;
+  color: var(--accent2);
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.15s;
+  line-height: 1;
+}
+.product-list-item .item-remove:hover { background: var(--accent2); color: white; }
+
+/* Text input */
+.text-input {
+  width: 100%;
+  padding: 14px 16px;
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  font-size: 18px;
+  font-family: 'Noto Sans TC', sans-serif;
+  font-weight: 500;
+  outline: none;
+  transition: border-color 0.2s;
+  background: var(--bg);
+  color: var(--text);
+}
+.text-input:focus { border-color: var(--accent); }
+.text-input::placeholder { color: var(--dim); font-size: 15px; }
+
+/* 院內碼 display */
+.inner-code-display {
+  padding: 14px 16px;
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.inner-code-value {
+  font-size: 20px;
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--accent);
+  flex: 1;
+}
+.inner-code-value.empty { color: var(--dim); font-size: 14px; font-family: 'Noto Sans TC', sans-serif; font-weight: 400; }
+
+.edit-btn {
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: white;
+  font-size: 12px;
+  cursor: pointer;
+  color: var(--muted);
+  font-family: 'Noto Sans TC', sans-serif;
+  transition: all 0.15s;
+}
+.edit-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+.inner-code-input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 2px solid var(--accent);
+  border-radius: 8px;
+  font-size: 18px;
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+  outline: none;
+  background: white;
+}
+
+/* Submit */
+.submit-area {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 16px;
+  background: var(--card);
+  border-top: 1px solid var(--border);
+  z-index: 50;
+}
+
+.submit-btn {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  display: flex;
+  padding: 16px;
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 14px;
+  font-size: 17px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: 'Noto Sans TC', sans-serif;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: all 0.2s;
+  letter-spacing: 0.5px;
+}
+.submit-btn:hover { background: #2d2d4e; transform: translateY(-1px); }
+.submit-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+/* Preview summary */
+.summary-bar {
+  background: var(--accent);
+  color: white;
+  padding: 12px 20px;
+  margin: 0 -20px 16px;
+  display: none;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  border-radius: 10px;
+  font-size: 13px;
+}
+.summary-bar.show { display: flex; }
+.summary-chip {
+  background: rgba(255,255,255,0.15);
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Toast */
+.toast {
+  position: fixed;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-20px);
+  background: var(--accent);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 30px;
+  font-size: 14px;
+  font-weight: 500;
+  z-index: 300;
+  opacity: 0;
+  transition: all 0.3s;
+  white-space: nowrap;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast.success { background: var(--green); }
+.toast.error { background: var(--accent2); }
+
+@media (max-width: 400px) {
+  .buwei-grid { grid-template-columns: repeat(3, 1fr); }
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="topbar-logo">刀</div>
+    <h1>手動報刀</h1>
+  </div>
+  <div class="sales-badge" onclick="openSalesModal()">
+    <span>👤</span>
+    <span id="salesName">設定業務</span>
+  </div>
+</div>
+
+<!-- Sales modal -->
+<div class="modal-overlay" id="salesModal" onclick="closeSalesModalOutside(event)">
+  <div class="modal">
+    <h3>選擇 / 新增業務</h3>
+    <div class="sales-list" id="salesList"></div>
+    <div class="new-sales-row">
+      <input class="modal-input" id="newSalesInput" type="text" placeholder="新增業務姓名">
+      <button class="modal-btn" onclick="addSales()">新增</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="content">
+
+  <!-- Debug box -->
+  <div id="debugBox" style="display:none; background:#fff3cd; border:1px solid #ffc107; border-radius:10px; padding:14px; margin-bottom:12px; font-size:12px; font-family:'JetBrains Mono',monospace; white-space:pre-wrap; word-break:break-all; color:#333;">
+    <strong>🔍 規則表 Debug</strong><br>
+    <span id="debugInfo"></span>
+  </div>
+
+  <!-- Summary bar -->
+  <div class="card" id="summaryCard" style="display:none; background: var(--accent); color: white; margin-bottom: 16px;">
+    <div style="font-size:11px; color:rgba(255,255,255,0.6); letter-spacing:1.5px; text-transform:uppercase; font-family:'JetBrains Mono',monospace; margin-bottom:10px;">預覽</div>
+    <div id="summaryContent" style="font-size:14px; line-height:2; display:flex; flex-wrap:wrap; gap:6px;"></div>
+  </div>
+
+  <!-- Date -->
+  <div class="card">
+    <div class="card-label">📅 日期</div>
+    <div class="date-row">
+      <button class="date-btn" onclick="adjustDate(-1)">−</button>
+      <div class="date-display">
+        <span id="dateDisplay">--</span>
+        <span class="date-sub" id="dateWeekday"></span>
+      </div>
+      <button class="date-btn" onclick="adjustDate(1)">+</button>
+      <button class="date-today" onclick="resetDate()">今天</button>
+    </div>
+  </div>
+
+  <!-- Hospital -->
+  <div class="card">
+    <div class="card-label">🏥 醫院</div>
+    <div class="btn-grid" id="hospitalGrid"></div>
+  </div>
+
+  <!-- 部位 + 品號 + 數量 -->
+  <div class="card">
+    <div class="card-label">🦴 部位 &amp; 品號</div>
+
+    <!-- Already added products list -->
+    <div class="product-list" id="productList" style="display:none"></div>
+    <div id="productListDivider" style="display:none; height:1px; background:var(--border); margin:14px 0;"></div>
+
+    <div class="buwei-grid" id="buweiGrid"></div>
+
+    <div class="product-section" id="productSection">
+      <div style="height:1px; background:var(--border); margin:14px 0;"></div>
+      <div class="card-label">品號</div>
+      <select class="product-select" id="productSelect">
+        <option value="">— 選擇品號（可不選）—</option>
+      </select>
+
+      <div class="qty-row">
+        <div class="qty-display" id="qtyDisplay">1</div>
+        <div class="qty-btns">
+          <button class="qty-btn plus" onclick="adjustQty(1)">+1</button>
+          <button class="qty-btn plus" onclick="adjustQty(2)">+2</button>
+          <button class="qty-btn plus" onclick="adjustQty(3)">+3</button>
+          <button class="qty-btn minus" onclick="adjustQty(-1)">−1</button>
+        </div>
+      </div>
+
+      <button class="add-product-btn" onclick="addProduct()">
+        <span>＋</span><span>加入此產品</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- 病人 -->
+  <div class="card">
+    <div class="card-label">👤 病人姓名</div>
+    <input class="text-input" id="patientInput" type="text" placeholder="輸入病人姓名" oninput="updateSummary()">
+  </div>
+
+  <!-- 院內碼 -->
+  <div class="card">
+    <div class="card-label">🔖 院內碼</div>
+    <div class="inner-code-display" id="innerCodeDisplay">
+      <span class="inner-code-value empty" id="innerCodeValue">請先選擇醫院與部位</span>
+      <button class="edit-btn" id="editCodeBtn" onclick="toggleEditCode()" style="display:none">編輯</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- Submit -->
+<div class="submit-area">
+  <button class="submit-btn" id="submitBtn" onclick="submitForm()">
+    <span>✅</span>
+    <span>確認報刀</span>
+  </button>
+</div>
+
+<script>
+// ─── DATA ───────────────────────────────────────────────
+const BUWEI_LIST = ['鎖骨','上肢','長骨','小骨','下肢','埋頭釘','骨釘','人工骨','VA'];
+const WEEKDAYS = ['日','一','二','三','四','五','六'];
+
+// 規則表資料（模擬，實際可從 CSV URL 載入）
+const RULES_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSGdnoydRdcYC_VRghPUPLWUk_qSOWERjhlRFpEhtWbA0w-wv_NS1h0IREBGy9bOHcRW6rigWKBSUMd/pub?gid=0&single=true&output=csv';
+
+let rulesDb = [];
+let currentDate = new Date();
+let selectedHospital = '';
+let selectedBuwei = '';
+let selectedProduct = '';
+let qty = 1;
+let innerCode = '';
+let editingCode = false;
+let currentSales = localStorage.getItem('tandry_sales_current') || '';
+let salesList = JSON.parse(localStorage.getItem('tandry_sales_list') || '["Ivan","Juan"]');
+let productItems = []; // [{buwei, product, qty, innerCode}]
+
+// ─── INIT ────────────────────────────────────────────────
+window.onload = async () => {
+  renderDate();
+  renderSalesBadge();
+  renderSalesList();
+  await loadRules();
+  renderHospitals();
+  renderBuwei();
+};
+
+async function loadRules() {
+  try {
+    const res = await fetch(RULES_CSV);
+    const text = await res.text();
+    const lines = text.trim().split('\n');
+    const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g,'').replace(/^\uFEFF/,''));
+    console.log('📋 欄位標題:', headers);
+    rulesDb = lines.slice(1).map(line => {
+      const vals = line.split(',').map(v => v.trim().replace(/^"|"$/g,''));
+      const obj = {};
+      headers.forEach((h,i) => obj[h] = vals[i] || '');
+      return obj;
+    });
+    console.log('📋 前3筆資料:', rulesDb.slice(0,3));
+    console.log('📋 總筆數:', rulesDb.length);
+    // Show debug info on screen
+    document.getElementById('debugInfo').textContent =
+      `欄位: ${headers.join(' | ')} \n前3筆部位: ${rulesDb.slice(0,3).map(r=>r['部位']||r[headers[1]]).join(', ')}`;
+    document.getElementById('debugBox').style.display = 'block';
+  } catch(e) {
+    console.error('載入規則表失敗:', e);
+    rulesDb = [];
+  }
+}
+
+// ─── DATE ────────────────────────────────────────────────
+function renderDate() {
+  const y = currentDate.getFullYear();
+  const m = currentDate.getMonth()+1;
+  const d = currentDate.getDate();
+  document.getElementById('dateDisplay').textContent = `${y}/${m}/${d}`;
+  document.getElementById('dateWeekday').textContent = `週${WEEKDAYS[currentDate.getDay()]}`;
+}
+
+function adjustDate(delta) {
+  currentDate.setDate(currentDate.getDate() + delta);
+  renderDate();
+  updateSummary();
+}
+
+function resetDate() {
+  currentDate = new Date();
+  renderDate();
+  updateSummary();
+}
+
+function getDateStr() {
+  const y = currentDate.getFullYear();
+  const m = currentDate.getMonth()+1;
+  const d = currentDate.getDate();
+  return `${y}/${m}/${d}`;
+}
+
+// ─── SALES ───────────────────────────────────────────────
+function renderSalesBadge() {
+  document.getElementById('salesName').textContent = currentSales || '設定業務';
+}
+
+function renderSalesList() {
+  const container = document.getElementById('salesList');
+  container.innerHTML = salesList.map(s => `
+    <div class="sales-option ${s===currentSales?'selected':''}" onclick="selectSales('${s}')">${s}</div>
+  `).join('');
+}
+
+function selectSales(name) {
+  currentSales = name;
+  localStorage.setItem('tandry_sales_current', name);
+  renderSalesBadge();
+  renderSalesList();
+  updateSummary();
+}
+
+function addSales() {
+  const val = document.getElementById('newSalesInput').value.trim();
+  if (!val) return;
+  if (!salesList.includes(val)) {
+    salesList.push(val);
+    localStorage.setItem('tandry_sales_list', JSON.stringify(salesList));
+  }
+  selectSales(val);
+  document.getElementById('newSalesInput').value = '';
+  renderSalesList();
+}
+
+function openSalesModal() {
+  document.getElementById('salesModal').classList.add('show');
+}
+
+function closeSalesModal() {
+  document.getElementById('salesModal').classList.remove('show');
+}
+
+function closeSalesModalOutside(e) {
+  if (e.target === document.getElementById('salesModal')) closeSalesModal();
+}
+
+// ─── HOSPITALS ───────────────────────────────────────────
+function getHospitals() {
+  const all = [...new Set(rulesDb.map(r => r['醫院']).filter(Boolean))];
+  // Priority hospitals based on sales region (stored per sales)
+  const priorityKey = `tandry_priority_${currentSales}`;
+  const priority = JSON.parse(localStorage.getItem(priorityKey) || '[]');
+  const prioritized = priority.filter(h => all.includes(h));
+  const rest = all.filter(h => !priority.includes(h));
+  return { prioritized, rest };
+}
+
+function renderHospitals() {
+  const { prioritized, rest } = getHospitals();
+  const container = document.getElementById('hospitalGrid');
+  container.innerHTML = '';
+
+  if (prioritized.length > 0) {
+    prioritized.forEach(h => {
+      const btn = document.createElement('button');
+      btn.className = `btn-option region-priority ${h===selectedHospital?'selected':''}`;
+      btn.textContent = h;
+      btn.onclick = () => selectHospital(h);
+      container.appendChild(btn);
+    });
+    const sep = document.createElement('div');
+    sep.style.cssText = 'width:100%; height:1px; background:var(--border); margin:4px 0;';
+    container.appendChild(sep);
+  }
+
+  rest.forEach(h => {
+    const btn = document.createElement('button');
+    btn.className = `btn-option ${h===selectedHospital?'selected':''}`;
+    btn.textContent = h;
+    btn.onclick = () => selectHospital(h);
+    container.appendChild(btn);
+  });
+}
+
+function selectHospital(h) {
+  selectedHospital = h;
+  // Save as priority for current sales
+  if (currentSales) {
+    const key = `tandry_priority_${currentSales}`;
+    let priority = JSON.parse(localStorage.getItem(key) || '[]');
+    priority = [h, ...priority.filter(x => x !== h)].slice(0, 5);
+    localStorage.setItem(key, JSON.stringify(priority));
+  }
+  renderHospitals();
+  updateInnerCode();
+  updateSummary();
+}
+
+// ─── BUWEI ───────────────────────────────────────────────
+function renderBuwei() {
+  const container = document.getElementById('buweiGrid');
+  container.innerHTML = BUWEI_LIST.map(b => `
+    <button class="buwei-btn ${b===selectedBuwei?'selected':''}" onclick="selectBuwei('${b}')">${b}</button>
+  `).join('');
+}
+
+function selectBuwei(b) {
+  selectedBuwei = b;
+  qty = 1;
+  selectedProduct = '';
+  renderBuwei();
+  renderProducts();
+  updateInnerCode();
+  updateQtyDisplay();
+  updateSummary();
+  document.getElementById('productSection').classList.add('show');
+}
+
+// ─── PRODUCTS ────────────────────────────────────────────
+function renderProducts() {
+  const select = document.getElementById('productSelect');
+  const products = rulesDb
+    .filter(r => r['部位'] === selectedBuwei || r['部位_院內碼'] === selectedBuwei)
+    .map(r => r['品號'])
+    .filter(Boolean);
+  const unique = [...new Set(products)];
+
+  select.innerHTML = '<option value="">— 選擇品號（可不選）—</option>' +
+    unique.map(p => `<option value="${p}">${p}</option>`).join('');
+  select.value = selectedProduct;
+  select.onchange = () => {
+    selectedProduct = select.value;
+    updateSummary();
+  };
+}
+
+// ─── ADD / REMOVE PRODUCT ────────────────────────────────
+function addProduct() {
+  if (!selectedBuwei) { showToast('請先選擇部位', 'error'); return; }
+
+  productItems.push({
+    buwei: selectedBuwei,
+    product: selectedProduct,
+    qty: qty,
+    innerCode: innerCode,
+  });
+
+  // Reset selector fields
+  selectedBuwei = '';
+  selectedProduct = '';
+  qty = 1;
+  renderBuwei();
+  updateQtyDisplay();
+  document.getElementById('productSection').classList.remove('show');
+  updateInnerCode();
+  renderProductList();
+  updateSummary();
+  showToast(`已加入：${productItems[productItems.length-1].buwei}`, 'success');
+}
+
+function removeProduct(idx) {
+  productItems.splice(idx, 1);
+  renderProductList();
+  updateSummary();
+}
+
+function renderProductList() {
+  const list = document.getElementById('productList');
+  const divider = document.getElementById('productListDivider');
+
+  if (productItems.length === 0) {
+    list.style.display = 'none';
+    divider.style.display = 'none';
+    return;
+  }
+
+  list.style.display = 'flex';
+  divider.style.display = 'block';
+  list.innerHTML = productItems.map((item, i) => `
+    <div class="product-list-item">
+      <span class="item-buwei">${item.buwei}</span>
+      <span class="item-code">${item.product || '—'} ${item.innerCode ? '· '+item.innerCode : ''}</span>
+      <span class="item-qty">×${item.qty}</span>
+      <button class="item-remove" onclick="removeProduct(${i})">×</button>
+    </div>
+  `).join('');
+}
+
+// ─── QTY ─────────────────────────────────────────────────
+function adjustQty(delta) {
+  qty = Math.max(1, qty + delta);
+  updateQtyDisplay();
+  updateSummary();
+}
+
+function updateQtyDisplay() {
+  document.getElementById('qtyDisplay').textContent = qty;
+}
+
+// ─── INNER CODE ──────────────────────────────────────────
+function updateInnerCode() {
+  if (!selectedHospital || !selectedBuwei) {
+    innerCode = '';
+    renderInnerCode();
+    return;
+  }
+  const rule = rulesDb.find(r =>
+    (r['醫院'] === selectedHospital) &&
+    (r['部位_院內碼'] === selectedBuwei || r['部位'] === selectedBuwei)
+  );
+  innerCode = rule ? (rule['院內碼'] || '') : '';
+  renderInnerCode();
+}
+
+function renderInnerCode() {
+  const val = document.getElementById('innerCodeValue');
+  const editBtn = document.getElementById('editCodeBtn');
+
+  if (editingCode) return;
+
+  if (innerCode) {
+    val.className = 'inner-code-value';
+    val.textContent = innerCode;
+    editBtn.style.display = 'block';
+  } else if (selectedHospital && selectedBuwei) {
+    val.className = 'inner-code-value empty';
+    val.textContent = '未找到對應院內碼';
+    editBtn.style.display = 'block';
+  } else {
+    val.className = 'inner-code-value empty';
+    val.textContent = '請先選擇醫院與部位';
+    editBtn.style.display = 'none';
+  }
+}
+
+function toggleEditCode() {
+  const display = document.getElementById('innerCodeDisplay');
+  const editBtn = document.getElementById('editCodeBtn');
+
+  if (!editingCode) {
+    editingCode = true;
+    editBtn.textContent = '完成';
+    display.innerHTML = `
+      <input class="inner-code-input" id="innerCodeEditInput" value="${innerCode}" placeholder="輸入院內碼">
+      <button class="edit-btn" id="editCodeBtn" onclick="toggleEditCode()" style="display:block">完成</button>
+    `;
+    document.getElementById('innerCodeEditInput').focus();
+  } else {
+    innerCode = document.getElementById('innerCodeEditInput').value.trim();
+    editingCode = false;
+    document.getElementById('innerCodeDisplay').innerHTML = `
+      <span class="inner-code-value${innerCode?'':' empty'}" id="innerCodeValue">${innerCode || '未設定'}</span>
+      <button class="edit-btn" id="editCodeBtn" onclick="toggleEditCode()" style="display:block">編輯</button>
+    `;
+    updateSummary();
+  }
+}
+
+// ─── SUMMARY ─────────────────────────────────────────────
+function updateSummary() {
+  const card = document.getElementById('summaryCard');
+  const content = document.getElementById('summaryContent');
+
+  const base = [
+    { label: '日期', val: getDateStr() },
+    { label: '業務', val: currentSales },
+    { label: '醫院', val: selectedHospital },
+    { label: '病人', val: document.getElementById('patientInput')?.value },
+  ].filter(i => i.val);
+
+  const prodChips = productItems.map(item =>
+    `<span style="background:rgba(230,57,70,0.15); color:#e63946; padding:4px 10px; border-radius:20px; font-size:12px; font-family:'JetBrains Mono',monospace;">${item.buwei} ×${item.qty}</span>`
+  );
+
+  if (base.length > 1 || productItems.length > 0) {
+    card.style.display = 'block';
+    content.innerHTML =
+      base.map(i => `<span style="background:rgba(255,255,255,0.15); padding:4px 10px; border-radius:20px; font-size:12px; font-family:'JetBrains Mono',monospace;">${i.label}: ${i.val}</span>`).join('') +
+      prodChips.join('');
+  } else {
+    card.style.display = 'none';
+  }
+}
+
+// ─── SUBMIT ──────────────────────────────────────────────
+function submitForm() {
+  const patient = document.getElementById('patientInput').value.trim();
+
+  if (!selectedHospital) { showToast('請選擇醫院', 'error'); return; }
+  if (productItems.length === 0 && !selectedBuwei) { showToast('請至少加入一個產品', 'error'); return; }
+  if (!patient) { showToast('請輸入病人姓名', 'error'); return; }
+
+  // If there's a pending buwei selection not yet added, auto-add it
+  if (selectedBuwei) addProduct();
+
+  const history = JSON.parse(localStorage.getItem('tandry_manual_history') || '[]');
+
+  productItems.forEach(item => {
+    const data = {
+      日期: getDateStr(),
+      業務: currentSales,
+      醫院: selectedHospital,
+      部位: item.buwei,
+      品號: item.product,
+      數量: item.qty,
+      病人: patient,
+      院內碼: item.innerCode,
+      _time: new Date().toISOString(),
+    };
+    console.log('報刀資料:', data);
+    history.unshift(data);
+  });
+
+  localStorage.setItem('tandry_manual_history', JSON.stringify(history.slice(0, 100)));
+  showToast(`✅ 報刀成功：${patient}，共 ${productItems.length} 筆`, 'success');
+
+  // Clear products and patient, keep hospital/date/sales
+  productItems = [];
+  document.getElementById('patientInput').value = '';
+  selectedBuwei = '';
+  selectedProduct = '';
+  qty = 1;
+  renderBuwei();
+  renderProductList();
+  updateQtyDisplay();
+  document.getElementById('productSection').classList.remove('show');
+  updateInnerCode();
+  updateSummary();
+}
+
+// ─── TOAST ───────────────────────────────────────────────
+function showToast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast show ${type}`;
+  setTimeout(() => { t.className = 'toast'; }, 3000);
+}
+</script>
+</body>
+</html>
