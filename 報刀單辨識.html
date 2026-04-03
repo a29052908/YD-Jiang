@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>報刀啦！</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #1e2530;
+    --border: #30363d;
+    --accent: #00c896;
+    --accent2: #0096ff;
+    --danger: #ff4d6d;
+    --warning: #ffb347;
+    --text: #e6edf3;
+    --text-muted: #7d8590;
+    --text-dim: #4a5568;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Sans TC', sans-serif;
+    min-height: 100vh;
+    padding: 0;
+    overflow-x: hidden;
+  }
+
+  /* Grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,200,150,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,200,150,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 24px 16px 60px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Header */
+  header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 40px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .logo {
+    width: 44px;
+    height: 44px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Space Mono', monospace;
+    font-size: 18px;
+    font-weight: 700;
+    color: #000;
+    flex-shrink: 0;
+  }
+
+  .header-text h1 {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+  }
+
+  .header-text p {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  .status-dot {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--text-muted);
+    font-family: 'Space Mono', monospace;
+  }
+
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  /* Upload zone */
+  .upload-zone {
+    border: 2px dashed var(--border);
+    border-radius: 16px;
+    padding: 48px 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: var(--surface);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .upload-zone::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at center, rgba(0,200,150,0.05) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .upload-zone:hover, .upload-zone.dragover {
+    border-color: var(--accent);
+    background: var(--surface2);
+  }
+
+  .upload-zone:hover::before, .upload-zone.dragover::before {
+    opacity: 1;
+  }
+
+  .upload-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+    display: block;
+  }
+
+  .upload-zone h2 {
+    font-size: 18px;
+    font-weight: 500;
+    margin-bottom: 8px;
+  }
+
+  .upload-zone p {
+    font-size: 14px;
+    color: var(--text-muted);
+  }
+
+  .upload-zone input[type=file] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  /* Preview grid */
+  .preview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 12px;
+    margin-top: 20px;
+  }
+
+  .preview-item {
+    position: relative;
+    border-radius: 10px;
+    overflow: hidden;
+    aspect-ratio: 3/4;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+  }
+
+  .preview-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .preview-item .remove-btn {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: rgba(255,77,109,0.9);
+    border: none;
+    color: white;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+  }
+
+  .preview-item .file-name {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 6px 8px;
+    background: rgba(0,0,0,0.7);
+    font-size: 11px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Submit button */
+  .submit-btn {
+    width: 100%;
+    padding: 16px;
+    margin-top: 20px;
+    background: linear-gradient(135deg, var(--accent), #00a878);
+    border: none;
+    border-radius: 12px;
+    color: #000;
+    font-size: 16px;
+    font-weight: 700;
+    font-family: 'Noto Sans TC', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    letter-spacing: 0.5px;
+  }
+
+  .submit-btn:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(0,200,150,0.3);
+  }
+
+  .submit-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* Status bar */
+  .status-bar {
+    margin-top: 16px;
+    padding: 14px 16px;
+    border-radius: 10px;
+    font-size: 14px;
+    display: none;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .status-bar.show { display: flex; }
+
+  .status-bar.loading {
+    background: rgba(0,150,255,0.1);
+    border: 1px solid rgba(0,150,255,0.3);
+    color: var(--accent2);
+  }
+
+  .status-bar.success {
+    background: rgba(0,200,150,0.1);
+    border: 1px solid rgba(0,200,150,0.3);
+    color: var(--accent);
+  }
+
+  .status-bar.error {
+    background: rgba(255,77,109,0.1);
+    border: 1px solid rgba(255,77,109,0.3);
+    color: var(--danger);
+  }
+
+  .spinner {
+    width: 18px;
+    height: 18px;
+    border: 2px solid rgba(0,150,255,0.3);
+    border-top-color: var(--accent2);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    flex-shrink: 0;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* Section */
+  .section {
+    margin-top: 40px;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .section-header h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .section-header .badge {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 12px;
+    color: var(--text-muted);
+    font-family: 'Space Mono', monospace;
+  }
+
+  /* Result table */
+  .table-wrap {
+    overflow-x: auto;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  thead tr {
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+  }
+
+  th {
+    padding: 12px 14px;
+    text-align: left;
+    color: var(--text-muted);
+    font-weight: 500;
+    white-space: nowrap;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+  }
+
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+  }
+
+  tbody tr:last-child { border-bottom: none; }
+
+  tbody tr:hover { background: var(--surface2); }
+
+  td {
+    padding: 12px 14px;
+    color: var(--text);
+    white-space: nowrap;
+  }
+
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+  }
+
+  .tag-green { background: rgba(0,200,150,0.15); color: var(--accent); }
+  .tag-blue  { background: rgba(0,150,255,0.15); color: var(--accent2); }
+  .tag-gray  { background: var(--surface2); color: var(--text-muted); border: 1px solid var(--border); }
+
+  .empty-state {
+    padding: 40px;
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 14px;
+  }
+
+  /* Webhook config */
+  .config-section {
+    margin-top: 40px;
+    padding: 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+  }
+
+  .config-section h4 {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+    font-family: 'Space Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .config-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .config-input {
+    flex: 1;
+    padding: 10px 14px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-size: 13px;
+    font-family: 'Space Mono', monospace;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .config-input:focus { border-color: var(--accent); }
+
+  .config-save {
+    padding: 10px 16px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .config-save:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* Mobile */
+  @media (max-width: 600px) {
+    .upload-zone { padding: 32px 16px; }
+    .upload-icon { font-size: 36px; }
+    header { flex-wrap: wrap; }
+    .status-dot { width: 100%; margin-left: 0; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div class="logo">刀</div>
+    <div class="header-text">
+      <h1>報刀系統</h1>
+      <p>星泓股份有限公司 · Tandry</p>
+    </div>
+    <div class="status-dot">
+      <span class="dot"></span>
+      <span>待機中</span>
+    </div>
+  </header>
+
+  <!-- Upload -->
+  <div class="upload-zone" id="uploadZone">
+    <input type="file" id="fileInput" accept="image/*" multiple>
+    <span class="upload-icon">📋</span>
+    <h2>上傳報刀單</h2>
+    <p>拖曳圖片至此，或點擊選擇檔案</p>
+    <p style="margin-top:6px; font-size:12px; color:var(--text-dim)">支援 JPG、PNG，可多張同時上傳</p>
+  </div>
+
+  <div class="preview-grid" id="previewGrid"></div>
+
+  <button class="submit-btn" id="submitBtn" disabled>
+    <span>🚀</span>
+    <span id="submitText">選擇報刀單後送出</span>
+  </button>
+
+  <div class="status-bar" id="statusBar">
+    <div class="spinner" id="statusSpinner"></div>
+    <span id="statusMsg"></span>
+  </div>
+
+  <!-- Result -->
+  <div class="section" id="resultSection" style="display:none">
+    <div class="section-header">
+      <h3>本次結果</h3>
+      <span class="badge" id="resultCount">0 筆</span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>日期</th>
+            <th>醫院</th>
+            <th>醫師</th>
+            <th>部位</th>
+            <th>品號</th>
+            <th>數量</th>
+            <th>病人</th>
+            <th>院內碼</th>
+          </tr>
+        </thead>
+        <tbody id="resultBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- History -->
+  <div class="section">
+    <div class="section-header">
+      <h3>歷史記錄</h3>
+      <span class="badge" id="historyCount">0 筆</span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>日期</th>
+            <th>醫院</th>
+            <th>醫師</th>
+            <th>部位</th>
+            <th>品號</th>
+            <th>數量</th>
+            <th>病人</th>
+            <th>院內碼</th>
+          </tr>
+        </thead>
+        <tbody id="historyBody">
+          <tr><td colspan="8" class="empty-state">尚無記錄</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Config -->
+  <div class="config-section">
+    <h4>⚙ N8N Webhook 設定</h4>
+    <div class="config-row">
+      <input class="config-input" id="webhookUrl" type="url" placeholder="貼上你的 N8N Production Form URL">
+      <button class="config-save" onclick="saveWebhook()">儲存</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const fileInput = document.getElementById('fileInput');
+  const uploadZone = document.getElementById('uploadZone');
+  const previewGrid = document.getElementById('previewGrid');
+  const submitBtn = document.getElementById('submitBtn');
+  const submitText = document.getElementById('submitText');
+  const statusBar = document.getElementById('statusBar');
+  const statusMsg = document.getElementById('statusMsg');
+  const statusSpinner = document.getElementById('statusSpinner');
+
+  let files = [];
+  let history = JSON.parse(localStorage.getItem('tandry_history') || '[]');
+
+  // Load saved webhook
+  const savedWebhook = localStorage.getItem('tandry_webhook') || '';
+  document.getElementById('webhookUrl').value = savedWebhook;
+
+  function saveWebhook() {
+    const url = document.getElementById('webhookUrl').value.trim();
+    localStorage.setItem('tandry_webhook', url);
+    showStatus('success', '✅ Webhook URL 已儲存');
+    setTimeout(hideStatus, 2000);
+  }
+
+  // Drag & drop
+  uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('dragover'); });
+  uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
+  uploadZone.addEventListener('drop', e => {
+    e.preventDefault();
+    uploadZone.classList.remove('dragover');
+    addFiles(Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/')));
+  });
+
+  fileInput.addEventListener('change', () => {
+    addFiles(Array.from(fileInput.files));
+    fileInput.value = '';
+  });
+
+  function addFiles(newFiles) {
+    files = [...files, ...newFiles];
+    renderPreviews();
+    updateSubmitBtn();
+  }
+
+  function removeFile(idx) {
+    files.splice(idx, 1);
+    renderPreviews();
+    updateSubmitBtn();
+  }
+
+  function renderPreviews() {
+    previewGrid.innerHTML = '';
+    files.forEach((f, i) => {
+      const url = URL.createObjectURL(f);
+      const div = document.createElement('div');
+      div.className = 'preview-item';
+      div.innerHTML = `
+        <img src="${url}" alt="${f.name}">
+        <button class="remove-btn" onclick="removeFile(${i})">×</button>
+        <div class="file-name">${f.name}</div>
+      `;
+      previewGrid.appendChild(div);
+    });
+  }
+
+  function updateSubmitBtn() {
+    if (files.length === 0) {
+      submitBtn.disabled = true;
+      submitText.textContent = '選擇報刀單後送出';
+    } else {
+      submitBtn.disabled = false;
+      submitText.textContent = `送出 ${files.length} 張報刀單`;
+    }
+  }
+
+  function showStatus(type, msg, showSpinner = false) {
+    statusBar.className = `status-bar show ${type}`;
+    statusMsg.textContent = msg;
+    statusSpinner.style.display = showSpinner ? 'block' : 'none';
+  }
+
+  function hideStatus() {
+    statusBar.className = 'status-bar';
+  }
+
+  submitBtn.addEventListener('click', async () => {
+    const webhookUrl = document.getElementById('webhookUrl').value.trim();
+    if (!webhookUrl) {
+      showStatus('error', '❌ 請先設定 N8N Webhook URL');
+      return;
+    }
+    if (files.length === 0) return;
+
+    submitBtn.disabled = true;
+    showStatus('loading', `正在處理 ${files.length} 張報刀單，請稍候...`, true);
+
+    try {
+      const formData = new FormData();
+      files.forEach(f => formData.append('invoice', f));
+
+      const res = await fetch(webhookUrl, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+      let data = [];
+      try {
+        const text = await res.text();
+        if (text) data = JSON.parse(text);
+        if (!Array.isArray(data)) data = [data];
+      } catch(_) {}
+
+      showStatus('success', `✅ 成功送出！已寫入 ${data.length || files.length} 筆資料`);
+
+      // Show results
+      if (data.length > 0) {
+        renderResultTable(data);
+        // Add to history
+        history = [...data, ...history].slice(0, 50);
+        localStorage.setItem('tandry_history', JSON.stringify(history));
+        renderHistory();
+      }
+
+      // Reset
+      files = [];
+      renderPreviews();
+      updateSubmitBtn();
+
+    } catch (err) {
+      showStatus('error', `❌ 送出失敗：${err.message}`);
+      submitBtn.disabled = false;
+      updateSubmitBtn();
+    }
+  });
+
+  function renderResultTable(data) {
+    const section = document.getElementById('resultSection');
+    const tbody = document.getElementById('resultBody');
+    const count = document.getElementById('resultCount');
+
+    section.style.display = 'block';
+    count.textContent = `${data.length} 筆`;
+    tbody.innerHTML = data.map(r => `
+      <tr>
+        <td>${r['日期'] || '-'}</td>
+        <td>${r['醫院'] || '-'}</td>
+        <td>${r['醫師'] || '-'}</td>
+        <td><span class="tag tag-blue">${r['部位'] || '-'}</span></td>
+        <td><span class="tag tag-gray">${r['品號'] || '-'}</span></td>
+        <td>${r['數量'] || '1'}</td>
+        <td>${r['病人'] || '-'}</td>
+        <td><span class="tag tag-green">${r['院內碼'] || '-'}</span></td>
+      </tr>
+    `).join('');
+  }
+
+  function renderHistory() {
+    const tbody = document.getElementById('historyBody');
+    const count = document.getElementById('historyCount');
+    count.textContent = `${history.length} 筆`;
+
+    if (history.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="8" class="empty-state">尚無記錄</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = history.map(r => `
+      <tr>
+        <td>${r['日期'] || '-'}</td>
+        <td>${r['醫院'] || '-'}</td>
+        <td>${r['醫師'] || '-'}</td>
+        <td><span class="tag tag-blue">${r['部位'] || '-'}</span></td>
+        <td><span class="tag tag-gray">${r['品號'] || '-'}</span></td>
+        <td>${r['數量'] || '1'}</td>
+        <td>${r['病人'] || '-'}</td>
+        <td><span class="tag tag-green">${r['院內碼'] || '-'}</span></td>
+      </tr>
+    `).join('');
+  }
+
+  // Init
+  renderHistory();
+</script>
+</body>
+</html>
