@@ -1495,37 +1495,36 @@ function submitForm() {
 
   if (selectedBuwei) addProduct();
 
-  const history = JSON.parse(localStorage.getItem('tandry_manual_history') || '[]');
+ const history = JSON.parse(localStorage.getItem('tandry_manual_history') || '[]');
   const submitBtn = document.getElementById('submitBtn');
   submitBtn.disabled = true;
 
-  const promises = productItems.map(item => {
-    const data = {
-      日期: getDateStr(),
-      業務: currentSales,
-      庫別: currentWarehouse,
-      醫院: selectedHospital,
-      醫師: doctor,
-      部位: item.buwei,
-      品號: item.product,
-      數量: item.qty,
-      病人: patient,
-      病歷號: patientId,
-      院內碼: item.innerCode,
-    };
-    history.unshift({ ...data, _time: new Date().toISOString() });
-
-    if (webhookUrl) {
-      return fetch(webhookUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      }).catch(e => console.error('送出失敗', e));
+  const sendAll = async () => {
+    for (const item of productItems) {
+      const data = {
+        日期: getDateStr(),
+        業務: currentSales,
+        庫別: currentWarehouse,
+        醫院: selectedHospital,
+        醫師: doctor,
+        部位: item.buwei,
+        品號: item.product,
+        數量: item.qty,
+        病人: patient,
+        病歷號: patientId,
+        院內碼: item.innerCode,
+      };
+      history.unshift({ ...data, _time: new Date().toISOString() });
+      if (webhookUrl) {
+        try {
+          await fetch(webhookUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data),
+          });
+        } catch(e) { console.error('送出失敗', e); }
+      }
     }
-    return Promise.resolve();
-  });
-
-  Promise.all(promises).then(() => {
     localStorage.setItem('tandry_manual_history', JSON.stringify(history.slice(0, 100)));
     if (webhookUrl) {
       showToast(`✅ 已送出 ${productItems.length} 筆至 Google Sheets`, 'success');
