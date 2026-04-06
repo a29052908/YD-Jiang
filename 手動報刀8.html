@@ -441,9 +441,123 @@ function toggleEditCode(){const d=document.getElementById('innerCodeDisplay');if
 
 function updateSummary(){const card=document.getElementById('summaryCard'),content=document.getElementById('summaryContent');const base=[{label:'日期',val:getDateStr()},{label:'業務',val:currentSales},{label:'醫院',val:selectedHospital},{label:'病人',val:document.getElementById('patientInput')?.value}].filter(i=>i.val);const chips=productItems.map(item=>`<span style="background:rgba(230,57,70,0.15);color:#e63946;padding:4px 10px;border-radius:20px;font-size:12px;font-family:'JetBrains Mono',monospace;">${item.buwei} ×${item.qty}</span>`);if(base.length>1||productItems.length>0){card.style.display='block';content.innerHTML=base.map(i=>`<span style="background:rgba(255,255,255,0.15);padding:4px 10px;border-radius:20px;font-size:12px;font-family:'JetBrains Mono',monospace;">${i.label}: ${i.val}</span>`).join('')+chips.join('');}else card.style.display='none';}
 
-function submitForm(){const patient=document.getElementById('patientInput').value.trim();const patientId=document.getElementById('patientIdInput').value.trim();const doctor=document.getElementById('doctorSelect').value.trim();const webhookUrl=localStorage.getItem(MANUAL_WEBHOOK_KEY)||'';if(!selectedHospital){showToast('請選擇醫院','error');return;}if(!productItems.length&&!selectedBuwei){showToast('請至少加入一個產品','error');return;}if(!patient){showToast('請輸入病人姓名','error');return;}if(selectedBuwei)addProduct();const history=JSON.parse(localStorage.getItem('tandry_manual_history')||'[]');const btn=document.getElementById('submitBtn');btn.disabled=true;const total=productItems.length;const sendAll=async()=>{for(const item of productItems){const data={日期:getDateStr(),業務:currentSales,庫別:currentWarehouse,大區:item.大區||'',負責業務:item.負責業務||currentSales,醫院:selectedHospital,醫師:doctor,部位:item.buwei,品號:item.product,數量:item.qty,病人:patient,病歷號:patientId,院內碼:item.innerCode};history.unshift({...data,_time:new Date().toISOString()});if(webhookUrl){try{await fetch(webhookUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});}catch(e){console.error('送出失敗',e);}}}localStorage.setItem('tandry_manual_history',JSON.stringify(history.slice(0,100)));showToast(webhookUrl?`✅ 已送出 ${total} 筆至 Google Sheets`:`✅ 已儲存 ${total} 筆（尚未設定 Webhook）`,'success');btn.disabled=false;productItems=[];document.getElementById('patientInput').value='';document.getElementById('patientIdInput').value='';selectedBuwei='';selectedProduct='';qty=1;supportMode=false;selectedZone='';const sb=document.getElementById('supportBtn');if(sb){sb.style.background='white';sb.style.color='var(--accent2)';}document.getElementById('zoneGrid').style.display='none';renderBuwei();renderProductList();renderHospitals();updateQtyDisplay();document.getElementById('productSection').classList.remove('show');updateInnerCode();updateSummary();};sendAll();}
-function saveManualWebhook(){localStorage.setItem(MANUAL_WEBHOOK_KEY,document.getElementById('manualWebhookInput').value.trim());showToast('✅ Webhook URL 已儲存','success');}
-function showToast(msg,type=''){const t=document.getElementById('toast');t.textContent=msg;t.className=`toast show ${type}`;setTimeout(()=>t.className='toast',3000);}
+function submitForm(){
+  const patient = document.getElementById('patientInput').value.trim();
+  const patientId = document.getElementById('patientIdInput').value.trim();
+  const doctor = document.getElementById('doctorSelect').value.trim();
+
+  const webhookUrl = localStorage.getItem(MANUAL_WEBHOOK_KEY) || '';
+
+  console.log("Webhook URL:", webhookUrl);
+
+  if(!selectedHospital){
+    showToast('請選擇醫院','error');
+    return;
+  }
+
+  if(!productItems.length && !selectedBuwei){
+    showToast('請至少加入一個產品','error');
+    return;
+  }
+
+  if(!patient){
+    showToast('請輸入病人姓名','error');
+    return;
+  }
+
+  if(!webhookUrl){
+    showToast('⚠️ 尚未設定 Webhook URL','error');
+    return;
+  }
+
+  if(selectedBuwei) addProduct();
+
+  const history = JSON.parse(localStorage.getItem('tandry_manual_history') || '[]');
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+
+  const total = productItems.length;
+
+  const sendAll = async () => {
+    for(const item of productItems){
+
+      const data = {
+        日期: getDateStr(),
+        業務: currentSales,
+        庫別: currentWarehouse,
+        大區: item.大區 || '',
+        負責業務: item.負責業務 || currentSales,
+        醫院: selectedHospital,
+        醫師: doctor,
+        部位: item.buwei,
+        品號: item.product,
+        數量: item.qty,
+        病人: patient,
+        病歷號: patientId,
+        院內碼: item.innerCode
+      };
+
+      console.log("送出資料:", data);
+
+      try {
+        const res = await fetch(webhookUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
+        });
+
+        console.log("Response status:", res.status);
+
+        if(!res.ok){
+          throw new Error("HTTP錯誤 " + res.status);
+        }
+
+      } catch(e) {
+        console.error('送出失敗', e);
+        showToast('❌ 傳送失敗（看Console）','error');
+        btn.disabled = false;
+        return;
+      }
+
+      history.unshift({...data, _time: new Date().toISOString()});
+    }
+
+    localStorage.setItem('tandry_manual_history', JSON.stringify(history.slice(0,100)));
+
+    showToast(`✅ 成功送出 ${total} 筆`, 'success');
+
+    // reset
+    btn.disabled = false;
+    productItems = [];
+    document.getElementById('patientInput').value = '';
+    document.getElementById('patientIdInput').value = '';
+    selectedBuwei = '';
+    selectedProduct = '';
+    qty = 1;
+    supportMode = false;
+    selectedZone = '';
+
+    const sb = document.getElementById('supportBtn');
+    if(sb){
+      sb.style.background = 'white';
+      sb.style.color = 'var(--accent2)';
+    }
+
+    document.getElementById('zoneGrid').style.display = 'none';
+
+    renderBuwei();
+    renderProductList();
+    renderHospitals();
+    updateQtyDisplay();
+    document.getElementById('productSection').classList.remove('show');
+    updateInnerCode();
+    updateSummary();
+  };
+
+  sendAll();
+}
 </script>
 </body>
 </html>
