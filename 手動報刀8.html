@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>報刀系統</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f5f4f0; --card: #ffffff; --border: #e0ddd6; --accent: #1a1a2e; --accent2: #e63946;
+  --green: #2d6a4f; --green-light: #d8f3dc; --text: #1a1a2e; --muted: #888680; --dim: #c5c3bc;
+  --selected: #1a1a2e; --selected-text: #ffffff; --shadow: 0 2px 12px rgba(0,0,0,0.08); --radius: 12px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', sans-serif; min-height: 100vh; padding-bottom: 120px; }
+.topbar { background: var(--accent); color: white; padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+.topbar-left { display: flex; align-items: center; gap: 12px; }
+.topbar-logo { background: var(--accent2); border-radius: 8px; padding: 6px 8px; font-weight: 700; font-size: 11px; letter-spacing: -0.5px; white-space: nowrap; }
+.topbar h1 { font-size: 17px; font-weight: 600; letter-spacing: 0.5px; }
+.sales-badge { background: rgba(255,255,255,0.15); border-radius: 20px; padding: 5px 12px; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: background 0.2s; }
+.sales-badge:hover { background: rgba(255,255,255,0.25); }
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; display: none; align-items: flex-end; justify-content: center; }
+.modal-overlay.show { display: flex; }
+.modal { background: var(--card); border-radius: 20px 20px 0 0; padding: 24px 20px 40px; width: 100%; max-width: 500px; animation: slideUp 0.3s ease; }
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.modal h3 { font-size: 12px; font-weight: 600; margin-bottom: 16px; text-align: center; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+.sales-list { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+.sales-option { padding: 14px; border: 2px solid var(--border); border-radius: 10px; text-align: center; cursor: pointer; font-size: 15px; font-weight: 500; transition: all 0.15s; }
+.sales-option:hover { border-color: var(--accent); }
+.sales-option.selected { border-color: var(--accent); background: var(--accent); color: white; }
+.new-sales-row { display: flex; gap: 8px; }
+.modal-input { flex: 1; padding: 12px 14px; border: 2px solid var(--border); border-radius: 10px; font-size: 15px; font-family: 'Noto Sans TC', sans-serif; outline: none; transition: border-color 0.2s; }
+.modal-input:focus { border-color: var(--accent); }
+.modal-btn { padding: 12px 18px; background: var(--accent); color: white; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: 'Noto Sans TC', sans-serif; white-space: nowrap; }
+.content { padding: 20px 16px; max-width: 600px; margin: 0 auto; }
+.card { background: var(--card); border-radius: var(--radius); padding: 20px; margin-bottom: 12px; box-shadow: var(--shadow); border: 1px solid var(--border); }
+.card-label { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 12px; font-family: 'JetBrains Mono', monospace; }
+.date-row { display: flex; align-items: center; gap: 10px; }
+.date-display { flex: 1; text-align: center; font-size: 22px; font-weight: 700; font-family: 'JetBrains Mono', monospace; color: var(--text); letter-spacing: -0.5px; }
+.date-sub { font-size: 12px; color: var(--muted); font-family: 'Noto Sans TC', sans-serif; font-weight: 400; display: block; margin-top: 2px; }
+.date-btn { width: 44px; height: 44px; border-radius: 10px; border: 2px solid var(--border); background: var(--bg); font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: 700; transition: all 0.15s; color: var(--text); }
+.date-btn:hover { border-color: var(--accent); background: var(--accent); color: white; }
+.date-today { padding: 8px 14px; border-radius: 8px; border: 2px solid var(--border); background: var(--bg); font-size: 12px; cursor: pointer; color: var(--muted); font-family: 'Noto Sans TC', sans-serif; transition: all 0.15s; }
+.date-today:hover { border-color: var(--accent2); color: var(--accent2); }
+.btn-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+.btn-option { padding: 10px 16px; border-radius: 10px; border: 2px solid var(--border); background: var(--bg); font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.15s; color: var(--text); font-family: 'Noto Sans TC', sans-serif; white-space: nowrap; }
+.btn-option:hover { border-color: var(--accent); }
+.btn-option.selected { border-color: var(--selected); background: var(--selected); color: var(--selected-text); }
+.btn-option.region-priority { border-color: #2d6a4f; color: #2d6a4f; background: #f0faf3; }
+.btn-option.region-priority.selected { background: #2d6a4f; color: white; border-color: #2d6a4f; }
+.buwei-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.buwei-btn { padding: 12px 8px; border-radius: 10px; border: 2px solid var(--border); background: var(--bg); font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.15s; text-align: center; color: var(--text); font-family: 'Noto Sans TC', sans-serif; }
+.buwei-btn:hover { border-color: var(--accent); }
+.buwei-btn.selected { border-color: var(--accent2); background: var(--accent2); color: white; }
+.product-section { margin-top: 12px; display: none; }
+.product-section.show { display: block; }
+.product-select, .doctor-select { width: 100%; padding: 12px 14px; border: 2px solid var(--border); border-radius: 10px; font-size: 15px; font-family: 'Noto Sans TC', sans-serif; background: var(--bg); color: var(--text); outline: none; transition: border-color 0.2s; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; }
+.product-select:focus, .doctor-select:focus { border-color: var(--accent); }
+.qty-row { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
+.qty-display { width: 60px; height: 48px; border: 2px solid var(--border); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 700; font-family: 'JetBrains Mono', monospace; background: var(--bg); }
+.qty-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+.qty-btn { padding: 10px 14px; border-radius: 8px; border: 2px solid var(--border); background: var(--bg); font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; font-family: 'JetBrains Mono', monospace; color: var(--text); }
+.qty-btn.plus { color: var(--green); border-color: #b7e4c7; background: #f0faf3; }
+.qty-btn.plus:hover { background: var(--green); color: white; border-color: var(--green); }
+.qty-btn.minus { color: var(--accent2); border-color: #ffc8ce; background: #fff5f6; }
+.qty-btn.minus:hover { background: var(--accent2); color: white; border-color: var(--accent2); }
+.add-product-btn { width: 100%; margin-top: 14px; padding: 13px; border: 2px dashed var(--border); border-radius: 10px; background: transparent; color: var(--accent); font-size: 14px; font-weight: 600; cursor: pointer; font-family: 'Noto Sans TC', sans-serif; transition: all 0.15s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.add-product-btn:hover { border-color: var(--accent); background: rgba(26,26,46,0.04); }
+.product-list { margin-top: 14px; display: flex; flex-direction: column; gap: 8px; }
+.product-list-item { display: flex; align-items: center; gap: 10px; padding: 12px 14px; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; animation: fadeIn 0.2s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+.item-buwei { background: var(--accent2); color: white; padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+.item-code { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--text); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.item-qty { background: var(--green-light); color: var(--green); padding: 3px 10px; border-radius: 6px; font-size: 13px; font-weight: 700; font-family: 'JetBrains Mono', monospace; white-space: nowrap; }
+.item-remove { width: 28px; height: 28px; border-radius: 50%; border: none; background: #ffe0e3; color: var(--accent2); font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.15s; line-height: 1; }
+.item-remove:hover { background: var(--accent2); color: white; }
+.patient-row { display: flex; gap: 10px; }
+.text-input { width: 100%; padding: 14px 16px; border: 2px solid var(--border); border-radius: 10px; font-size: 18px; font-family: 'Noto Sans TC', sans-serif; font-weight: 500; outline: none; transition: border-color 0.2s; background: var(--bg); color: var(--text); }
+.text-input:focus { border-color: var(--accent); }
+.text-input::placeholder { color: var(--dim); font-size: 15px; }
+.patient-row .text-input { flex: 1; }
+.text-input-sm { width: 140px; flex-shrink: 0; padding: 14px 12px; border: 2px solid var(--border); border-radius: 10px; font-size: 15px; font-family: 'Noto Sans TC', sans-serif; outline: none; transition: border-color 0.2s; background: var(--bg); color: var(--text); }
+.text-input-sm:focus { border-color: var(--accent); }
+.text-input-sm::placeholder { color: var(--dim); font-size: 13px; }
+.inner-code-display { padding: 14px 16px; border: 2px solid var(--border); border-radius: 10px; background: var(--bg); display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.inner-code-value { font-size: 20px; font-weight: 700; font-family: 'JetBrains Mono', monospace; color: var(--accent); flex: 1; }
+.inner-code-value.empty { color: var(--dim); font-size: 14px; font-family: 'Noto Sans TC', sans-serif; font-weight: 400; }
+.edit-btn { padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border); background: white; font-size: 12px; cursor: pointer; color: var(--muted); font-family: 'Noto Sans TC', sans-serif; transition: all 0.15s; }
+.edit-btn:hover { border-color: var(--accent); color: var(--accent); }
+.inner-code-input { flex: 1; padding: 8px 12px; border: 2px solid var(--accent); border-radius: 8px; font-size: 18px; font-weight: 700; font-family: 'JetBrains Mono', monospace; outline: none; background: white; }
+.submit-area { position: fixed; bottom: 0; left: 0; right: 0; padding: 16px; background: var(--card); border-top: 1px solid var(--border); z-index: 50; }
+.submit-btn { width: 100%; max-width: 600px; margin: 0 auto; display: flex; padding: 16px; background: var(--accent); color: white; border: none; border-radius: 14px; font-size: 17px; font-weight: 700; cursor: pointer; font-family: 'Noto Sans TC', sans-serif; align-items: center; justify-content: center; gap: 10px; transition: all 0.2s; letter-spacing: 0.5px; }
+.submit-btn:hover { background: #2d2d4e; transform: translateY(-1px); }
+.submit-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+.toast { position: fixed; top: 80px; left: 50%; transform: translateX(-50%) translateY(-20px); background: var(--accent); color: white; padding: 12px 24px; border-radius: 30px; font-size: 14px; font-weight: 500; z-index: 300; opacity: 0; transition: all 0.3s; white-space: nowrap; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast.success { background: var(--green); }
+.toast.error { background: var(--accent2); }
+@media (max-width: 400px) { .buwei-grid { grid-template-columns: repeat(3, 1fr); } }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="topbar-logo">Tandry</div>
+    <h1>報刀系統</h1>
+  </div>
+  <div class="sales-badge" onclick="openSalesModal()">
+    <span>👤</span>
+    <span id="salesName">設定業務</span>
+    <span id="warehouseBadge" style="background:rgba(255,255,255,0.2);border-radius:10px;padding:1px 7px;font-size:11px;display:none;"></span>
+  </div>
+</div>
+
+<div class="modal-overlay" id="salesModal" onclick="closeSalesModalOutside(event)">
+  <div class="modal">
+    <h3>選擇 / 新增業務</h3>
+    <div class="sales-list" id="salesList"></div>
+    <div class="new-sales-row">
+      <input class="modal-input" id="newSalesInput" type="text" placeholder="新增業務姓名">
+      <button class="modal-btn" onclick="addSales()">新增</button>
+    </div>
+    <div style="height:1px;background:var(--border);margin:16px 0;"></div>
+    <h3>庫別</h3>
+    <div class="sales-list" id="warehouseList">
+      <div class="sales-option" id="wh-桃庫" onclick="selectWarehouse('桃庫')">🏭 桃庫</div>
+      <div class="sales-option" id="wh-北庫" onclick="selectWarehouse('北庫')">🏭 北庫</div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="content">
+  <div id="summaryCard" style="display:none;position:sticky;top:64px;z-index:90;background:var(--accent);color:white;border-radius:0;margin:0 -16px 16px;padding:12px 16px;box-shadow:0 4px 12px rgba(0,0,0,0.2);">
+    <div style="font-size:10px;color:rgba(255,255,255,0.5);letter-spacing:1.5px;text-transform:uppercase;font-family:'JetBrains Mono',monospace;margin-bottom:8px;">目前輸入</div>
+    <div id="summaryContent" style="font-size:13px;display:flex;flex-wrap:wrap;gap:6px;line-height:1.8;"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">📅 日期</div>
+    <div class="date-row">
+      <button class="date-btn" onclick="adjustDate(-1)">−</button>
+      <div class="date-display"><span id="dateDisplay">--</span><span class="date-sub" id="dateWeekday"></span></div>
+      <button class="date-btn" onclick="adjustDate(1)">+</button>
+      <button class="date-today" onclick="resetDate()">今天</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">🏥 醫院
+      <button id="supportBtn" onclick="toggleSupportMode()" style="margin-left:10px;padding:3px 10px;border-radius:20px;border:1.5px solid var(--accent2);background:white;color:var(--accent2);font-size:11px;font-weight:600;cursor:pointer;font-family:'Noto Sans TC',sans-serif;transition:all 0.15s;">支援</button>
+    </div>
+    <div id="zoneGrid" style="display:none;margin-bottom:10px;"></div>
+    <div class="btn-grid" id="hospitalGrid"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">👨‍⚕️ 醫師</div>
+    <select class="doctor-select" id="doctorSelect" onchange="updateSummary()">
+      <option value="">— 請先選擇醫院 —</option>
+    </select>
+  </div>
+
+  <div class="card">
+    <div class="card-label">🦴 部位 &amp; 品號</div>
+    <div class="product-list" id="productList" style="display:none"></div>
+    <div id="productListDivider" style="display:none;height:1px;background:var(--border);margin:14px 0;"></div>
+    <div class="buwei-grid" id="buweiGrid"></div>
+    <div class="product-section" id="productSection">
+      <div style="height:1px;background:var(--border);margin:14px 0;"></div>
+      <div class="card-label">數量</div>
+      <div class="qty-row">
+        <button class="qty-btn minus" onclick="adjustQty(-1)">−1</button>
+        <div class="qty-display" id="qtyDisplay">1</div>
+        <div class="qty-btns">
+          <button class="qty-btn plus" onclick="adjustQty(1)">+1</button>
+          <button class="qty-btn plus" onclick="adjustQty(2)">+2</button>
+          <button class="qty-btn plus" onclick="adjustQty(3)">+3</button>
+        </div>
+      </div>
+      <div style="height:1px;background:var(--border);margin:14px 0;"></div>
+      <div class="card-label">品號</div>
+      <select class="product-select" id="productSelect"><option value="">— 選擇品號（可不選）—</option></select>
+      <button class="add-product-btn" onclick="addProduct()"><span>＋</span><span>加入此產品</span></button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">👤 病人資料</div>
+    <div class="patient-row">
+      <input class="text-input" id="patientInput" type="text" placeholder="病人姓名" oninput="updateSummary()">
+      <input class="text-input-sm" id="patientIdInput" type="text" placeholder="病歷號" oninput="updateSummary()">
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">🔖 院內碼</div>
+    <div class="inner-code-display" id="innerCodeDisplay">
+      <span class="inner-code-value empty" id="innerCodeValue">請先選擇醫院與部位</span>
+      <button class="edit-btn" id="editCodeBtn" onclick="toggleEditCode()" style="display:none">編輯</button>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:8px;">
+    <div class="card-label">⚙ N8N Webhook 設定</div>
+    <div style="display:flex;gap:8px;">
+      <input id="manualWebhookInput" type="url" style="flex:1;padding:10px 14px;border:2px solid var(--border);border-radius:10px;font-size:13px;font-family:'JetBrains Mono',monospace;outline:none;background:var(--bg);color:var(--text);" placeholder="貼上 N8N Webhook URL">
+      <button onclick="saveManualWebhook()" style="padding:10px 16px;background:var(--accent);color:white;border:none;border-radius:10px;font-size:13px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;white-space:nowrap;">儲存</button>
+    </div>
+  </div>
+</div>
+
+<div class="submit-area">
+  <button class="submit-btn" id="submitBtn" onclick="submitForm()"><span>✅</span><span>確認報刀</span></button>
+</div>
+
+<script>
+const BUWEI_LIST = ['鎖骨','上肢','長骨','小骨','下肢','埋頭釘','骨釘','人工骨','VA'];
+const WEEKDAYS = ['日','一','二','三','四','五','六'];
+const MANUAL_WEBHOOK_KEY = 'tandry_manual_webhook';
+
+let currentDate = new Date();
+let selectedHospital = '', selectedBuwei = '', selectedProduct = '';
+let qty = 1, innerCode = '', editingCode = false;
+let currentSales = localStorage.getItem('tandry_sales_current') || '';
+let salesList = JSON.parse(localStorage.getItem('tandry_sales_list') || '["Ivan","Juan"]');
+let currentWarehouse = localStorage.getItem('tandry_warehouse_current') || '';
+let salesWarehouseMap = JSON.parse(localStorage.getItem('tandry_sales_warehouse_map') || '{}');
+let supportMode = false;
+let selectedZone = '';
+
+const rulesDb = [
+  {品號:'T2-441-074',部位:'鎖骨',醫師:'陳俊仰',醫院:'聖保祿',院內碼:'OS0211A',部位_院內碼:'鎖骨'},
+  {品號:'T2-441-075',部位:'鎖骨',醫師:'洪偉翔',醫院:'聖保祿',院內碼:'OS0211B',部位_院內碼:'鎖骨'},
+  {品號:'T2-441-076',部位:'鎖骨',醫師:'劉欣彤',醫院:'桃榮',院內碼:'OS0211C',部位_院內碼:'鎖骨'},
+  {品號:'T2-441-077',部位:'鎖骨',醫師:'陳裕中',醫院:'桃榮',院內碼:'OS0211D',部位_院內碼:'鎖骨'},
+  {品號:'T2-441-094',部位:'鎖骨',醫師:'黃振邦',醫院:'桃榮',院內碼:'OS0211E',部位_院內碼:'鎖骨'},
+  {品號:'T2-441-095',部位:'鎖骨',醫師:'朱正民',醫院:'中壢長榮',院內碼:'OS0211F',部位_院內碼:'鎖骨'},
+  {品號:'T2-441-096',部位:'鎖骨',醫師:'黃紀倫',醫院:'華揚',院內碼:'MHRSTF',部位_院內碼:'鎖骨'},
+  {品號:'T2-441-097',部位:'鎖骨',醫師:'章建民',醫院:'華揚',院內碼:'OSBG03',部位_院內碼:'鎖骨'},
+  {品號:'T2-04-112-080',部位:'鎖骨',醫師:'李宏滿',醫院:'804',院內碼:'OS0211A',部位_院內碼:'鎖骨'},
+  {品號:'T2-04-112-081',部位:'鎖骨',醫師:'史瑞田',醫院:'804',院內碼:'OS0211B',部位_院內碼:'鎖骨'},
+  {品號:'T2-04-112-082',部位:'鎖骨',醫師:'洪生財',醫院:'804',院內碼:'OS0211C',部位_院內碼:'鎖骨'},
+  {品號:'T2-04-112-083',部位:'鎖骨',醫師:'鄭國中',醫院:'804',院內碼:'OS0211D',部位_院內碼:'鎖骨'},
+  {品號:'T2-04-112-084',部位:'鎖骨',醫師:'廖宗澄',醫院:'804',院內碼:'OS0211E',部位_院內碼:'鎖骨'},
+  {品號:'T2-04-112-085',部位:'鎖骨',醫師:'李龍興',醫院:'804',院內碼:'OS0211F',部位_院內碼:'鎖骨'},
+  {品號:'T2-04-112-010',部位:'鎖骨',醫師:'蕭智威',醫院:'804',院內碼:'MHRSTF',部位_院內碼:'鎖骨'},
+  {品號:'T2-04-112-011',部位:'鎖骨',醫師:'曾俊翔',醫院:'804',院內碼:'OSBG03',部位_院內碼:'鎖骨'},
+  {品號:'T2-04-112-012',部位:'鎖骨',醫師:'小郭',醫院:'804',院內碼:'OS0211A',部位_院內碼:'鎖骨'},
+  {品號:'T2-04-112-013',部位:'鎖骨',醫師:'何慶安',醫院:'仁慈',院內碼:'OS0211B',部位_院內碼:'鎖骨'},
+  {品號:'T2-04-112-008',部位:'鎖骨',醫師:'陳俊橋',醫院:'仁慈',院內碼:'OS0211C',部位_院內碼:'鎖骨'},
+  {品號:'T2-04-112-009',部位:'鎖骨',醫師:'黃盈誠',醫院:'東元',院內碼:'OS0211D',部位_院內碼:'鎖骨'},
+  {品號:'T2-04-112-018',部位:'鎖骨',醫師:'施韋伃',醫院:'東元',院內碼:'OS0211E',部位_院內碼:'鎖骨'},
+  {品號:'T2-04-112-019',部位:'鎖骨',醫師:'張耀元',醫院:'東元',院內碼:'OS0211F',部位_院內碼:'鎖骨'},
+  {品號:'T2-441-901',部位:'上肢',醫師:'劉漢明',醫院:'東元',院內碼:'MHRSTF',部位_院內碼:'上肢'},
+  {品號:'T2-441-902',部位:'上肢',醫師:'王鍵元',醫院:'中國新竹',院內碼:'OSBG03',部位_院內碼:'上肢'},
+  {品號:'T2-441-904',部位:'上肢',醫師:'楊子正',醫院:'中國新竹',院內碼:'D1240NP',部位_院內碼:'上肢'},
+  {品號:'T2-436-502',部位:'上肢',醫師:'曾宗煒',醫院:'中國新竹',院內碼:'D1241NP',部位_院內碼:'上肢'},
+  {品號:'T2-436-503',部位:'上肢',醫師:'陳冠融',醫院:'中國新竹',院內碼:'D1242NP',部位_院內碼:'上肢'},
+  {品號:'T2-436-504',部位:'上肢',醫師:'陳威仁',醫院:'中國新竹',院內碼:'D1243NP',部位_院內碼:'上肢'},
+  {品號:'T2-436-505',部位:'上肢',醫師:'葉詩翰',醫院:'中國新竹',院內碼:'D1244NP',部位_院內碼:'上肢'},
+  {品號:'T2-436-506',部位:'上肢',醫師:'廖伯峯',醫院:'怡仁',院內碼:'D1317FB',部位_院內碼:'上肢'},
+  {品號:'T2-436-507',部位:'上肢',醫師:'李承翰',醫院:'怡仁',院內碼:'18258893',部位_院內碼:'上肢'},
+  {品號:'T2-441-274',部位:'上肢',醫師:'楊崇光',醫院:'中天',院內碼:'18258896',部位_院內碼:'上肢'},
+  {品號:'T2-441-275',部位:'上肢',醫師:'林世惟',醫院:'中天',院內碼:'18258894',部位_院內碼:'上肢'},
+  {品號:'T2-441-276',部位:'上肢',醫師:'陳榮貴',醫院:'中天',院內碼:'18258895',部位_院內碼:'上肢'},
+  {品號:'T2-441-277',部位:'上肢',醫師:'林重道',醫院:'中天',院內碼:'18258897',部位_院內碼:'上肢'},
+  {品號:'T2-441-278',部位:'上肢',醫師:'陳宗偉',醫院:'中天',院內碼:'18258898',部位_院內碼:'上肢'},
+  {品號:'T2-441-279',部位:'上肢',醫師:'譚傳明',醫院:'楊天',院內碼:'18258892',部位_院內碼:'上肢'},
+  {品號:'T2-441-282',部位:'上肢',醫師:'馮輝賢',醫院:'楊天',院內碼:'1030371',部位_院內碼:'上肢'},
+  {品號:'T2-441-283',部位:'上肢',醫師:'范國豐',醫院:'天祥',院內碼:'1030372',部位_院內碼:'上肢'},
+  {品號:'T2-441-284',部位:'上肢',醫師:'張曜任',醫院:'南門',院內碼:'1030373',部位_院內碼:'上肢'},
+  {品號:'T2-441-285',部位:'上肢',醫師:'莊永清',醫院:'南門',院內碼:'1030374',部位_院內碼:'上肢'},
+  {品號:'T2-441-286',部位:'上肢',醫師:'郭峻郎',醫院:'813',院內碼:'1030375',部位_院內碼:'上肢'},
+  {品號:'T2-441-287',部位:'上肢',醫師:'劉昰國',醫院:'重光',院內碼:'1030376',部位_院內碼:'上肢'},
+  {品號:'T2-423-551',部位:'長骨',醫師:'張東祥',醫院:'慈祐',院內碼:'1030377',部位_院內碼:'長骨'},
+  {品號:'T2-423-561',部位:'長骨',醫師:'林俊良',醫院:'慈祐',院內碼:'M044338',部位_院內碼:'長骨'},
+  {品號:'T2-423-571',部位:'長骨',醫師:'謝天傑',醫院:'部苗',院內碼:'M044339',部位_院內碼:'長骨'},
+  {品號:'T2-423-581',部位:'長骨',醫師:'汪家成',醫院:'部苗',院內碼:'M044340',部位_院內碼:'長骨'},
+  {品號:'T2-423-601',部位:'長骨',醫師:'范姜治雲',醫院:'大千',院內碼:'M044341',部位_院內碼:'長骨'},
+  {品號:'T2-423-621',部位:'長骨',醫師:'劉少政',醫院:'大千',院內碼:'M044342',部位_院內碼:'長骨'},
+  {品號:'T2-445-052',部位:'長骨',醫師:'陳俊橋',醫院:'新光',院內碼:'M044343',部位_院內碼:'長骨'},
+  {品號:'T2-445-062',部位:'長骨',醫師:'彭廷揚',醫院:'中天',院內碼:'M044111',部位_院內碼:'長骨'},
+  {品號:'T2-445-072',部位:'長骨',醫師:'游敬孝',醫院:'部桃',院內碼:'B006187002',部位_院內碼:'長骨'},
+  {品號:'T2-445-082',部位:'長骨',醫師:'吳鴻康',醫院:'部桃',院內碼:'B006187004',部位_院內碼:'長骨'},
+  {品號:'T2-445-102',部位:'長骨',醫師:'徐千甯',醫院:'部桃',院內碼:'B006187005',部位_院內碼:'長骨'},
+  {品號:'T2-445-122',部位:'長骨',醫師:'施秉鋈',醫院:'聯新',院內碼:'B09228NNTF',部位_院內碼:'長骨'},
+  {品號:'T2-445-162',部位:'長骨',醫師:'侯咸仰',醫院:'聯新',院內碼:'',部位_院內碼:'長骨'},
+  {品號:'T2-445-182',部位:'長骨',醫師:'鄭向恆',醫院:'聯新',院內碼:'',部位_院內碼:'長骨'},
+  {品號:'T2-445-202',部位:'長骨',醫師:'惠如姊',醫院:'聯新',院內碼:'',部位_院內碼:'長骨'},
+  {品號:'T2-441-361',部位:'長骨',醫師:'賈維焯',醫院:'新竹台大',院內碼:'',部位_院內碼:'長骨'},
+  {品號:'T2-441-381',部位:'長骨',醫師:'吳俊毅',醫院:'新竹台大',院內碼:'',部位_院內碼:'長骨'},
+  {品號:'T2-441-401',部位:'長骨',醫師:'藍敏書',醫院:'敏盛',院內碼:'',部位_院內碼:'長骨'},
+  {品號:'T2-426-561',部位:'長骨',醫師:'謝義禾',醫院:'敏盛',院內碼:'',部位_院內碼:'長骨'},
+  {品號:'T2-426-581',部位:'長骨',醫師:'',醫院:'',院內碼:'',部位_院內碼:'長骨'},
+  {品號:'T2-426-601',部位:'長骨',醫師:'',醫院:'',院內碼:'',部位_院內碼:'長骨'},
+  {品號:'T2-426-621',部位:'長骨',醫師:'',醫院:'',院內碼:'',部位_院內碼:'長骨'},
+  {品號:'T2-04-114-002',部位:'小骨',醫師:'',醫院:'',院內碼:'',部位_院內碼:'小骨'},{品號:'T2-04-114-003',部位:'小骨',醫師:'',醫院:'',院內碼:'',部位_院內碼:'小骨'},{品號:'T2-04-114-004',部位:'小骨',醫師:'',醫院:'',院內碼:'',部位_院內碼:'小骨'},{品號:'T2-04-114-005',部位:'小骨',醫師:'',醫院:'',院內碼:'',部位_院內碼:'小骨'},{品號:'T2-04-114-007',部位:'小骨',醫師:'',醫院:'',院內碼:'',部位_院內碼:'小骨'},{品號:'T2-04-114-008',部位:'小骨',醫師:'',醫院:'',院內碼:'',部位_院內碼:'小骨'},{品號:'T2-04-114-014',部位:'小骨',醫師:'',醫院:'',院內碼:'',部位_院內碼:'小骨'},{品號:'T2-04-114-009',部位:'小骨',醫師:'',醫院:'',院內碼:'',部位_院內碼:'小骨'},{品號:'T2-04-114-010',部位:'小骨',醫師:'',醫院:'',院內碼:'',部位_院內碼:'小骨'},{品號:'T2-447-344',部位:'小骨',醫師:'',醫院:'',院內碼:'',部位_院內碼:'小骨'},{品號:'T2-447-345',部位:'小骨',醫師:'',醫院:'',院內碼:'',部位_院內碼:'小骨'},{品號:'T2-447-346',部位:'小骨',醫師:'',醫院:'',院內碼:'',部位_院內碼:'小骨'},{品號:'T2-447-347',部位:'小骨',醫師:'',醫院:'',院內碼:'',部位_院內碼:'小骨'},{品號:'T2-447-348',部位:'小骨',醫師:'',醫院:'',院內碼:'',部位_院內碼:'小骨'},{品號:'T2-447-349',部位:'小骨',醫師:'',醫院:'',院內碼:'',部位_院內碼:'小骨'},{品號:'T2-447-615',部位:'小骨',醫師:'',醫院:'',院內碼:'',部位_院內碼:'小骨'},{品號:'T2-04-111-620',部位:'小骨',醫師:'',醫院:'',院內碼:'',部位_院內碼:'小骨'},{品號:'T2-04-111-621',部位:'小骨',醫師:'',醫院:'',院內碼:'',部位_院內碼:'小骨'},{品號:'T2-04-111-630',部位:'小骨',醫師:'',醫院:'',院內碼:'',部位_院內碼:'小骨'},{品號:'T2-04-111-631',部位:'小骨',醫師:'',醫院:'',院內碼:'',部位_院內碼:'小骨'},{品號:'T2-04-111-660',部位:'小骨',醫師:'',醫院:'',院內碼:'',部位_院內碼:'小骨'},{品號:'T2-04-111-661',部位:'小骨',醫師:'',醫院:'',院內碼:'',部位_院內碼:'小骨'},{品號:'T2-04-111-680',部位:'小骨',醫師:'',醫院:'',院內碼:'',部位_院內碼:'小骨'},{品號:'T2-04-111-681',部位:'小骨',醫師:'',醫院:'',院內碼:'',部位_院內碼:'小骨'},{品號:'T2-442-491',部位:'小骨',醫師:'',醫院:'',院內碼:'',部位_院內碼:'小骨'},{品號:'T2-442-492',部位:'小骨',醫師:'',醫院:'',院內碼:'',部位_院內碼:'小骨'},{品號:'T2-442-493',部位:'小骨',醫師:'',醫院:'',院內碼:'',部位_院內碼:'小骨'},{品號:'T2-442-494',部位:'小骨',醫師:'',醫院:'',院內碼:'',部位_院內碼:'小骨'},{品號:'T2-04-112-138',部位:'小骨',醫師:'',醫院:'',院內碼:'',部位_院內碼:'小骨'},{品號:'T2-04-112-139',部位:'小骨',醫師:'',醫院:'',院內碼:'',部位_院內碼:'小骨'},{品號:'T2-04-112-142',部位:'小骨',醫師:'',醫院:'',院內碼:'',部位_院內碼:'小骨'},{品號:'T2-04-112-143',部位:'小骨',醫師:'',醫院:'',院內碼:'',部位_院內碼:'小骨'},{品號:'T2-04-112-146',部位:'小骨',醫師:'',醫院:'',院內碼:'',部位_院內碼:'小骨'},{品號:'T2-04-112-147',部位:'小骨',醫師:'',醫院:'',院內碼:'',部位_院內碼:'小骨'},{品號:'T2-441-690',部位:'小骨',醫師:'',醫院:'',院內碼:'',部位_院內碼:'小骨'},{品號:'T2-441-691',部位:'小骨',醫師:'',醫院:'',院內碼:'',部位_院內碼:'小骨'},{品號:'T2-441-692',部位:'小骨',醫師:'',醫院:'',院內碼:'',部位_院內碼:'小骨'},{品號:'T2-441-680',部位:'小骨',醫師:'',醫院:'',院內碼:'',部位_院內碼:'小骨'},{品號:'T2-441-681',部位:'小骨',醫師:'',醫院:'',院內碼:'',部位_院內碼:'小骨'},{品號:'T2-441-682',部位:'小骨',醫師:'',醫院:'',院內碼:'',部位_院內碼:'小骨'},{品號:'T2-441-683',部位:'小骨',醫師:'',醫院:'',院內碼:'',部位_院內碼:'小骨'},{品號:'T2-441-684',部位:'小骨',醫師:'',醫院:'',院內碼:'',部位_院內碼:'小骨'},{品號:'T2-441-685',部位:'小骨',醫師:'',醫院:'',院內碼:'',部位_院內碼:'小骨'},
+  {品號:'T2-422-250',部位:'下肢',醫師:'',醫院:'',院內碼:'',部位_院內碼:'下肢'},{品號:'T2-422-251',部位:'下肢',醫師:'',醫院:'',院內碼:'',部位_院內碼:'下肢'},{品號:'T2-422-252',部位:'下肢',醫師:'',醫院:'',院內碼:'',部位_院內碼:'下肢'},{品號:'T2-422-253',部位:'下肢',醫師:'',醫院:'',院內碼:'',部位_院內碼:'下肢'},{品號:'T2-422-254',部位:'下肢',醫師:'',醫院:'',院內碼:'',部位_院內碼:'下肢'},{品號:'T2-422-255',部位:'下肢',醫師:'',醫院:'',院內碼:'',部位_院內碼:'下肢'},{品號:'T2-422-256',部位:'下肢',醫師:'',醫院:'',院內碼:'',部位_院內碼:'下肢'},{品號:'T2-422-257',部位:'下肢',醫師:'',醫院:'',院內碼:'',部位_院內碼:'下肢'},{品號:'T2-422-258',部位:'下肢',醫師:'',醫院:'',院內碼:'',部位_院內碼:'下肢'},{品號:'T2-422-259',部位:'下肢',醫師:'',醫院:'',院內碼:'',部位_院內碼:'下肢'},{品號:'T2-04-422-222',部位:'下肢',醫師:'',醫院:'',院內碼:'',部位_院內碼:'下肢'},{品號:'T2-04-422-223',部位:'下肢',醫師:'',醫院:'',院內碼:'',部位_院內碼:'下肢'},{品號:'T2-04-422-224',部位:'下肢',醫師:'',醫院:'',院內碼:'',部位_院內碼:'下肢'},{品號:'T2-04-422-226',部位:'下肢',醫師:'',醫院:'',院內碼:'',部位_院內碼:'下肢'},{品號:'T2-440-036',部位:'下肢',醫師:'',醫院:'',院內碼:'',部位_院內碼:'下肢'},{品號:'T2-440-037',部位:'下肢',醫師:'',醫院:'',院內碼:'',部位_院內碼:'下肢'},{品號:'T2-440-038',部位:'下肢',醫師:'',醫院:'',院內碼:'',部位_院內碼:'下肢'},{品號:'T2-440-039',部位:'下肢',醫師:'',醫院:'',院內碼:'',部位_院內碼:'下肢'},{品號:'T2-440-040',部位:'下肢',醫師:'',醫院:'',院內碼:'',部位_院內碼:'下肢'},{品號:'T2-440-041',部位:'下肢',醫師:'',醫院:'',院內碼:'',部位_院內碼:'下肢'},{品號:'T2-440-042',部位:'下肢',醫師:'',醫院:'',院內碼:'',部位_院內碼:'下肢'},{品號:'T2-440-043',部位:'下肢',醫師:'',醫院:'',院內碼:'',部位_院內碼:'下肢'},{品號:'T2-440-044',部位:'下肢',醫師:'',醫院:'',院內碼:'',部位_院內碼:'下肢'},{品號:'T2-440-045',部位:'下肢',醫師:'',醫院:'',院內碼:'',部位_院內碼:'下肢'},{品號:'T2-439-984',部位:'下肢',醫師:'',醫院:'',院內碼:'',部位_院內碼:'下肢'},{品號:'T2-439-985',部位:'下肢',醫師:'',醫院:'',院內碼:'',部位_院內碼:'下肢'},{品號:'T2-439-986',部位:'下肢',醫師:'',醫院:'',院內碼:'',部位_院內碼:'下肢'},{品號:'T2-439-987',部位:'下肢',醫師:'',醫院:'',院內碼:'',部位_院內碼:'下肢'},{品號:'T2-439-988',部位:'下肢',醫師:'',醫院:'',院內碼:'',部位_院內碼:'下肢'},{品號:'T2-439-989',部位:'下肢',醫師:'',醫院:'',院內碼:'',部位_院內碼:'下肢'},{品號:'T2-439-990',部位:'下肢',醫師:'',醫院:'',院內碼:'',部位_院內碼:'下肢'},{品號:'T2-439-991',部位:'下肢',醫師:'',醫院:'',院內碼:'',部位_院內碼:'下肢'},{品號:'T2-439-992',部位:'下肢',醫師:'',醫院:'',院內碼:'',部位_院內碼:'下肢'},{品號:'T2-439-993',部位:'下肢',醫師:'',醫院:'',院內碼:'',部位_院內碼:'下肢'},{品號:'T2-441-442',部位:'下肢',醫師:'',醫院:'',院內碼:'',部位_院內碼:'下肢'},{品號:'T2-441-443',部位:'下肢',醫師:'',醫院:'',院內碼:'',部位_院內碼:'下肢'},{品號:'T2-441-444',部位:'下肢',醫師:'',醫院:'',院內碼:'',部位_院內碼:'下肢'},{品號:'T2-441-445',部位:'下肢',醫師:'',醫院:'',院內碼:'',部位_院內碼:'下肢'},{品號:'T2-441-446',部位:'下肢',醫師:'',醫院:'',院內碼:'',部位_院內碼:'下肢'},{品號:'T2-441-447',部位:'下肢',醫師:'',醫院:'',院內碼:'',部位_院內碼:'下肢'},{品號:'T2-04-112-514',部位:'下肢',醫師:'',醫院:'',院內碼:'',部位_院內碼:'下肢'},{品號:'T2-04-112-515',部位:'下肢',醫師:'',醫院:'',院內碼:'',部位_院內碼:'下肢'},{品號:'T2-04-112-518',部位:'下肢',醫師:'',醫院:'',院內碼:'',部位_院內碼:'下肢'},{品號:'T2-04-112-519',部位:'下肢',醫師:'',醫院:'',院內碼:'',部位_院內碼:'下肢'},{品號:'T2-04-112-522',部位:'下肢',醫師:'',醫院:'',院內碼:'',部位_院內碼:'下肢'},{品號:'T2-04-112-523',部位:'下肢',醫師:'',醫院:'',院內碼:'',部位_院內碼:'下肢'},{品號:'T2-04-112-526',部位:'下肢',醫師:'',醫院:'',院內碼:'',部位_院內碼:'下肢'},{品號:'T2-04-112-527',部位:'下肢',醫師:'',醫院:'',院內碼:'',部位_院內碼:'下肢'},{品號:'T2-04-112-530',部位:'下肢',醫師:'',醫院:'',院內碼:'',部位_院內碼:'下肢'},{品號:'T2-04-112-531',部位:'下肢',醫師:'',醫院:'',院內碼:'',部位_院內碼:'下肢'},{品號:'T2-441-610',部位:'下肢',醫師:'',醫院:'',院內碼:'',部位_院內碼:'下肢'},{品號:'T2-441-611',部位:'下肢',醫師:'',醫院:'',院內碼:'',部位_院內碼:'下肢'},
+  {品號:'T04280-008',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},{品號:'T04280-009',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},{品號:'T04280-010',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},{品號:'T04280-011',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},{品號:'T04280-012',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},{品號:'T04280-014',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},{品號:'T04280-016',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},{品號:'T04280-018',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},{品號:'T04280-020',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},{品號:'T04280-022',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},{品號:'T04280-024',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},{品號:'T04280-026',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},{品號:'T04280-028',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},{品號:'T04280-030',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},{品號:'T04360-016',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},{品號:'T04360-018',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},{品號:'T04360-020',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},{品號:'T04360-022',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},{品號:'T04360-024',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},{品號:'T04360-026',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},{品號:'T04360-028',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},{品號:'T04360-030',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},{品號:'T04360-032',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},{品號:'T04360-034',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},{品號:'T04360-038',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},{品號:'T04360-042',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},{品號:'T04360-046',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},{品號:'T04360-050',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},{品號:'T04470-030',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},{品號:'T04470-032',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},{品號:'T04470-034',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},{品號:'T04470-036',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},{品號:'T04470-038',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},{品號:'T04470-040',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},{品號:'T04470-042',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},{品號:'T04470-044',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},{品號:'T04470-046',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},{品號:'T04470-048',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},{品號:'T04470-050',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},{品號:'T04470-055',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},{品號:'T04470-060',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},{品號:'T04470-065',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},{品號:'T04470-070',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},{品號:'T04550-035',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},{品號:'T04550-040',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},{品號:'T04550-045',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},{品號:'T04550-050',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},{品號:'T04550-055',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},{品號:'T04550-060',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},{品號:'T04550-065',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},{品號:'T04550-070',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},{品號:'T04550-075',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},{品號:'T04550-080',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},{品號:'T04750-065',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},{品號:'T04750-070',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},{品號:'T04750-075',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},{品號:'T04750-080',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},{品號:'T04750-085',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},{品號:'T04750-090',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},{品號:'T04750-095',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},{品號:'T04750-100',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},{品號:'T04750-105',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},{品號:'T04750-110',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},{品號:'T0415-007',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},{品號:'T0415-008',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},{品號:'T0415-009',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},{品號:'T0415-010',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},{品號:'T0415-011',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},{品號:'T0415-012',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},{品號:'T0415-014',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},{品號:'T0415-016',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},{品號:'T0415-018',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},{品號:'T0415-020',部位:'埋頭釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'埋頭釘'},
+  {品號:'LCMBPCC06200',部位:'人工骨',醫師:'',醫院:'',院內碼:'',部位_院內碼:'人工骨'},
+  {品號:'471901K-V00',部位:'VA',醫師:'',醫院:'',院內碼:'',部位_院內碼:'VA'},
+  {品號:'$$$',部位:'骨釘',醫師:'',醫院:'',院內碼:'',部位_院內碼:'骨釘'},
+];
+
+const innerCodeDb = [
+  {院內碼:'OS0211A',院內碼_醫院:'中天',部位_院內碼:'鎖骨',大區:'桃竹苗',負責業務:'Ivan'},
+  {院內碼:'OS0211B',院內碼_醫院:'中天',部位_院內碼:'上肢',大區:'桃竹苗',負責業務:'Ivan'},
+  {院內碼:'OS0211C',院內碼_醫院:'中天',部位_院內碼:'長骨',大區:'桃竹苗',負責業務:'Ivan'},
+  {院內碼:'OS0211D',院內碼_醫院:'中天',部位_院內碼:'小骨',大區:'桃竹苗',負責業務:'Ivan'},
+  {院內碼:'OS0211E',院內碼_醫院:'中天',部位_院內碼:'下肢',大區:'桃竹苗',負責業務:'Ivan'},
+  {院內碼:'OS0211F',院內碼_醫院:'中天',部位_院內碼:'骨釘',大區:'桃竹苗',負責業務:'Ivan'},
+  {院內碼:'MHRSTF', 院內碼_醫院:'中天',部位_院內碼:'埋頭釘',大區:'桃竹苗',負責業務:'Ivan'},
+  {院內碼:'OSBG03', 院內碼_醫院:'中天',部位_院內碼:'骨粉0.6',大區:'桃竹苗',負責業務:'Ivan'},
+  {院內碼:'OS0211A',院內碼_醫院:'楊天',部位_院內碼:'鎖骨',大區:'桃竹苗',負責業務:'Ivan'},
+  {院內碼:'OS0211B',院內碼_醫院:'楊天',部位_院內碼:'上肢',大區:'桃竹苗',負責業務:'Ivan'},
+  {院內碼:'OS0211C',院內碼_醫院:'楊天',部位_院內碼:'長骨',大區:'桃竹苗',負責業務:'Ivan'},
+  {院內碼:'OS0211D',院內碼_醫院:'楊天',部位_院內碼:'小骨',大區:'桃竹苗',負責業務:'Ivan'},
+  {院內碼:'OS0211E',院內碼_醫院:'楊天',部位_院內碼:'下肢',大區:'桃竹苗',負責業務:'Ivan'},
+  {院內碼:'OS0211F',院內碼_醫院:'楊天',部位_院內碼:'骨釘',大區:'桃竹苗',負責業務:'Ivan'},
+  {院內碼:'MHRSTF', 院內碼_醫院:'楊天',部位_院內碼:'埋頭釘',大區:'桃竹苗',負責業務:'Ivan'},
+  {院內碼:'OSBG03', 院內碼_醫院:'楊天',部位_院內碼:'骨粉0.6',大區:'桃竹苗',負責業務:'Ivan'},
+  {院內碼:'OS0211A',院內碼_醫院:'天祥',部位_院內碼:'鎖骨',大區:'桃竹苗',負責業務:'Ivan'},
+  {院內碼:'OS0211B',院內碼_醫院:'天祥',部位_院內碼:'上肢',大區:'桃竹苗',負責業務:'Ivan'},
+  {院內碼:'OS0211C',院內碼_醫院:'天祥',部位_院內碼:'長骨',大區:'桃竹苗',負責業務:'Ivan'},
+  {院內碼:'OS0211D',院內碼_醫院:'天祥',部位_院內碼:'小骨',大區:'桃竹苗',負責業務:'Ivan'},
+  {院內碼:'OS0211E',院內碼_醫院:'天祥',部位_院內碼:'下肢',大區:'桃竹苗',負責業務:'Ivan'},
+  {院內碼:'OS0211F',院內碼_醫院:'天祥',部位_院內碼:'骨釘',大區:'桃竹苗',負責業務:'Ivan'},
+  {院內碼:'MHRSTF', 院內碼_醫院:'天祥',部位_院內碼:'埋頭釘',大區:'桃竹苗',負責業務:'Ivan'},
+  {院內碼:'OSBG03', 院內碼_醫院:'天祥',部位_院內碼:'骨粉0.6',大區:'桃竹苗',負責業務:'Ivan'},
+  {院內碼:'D1240NP',院內碼_醫院:'804',部位_院內碼:'鎖骨',大區:'桃竹苗',負責業務:'Kaley'},
+  {院內碼:'D1241NP',院內碼_醫院:'804',部位_院內碼:'上肢',大區:'桃竹苗',負責業務:'Kaley'},
+  {院內碼:'D1242NP',院內碼_醫院:'804',部位_院內碼:'長骨',大區:'桃竹苗',負責業務:'Kaley'},
+  {院內碼:'D1243NP',院內碼_醫院:'804',部位_院內碼:'小骨',大區:'桃竹苗',負責業務:'Kaley'},
+  {院內碼:'D1244NP',院內碼_醫院:'804',部位_院內碼:'下肢',大區:'桃竹苗',負責業務:'Kaley'},
+  {院內碼:'D1317FB',院內碼_醫院:'804',部位_院內碼:'埋頭釘',大區:'桃竹苗',負責業務:'Kaley'},
+  {院內碼:'18258893',院內碼_醫院:'中國新竹',部位_院內碼:'鎖骨',大區:'桃竹苗',負責業務:'Dino'},
+  {院內碼:'18258896',院內碼_醫院:'中國新竹',部位_院內碼:'上肢',大區:'桃竹苗',負責業務:'Dino'},
+  {院內碼:'18258894',院內碼_醫院:'中國新竹',部位_院內碼:'長骨',大區:'桃竹苗',負責業務:'Dino'},
+  {院內碼:'18258895',院內碼_醫院:'中國新竹',部位_院內碼:'小骨',大區:'桃竹苗',負責業務:'Dino'},
+  {院內碼:'18258897',院內碼_醫院:'中國新竹',部位_院內碼:'下肢',大區:'桃竹苗',負責業務:'Dino'},
+  {院內碼:'18258898',院內碼_醫院:'中國新竹',部位_院內碼:'骨釘',大區:'桃竹苗',負責業務:'Dino'},
+  {院內碼:'18258892',院內碼_醫院:'中國新竹',部位_院內碼:'埋頭釘',大區:'桃竹苗',負責業務:'Dino'},
+  {院內碼:'1030371',院內碼_醫院:'仁慈',部位_院內碼:'鎖骨',大區:'桃竹苗',負責業務:'Dino'},
+  {院內碼:'1030372',院內碼_醫院:'仁慈',部位_院內碼:'上肢',大區:'桃竹苗',負責業務:'Dino'},
+  {院內碼:'1030373',院內碼_醫院:'仁慈',部位_院內碼:'長骨',大區:'桃竹苗',負責業務:'Dino'},
+  {院內碼:'1030374',院內碼_醫院:'仁慈',部位_院內碼:'小骨',大區:'桃竹苗',負責業務:'Dino'},
+  {院內碼:'1030375',院內碼_醫院:'仁慈',部位_院內碼:'下肢',大區:'桃竹苗',負責業務:'Dino'},
+  {院內碼:'1030376',院內碼_醫院:'仁慈',部位_院內碼:'骨釘',大區:'桃竹苗',負責業務:'Dino'},
+  {院內碼:'1030377',院內碼_醫院:'仁慈',部位_院內碼:'埋頭釘',大區:'桃竹苗',負責業務:'Dino'},
+  {院內碼:'M044338',院內碼_醫院:'怡仁',部位_院內碼:'鎖骨',大區:'桃竹苗',負責業務:'Dino'},
+  {院內碼:'M044339',院內碼_醫院:'怡仁',部位_院內碼:'上肢',大區:'桃竹苗',負責業務:'Dino'},
+  {院內碼:'M044340',院內碼_醫院:'怡仁',部位_院內碼:'長骨',大區:'桃竹苗',負責業務:'Dino'},
+  {院內碼:'M044341',院內碼_醫院:'怡仁',部位_院內碼:'小骨',大區:'桃竹苗',負責業務:'Dino'},
+  {院內碼:'M044342',院內碼_醫院:'怡仁',部位_院內碼:'下肢',大區:'桃竹苗',負責業務:'Dino'},
+  {院內碼:'M044343',院內碼_醫院:'怡仁',部位_院內碼:'骨釘',大區:'桃竹苗',負責業務:'Dino'},
+  {院內碼:'M044111',院內碼_醫院:'怡仁',部位_院內碼:'埋頭釘',大區:'桃竹苗',負責業務:'Dino'},
+  {院內碼:'B006187002',院內碼_醫院:'東元',部位_院內碼:'上肢',大區:'桃竹苗',負責業務:'Dino'},
+  {院內碼:'B006187004',院內碼_醫院:'東元',部位_院內碼:'小骨',大區:'桃竹苗',負責業務:'Dino'},
+  {院內碼:'B006187005',院內碼_醫院:'東元',部位_院內碼:'下肢',大區:'桃竹苗',負責業務:'Dino'},
+  {院內碼:'B09228NNTF',院內碼_醫院:'東元',部位_院內碼:'埋頭釘',大區:'桃竹苗',負責業務:'Dino'},
+];
+
+window.onload = () => {
+  renderDate(); renderSalesBadge(); renderSalesList(); renderWarehouseList(); renderHospitals(); renderBuwei();
+  const sw = localStorage.getItem(MANUAL_WEBHOOK_KEY)||''; if (sw) document.getElementById('manualWebhookInput').value=sw;
+};
+
+function renderDate(){const y=currentDate.getFullYear(),m=currentDate.getMonth()+1,d=currentDate.getDate();document.getElementById('dateDisplay').textContent=`${y}/${m}/${d}`;document.getElementById('dateWeekday').textContent=`週${WEEKDAYS[currentDate.getDay()]}`;}
+function adjustDate(delta){currentDate.setDate(currentDate.getDate()+delta);renderDate();updateSummary();}
+function resetDate(){currentDate=new Date();renderDate();updateSummary();}
+function getDateStr(){const y=currentDate.getFullYear(),m=currentDate.getMonth()+1,d=currentDate.getDate();return `${y}/${m}/${d}`;}
+
+function renderSalesBadge(){document.getElementById('salesName').textContent=currentSales||'設定業務';const wb=document.getElementById('warehouseBadge');if(currentWarehouse){wb.textContent=currentWarehouse;wb.style.display='inline';}else wb.style.display='none';}
+function renderSalesList(){document.getElementById('salesList').innerHTML=salesList.map(s=>{const wh=salesWarehouseMap[s]?` · ${salesWarehouseMap[s]}`:'';return`<div class="sales-option ${s===currentSales?'selected':''}" onclick="selectSales('${s}')">${s}${wh}</div>`;}).join('');}
+function selectSales(name){currentSales=name;localStorage.setItem('tandry_sales_current',name);if(salesWarehouseMap[name]){currentWarehouse=salesWarehouseMap[name];localStorage.setItem('tandry_warehouse_current',currentWarehouse);}renderSalesBadge();renderSalesList();renderWarehouseList();updateSummary();}
+function addSales(){const val=document.getElementById('newSalesInput').value.trim();if(!val)return;if(!salesList.includes(val)){salesList.push(val);localStorage.setItem('tandry_sales_list',JSON.stringify(salesList));}selectSales(val);document.getElementById('newSalesInput').value='';renderSalesList();}
+function renderWarehouseList(){['桃庫','北庫'].forEach(wh=>{const el=document.getElementById(`wh-${wh}`);if(el)el.className=`sales-option ${currentWarehouse===wh?'selected':''}`;});}
+function selectWarehouse(wh){currentWarehouse=wh;localStorage.setItem('tandry_warehouse_current',wh);if(currentSales){salesWarehouseMap[currentSales]=wh;localStorage.setItem('tandry_sales_warehouse_map',JSON.stringify(salesWarehouseMap));}renderWarehouseList();renderSalesBadge();renderSalesList();updateSummary();}
+function openSalesModal(){document.getElementById('salesModal').classList.add('show');}
+function closeSalesModal(){document.getElementById('salesModal').classList.remove('show');}
+function closeSalesModalOutside(e){if(e.target===document.getElementById('salesModal'))closeSalesModal();}
+
+function toggleSupportMode(){
+  supportMode=!supportMode;
+  selectedHospital='';selectedZone='';
+  const btn=document.getElementById('supportBtn');
+  const zoneGrid=document.getElementById('zoneGrid');
+  if(supportMode){
+    btn.style.background='var(--accent2)';btn.style.color='white';
+    const zones=[...new Set(innerCodeDb.map(r=>r['大區']).filter(Boolean))];
+    zoneGrid.style.display='flex';zoneGrid.style.flexWrap='wrap';zoneGrid.style.gap='8px';
+    zoneGrid.innerHTML=zones.map(z=>`<button class="btn-option" onclick="selectZone('${z}')">${z}</button>`).join('');
+  }else{
+    btn.style.background='white';btn.style.color='var(--accent2)';
+    zoneGrid.style.display='none';zoneGrid.innerHTML='';
+  }
+  renderHospitals();renderDoctors();updateInnerCode();updateSummary();
+}
+
+function selectZone(z){
+  selectedZone=z;selectedHospital='';
+  const zones=[...new Set(innerCodeDb.map(r=>r['大區']).filter(Boolean))];
+  document.getElementById('zoneGrid').innerHTML=zones.map(zn=>`<button class="btn-option ${zn===selectedZone?'selected':''}" onclick="selectZone('${zn}')">${zn}</button>`).join('');
+  renderHospitals();renderDoctors();updateInnerCode();updateSummary();
+}
+
+function getHospitals(){
+  let all;
+  if(supportMode&&selectedZone){
+    all=[...new Set(innerCodeDb.filter(r=>r['大區']===selectedZone).map(r=>r['院內碼_醫院']).filter(Boolean))];
+    return{prioritized:[],rest:all};
+  }
+  if(supportMode){return{prioritized:[],rest:[]};}
+  all=[...new Set(innerCodeDb.filter(r=>r['負責業務']===currentSales).map(r=>r['院內碼_醫院']).filter(Boolean))];
+  const pk=`tandry_priority_${currentSales}`;const p=JSON.parse(localStorage.getItem(pk)||'[]');
+  return{prioritized:p.filter(h=>all.includes(h)),rest:all.filter(h=>!p.includes(h))};
+}
+function renderHospitals(){const{prioritized,rest}=getHospitals();const c=document.getElementById('hospitalGrid');c.innerHTML='';if(prioritized.length>0){prioritized.forEach(h=>{const b=document.createElement('button');b.className=`btn-option region-priority ${h===selectedHospital?'selected':''}`;b.textContent=h;b.onclick=()=>selectHospital(h);c.appendChild(b);});const s=document.createElement('div');s.style.cssText='width:100%;height:1px;background:var(--border);margin:4px 0;';c.appendChild(s);}rest.forEach(h=>{const b=document.createElement('button');b.className=`btn-option ${h===selectedHospital?'selected':''}`;b.textContent=h;b.onclick=()=>selectHospital(h);c.appendChild(b);});}
+function selectHospital(h){selectedHospital=h;document.getElementById('doctorSelect').value='';if(currentSales){const k=`tandry_priority_${currentSales}`;let p=JSON.parse(localStorage.getItem(k)||'[]');p=[h,...p.filter(x=>x!==h)].slice(0,5);localStorage.setItem(k,JSON.stringify(p));}renderHospitals();renderDoctors();updateInnerCode();updateSummary();}
+function renderDoctors(){const s=document.getElementById('doctorSelect');if(!selectedHospital){s.innerHTML='<option value="">— 請先選擇醫院 —</option>';return;}const d=[...new Set(rulesDb.filter(r=>r['醫院']===selectedHospital&&r['醫師']).map(r=>r['醫師']))];if(!d.length){s.innerHTML='<option value="">— 此醫院無醫師資料 —</option>';return;}s.innerHTML='<option value="">— 選擇醫師（可不選）—</option>'+d.map(x=>`<option value="${x}">${x}</option>`).join('');}
+
+function renderBuwei(){document.getElementById('buweiGrid').innerHTML=BUWEI_LIST.map(b=>`<button class="buwei-btn ${b===selectedBuwei?'selected':''}" onclick="selectBuwei('${b}')">${b}</button>`).join('');}
+function selectBuwei(b){selectedBuwei=b;qty=1;selectedProduct='';renderBuwei();renderProducts();updateInnerCode();updateQtyDisplay();updateSummary();document.getElementById('productSection').classList.add('show');}
+function renderProducts(){const s=document.getElementById('productSelect');const u=[...new Set(rulesDb.filter(r=>r['部位']===selectedBuwei||r['部位_院內碼']===selectedBuwei).map(r=>r['品號']).filter(Boolean))];s.innerHTML='<option value="">— 選擇品號（可不選）—</option>'+u.map(p=>`<option value="${p}">${p}</option>`).join('');s.value=selectedProduct;s.onchange=()=>{selectedProduct=s.value;updateSummary();};}
+function addProduct(){if(!selectedBuwei){showToast('請先選擇部位','error');return;}const r=innerCodeDb.find(x=>x['院內碼_醫院']===selectedHospital&&x['部位_院內碼']===selectedBuwei);productItems.push({buwei:selectedBuwei,product:selectedProduct,qty,innerCode,負責業務:r?r['負責業務']:currentSales,大區:r?r['大區']:''});selectedBuwei='';selectedProduct='';qty=1;renderBuwei();updateQtyDisplay();document.getElementById('productSection').classList.remove('show');updateInnerCode();renderProductList();updateSummary();showToast(`已加入：${productItems[productItems.length-1].buwei}`,'success');}
+function removeProduct(idx){productItems.splice(idx,1);renderProductList();updateSummary();}
+function renderProductList(){const l=document.getElementById('productList'),d=document.getElementById('productListDivider');if(!productItems.length){l.style.display='none';d.style.display='none';return;}l.style.display='flex';d.style.display='block';l.innerHTML=productItems.map((item,i)=>`<div class="product-list-item"><span class="item-buwei">${item.buwei}</span><span class="item-code">${item.product||'—'}${item.innerCode?' · '+item.innerCode:''}</span><span class="item-qty">×${item.qty}</span><button class="item-remove" onclick="removeProduct(${i})">×</button></div>`).join('');}
+function adjustQty(delta){qty=Math.max(1,qty+delta);updateQtyDisplay();updateSummary();}
+function updateQtyDisplay(){document.getElementById('qtyDisplay').textContent=qty;}
+
+function updateInnerCode(){if(!selectedHospital||!selectedBuwei){innerCode='';renderInnerCode();return;}const r=innerCodeDb.find(x=>x['院內碼_醫院']===selectedHospital&&x['部位_院內碼']===selectedBuwei);innerCode=r?(r['院內碼']||''):'';renderInnerCode();}
+function renderInnerCode(){const v=document.getElementById('innerCodeValue'),b=document.getElementById('editCodeBtn');if(editingCode)return;if(innerCode){v.className='inner-code-value';v.textContent=innerCode;b.style.display='block';}else if(selectedHospital&&selectedBuwei){v.className='inner-code-value empty';v.textContent='未找到對應院內碼';b.style.display='block';}else{v.className='inner-code-value empty';v.textContent='請先選擇醫院與部位';b.style.display='none';}}
+function toggleEditCode(){const d=document.getElementById('innerCodeDisplay');if(!editingCode){editingCode=true;d.innerHTML=`<input class="inner-code-input" id="innerCodeEditInput" value="${innerCode}" placeholder="輸入院內碼"><button class="edit-btn" id="editCodeBtn" onclick="toggleEditCode()" style="display:block">完成</button>`;document.getElementById('innerCodeEditInput').focus();}else{innerCode=document.getElementById('innerCodeEditInput').value.trim();editingCode=false;d.innerHTML=`<span class="inner-code-value${innerCode?'':' empty'}" id="innerCodeValue">${innerCode||'未設定'}</span><button class="edit-btn" id="editCodeBtn" onclick="toggleEditCode()" style="display:block">編輯</button>`;updateSummary();}}
+
+function updateSummary(){const card=document.getElementById('summaryCard'),content=document.getElementById('summaryContent');const base=[{label:'日期',val:getDateStr()},{label:'業務',val:currentSales},{label:'醫院',val:selectedHospital},{label:'病人',val:document.getElementById('patientInput')?.value}].filter(i=>i.val);const chips=productItems.map(item=>`<span style="background:rgba(230,57,70,0.15);color:#e63946;padding:4px 10px;border-radius:20px;font-size:12px;font-family:'JetBrains Mono',monospace;">${item.buwei} ×${item.qty}</span>`);if(base.length>1||productItems.length>0){card.style.display='block';content.innerHTML=base.map(i=>`<span style="background:rgba(255,255,255,0.15);padding:4px 10px;border-radius:20px;font-size:12px;font-family:'JetBrains Mono',monospace;">${i.label}: ${i.val}</span>`).join('')+chips.join('');}else card.style.display='none';}
+
+function submitForm(){const patient=document.getElementById('patientInput').value.trim();const patientId=document.getElementById('patientIdInput').value.trim();const doctor=document.getElementById('doctorSelect').value.trim();const webhookUrl=localStorage.getItem(MANUAL_WEBHOOK_KEY)||'';if(!selectedHospital){showToast('請選擇醫院','error');return;}if(!productItems.length&&!selectedBuwei){showToast('請至少加入一個產品','error');return;}if(!patient){showToast('請輸入病人姓名','error');return;}if(selectedBuwei)addProduct();const history=JSON.parse(localStorage.getItem('tandry_manual_history')||'[]');const btn=document.getElementById('submitBtn');btn.disabled=true;const total=productItems.length;const sendAll=async()=>{for(const item of productItems){const data={日期:getDateStr(),業務:currentSales,庫別:currentWarehouse,大區:item.大區||'',負責業務:item.負責業務||currentSales,醫院:selectedHospital,醫師:doctor,部位:item.buwei,品號:item.product,數量:item.qty,病人:patient,病歷號:patientId,院內碼:item.innerCode};history.unshift({...data,_time:new Date().toISOString()});if(webhookUrl){try{await fetch(webhookUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});}catch(e){console.error('送出失敗',e);}}}localStorage.setItem('tandry_manual_history',JSON.stringify(history.slice(0,100)));showToast(webhookUrl?`✅ 已送出 ${total} 筆至 Google Sheets`:`✅ 已儲存 ${total} 筆（尚未設定 Webhook）`,'success');btn.disabled=false;productItems=[];document.getElementById('patientInput').value='';document.getElementById('patientIdInput').value='';selectedBuwei='';selectedProduct='';qty=1;supportMode=false;selectedZone='';const sb=document.getElementById('supportBtn');if(sb){sb.style.background='white';sb.style.color='var(--accent2)';}document.getElementById('zoneGrid').style.display='none';renderBuwei();renderProductList();renderHospitals();updateQtyDisplay();document.getElementById('productSection').classList.remove('show');updateInnerCode();updateSummary();};sendAll();}
+function saveManualWebhook(){localStorage.setItem(MANUAL_WEBHOOK_KEY,document.getElementById('manualWebhookInput').value.trim());showToast('✅ Webhook URL 已儲存','success');}
+function showToast(msg,type=''){const t=document.getElementById('toast');t.textContent=msg;t.className=`toast show ${type}`;setTimeout(()=>t.className='toast',3000);}
+</script>
+</body>
+</html>
