@@ -565,27 +565,30 @@ try {
 
   sendAll();
 }
-</script>
-  function showToast(msg, type = '') {
-  const t = document.getElementById('toast');
+    function showToast(msg, type = '') {
+    const t = document.getElementById('toast');
 
-  if (!t) {
-    console.warn("找不到 toast 元素");
-    return;
+    if (!t) {
+      console.warn("找不到 toast 元素");
+      return;
+    }
+
+    let prefix = '';
+    if (type === 'success') prefix = '✅ ';
+    if (type === 'error') prefix = '❌ ';
+    if (type === 'warning') prefix = '⚠️ ';
+
+    t.textContent = prefix + msg;
+    t.className = `toast show ${type}`;
+
+    setTimeout(() => {
+      t.className = 'toast';
+    }, 3000);
   }
+  
+</script>
 
-  let prefix = '';
-  if (type === 'success') prefix = '✅ ';
-  if (type === 'error') prefix = '❌ ';
-  if (type === 'warning') prefix = '⚠️ ';
-
-  t.textContent = prefix + msg;
-  t.className = `toast show ${type}`;
-
-  setTimeout(() => {
-    t.className = 'toast';
-  }, 3000);
-}
+  
 </body>
   <div id="toast" class="toast"></div>
 </html>
