@@ -446,7 +446,7 @@ function submitForm(){
   const patientId = document.getElementById('patientIdInput').value.trim();
   const doctor = document.getElementById('doctorSelect').value.trim();
 
-  const webhookUrl = localStorage.getItem(MANUAL_WEBHOOK_KEY) || '';
+  const webhookUrl = "https://ydj.zeabur.app/webhook/manual-baodao";
 
   console.log("Webhook URL:", webhookUrl);
 
