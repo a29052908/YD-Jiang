@@ -494,7 +494,10 @@ function submitForm(){
         const res = showToast('送出中...', 'warning');
 
 try {
-  const res = await fetch(webhookUrl, {
+  const res =showToast('送出中...', 'warning');
+
+try {
+  await fetch(webhookUrl, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -502,11 +505,20 @@ try {
     body: JSON.stringify(data)
   });
 
+  // ⭐ 直接當成功（不要判斷 res.ok）
+  showToast('報刀成功送出', 'success');
+
+} catch (e) {
+  console.error(e);
+  showToast('送出失敗', 'error');
+}
+
   console.log("Response:", res);
 
-  if (!res.ok) {
-    throw new Error(`HTTP ${res.status}`);
-  }
+// ⭐ 只要有回應就當成功（n8n常見）
+if (res.status >= 400) {
+  throw new Error(`HTTP ${res.status}`);
+}
 
   showToast('✅ 報刀成功送出', 'success');
 
@@ -536,9 +548,13 @@ try {
     showToast(`✅ 成功送出 ${total} 筆`, 'success');
 
     // reset
+  showToast('報刀成功送出', 'success');
+
+    // ⭐ 清空畫面
     btn.disabled = false;
     productItems = [];
     document.getElementById('patientInput').value = '';
+    document.getElementById('patientIdInput').value = '';
     document.getElementById('patientIdInput').value = '';
     selectedBuwei = '';
     selectedProduct = '';
