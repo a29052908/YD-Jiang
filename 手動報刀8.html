@@ -204,14 +204,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', s
     </div>
   </div>
 
-  <div class="card" style="margin-top:8px;">
-    <div class="card-label">⚙ N8N Webhook 設定</div>
-    <div style="display:flex;gap:8px;">
-      <input id="manualWebhookInput" type="url" style="flex:1;padding:10px 14px;border:2px solid var(--border);border-radius:10px;font-size:13px;font-family:'JetBrains Mono',monospace;outline:none;background:var(--bg);color:var(--text);" placeholder="貼上 N8N Webhook URL">
-      <button onclick="saveManualWebhook()" style="padding:10px 16px;background:var(--accent);color:white;border:none;border-radius:10px;font-size:13px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;white-space:nowrap;">儲存</button>
-    </div>
-  </div>
-</div>
+
 
 <div class="submit-area">
   <button class="submit-btn" id="submitBtn" onclick="submitForm()"><span>✅</span><span>確認報刀</span></button>
@@ -220,7 +213,6 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', s
 <script>
 const BUWEI_LIST = ['鎖骨','上肢','長骨','小骨','下肢','埋頭釘','骨釘','人工骨','VA'];
 const WEEKDAYS = ['日','一','二','三','四','五','六'];
-const MANUAL_WEBHOOK_KEY = 'tandry_manual_webhook';
 
 let currentDate = new Date();
 let selectedHospital = '', selectedBuwei = '', selectedProduct = '';
