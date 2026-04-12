@@ -412,9 +412,12 @@
     <p class="header-sub">填寫後自動同步至 Google Sheets，AI 分析結果將於送出後更新</p>
   </div>
 
-  <div class="webhook-status">
-    <div class="status-dot ready" id="statusDot"></div>
-    <span id="statusText">就緒</span>
+  <div class="webhook-status" style="justify-content: space-between; align-items: center;">
+    <div style="display:flex;align-items:center;gap:6px;">
+      <div class="status-dot" style="background:var(--accent2);box-shadow:0 0 6px var(--accent2);" id="statusDot"></div>
+      <span id="statusText">測試模式</span>
+    </div>
+    <button id="modeBtn" onclick="toggleMode()" style="background:none;border:1px solid var(--border);border-radius:6px;padding:4px 12px;font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;color:var(--accent2);">🧪 測試模式</button>
   </div>
 
   <!-- 1. 基本識別 -->
@@ -570,7 +573,22 @@
 
 <script>
   // ── 設定 ──────────────────────────────────────────
-  const WEBHOOK_URL = 'YOUR_N8N_WEBHOOK_URL'; // ← 替換成你的 n8n webhook URL
+  const WEBHOOK_TEST = 'https://ydj.zeabur.app/webhook-test/fcd07b9e-05b4-4ade-b773-dc20b0a7498c';
+  const WEBHOOK_PROD = 'https://ydj.zeabur.app/webhook/fcd07b9e-05b4-4ade-b773-dc20b0a7498c';
+  let useTest = true;
+
+  function toggleMode() {
+    useTest = !useTest;
+    const btn = document.getElementById('modeBtn');
+    const dot = document.getElementById('statusDot');
+    const txt = document.getElementById('statusText');
+    btn.textContent = useTest ? '🧪 測試模式' : '🚀 正式模式';
+    btn.style.color = useTest ? 'var(--accent2)' : 'var(--success)';
+    dot.style.background = useTest ? 'var(--accent2)' : 'var(--success)';
+    txt.textContent = useTest ? '測試模式' : '正式模式';
+  }
+
+  function getWebhookUrl() { return useTest ? WEBHOOK_TEST : WEBHOOK_PROD; }
 
   // ── 初始化今天日期 ────────────────────────────────
   const today = new Date().toISOString().split('T')[0];
@@ -637,7 +655,7 @@
     btn.textContent = '傳送中⋯';
 
     try {
-      const res = await fetch(WEBHOOK_URL, {
+      const res = await fetch(getWebhookUrl(), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
@@ -653,7 +671,7 @@
       }
     } catch (e) {
       // Dev mode: show data in console if webhook not set
-      if (WEBHOOK_URL === 'YOUR_N8N_WEBHOOK_URL') {
+      if (false) {
         console.log('📋 表單資料（尚未設定 Webhook）：', data);
         showToast('✓ 資料已輸出至 Console（測試模式）');
       } else {
@@ -681,8 +699,8 @@
     document.getElementById('policyDate').value = '';
 
     document.querySelectorAll('.radio-btn').forEach(b => b.classList.remove('active'));
-    document.querySelector('.radio-btn[data-val="A"]').classList.add('active');
-    document.querySelector('.radio-btn[data-val="流量"]').classList.add('active');
+    document.querySelector('.radio-btn[data-field="familiarity"][data-val="A"]').classList.add('active');
+    document.querySelector('.radio-btn[data-field="fundType"][data-val="流量"]').classList.add('active');
 
     document.querySelectorAll('.stage-btn').forEach(b => b.classList.remove('active'));
     document.querySelector('.stage-btn[data-stage="預約"]').classList.add('active');
