@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>業績推進 CRM</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg: #0d0f14;
+    --surface: #161922;
+    --surface2: #1e2330;
+    --border: #2a2f3d;
+    --accent: #e8c547;
+    --accent2: #4ecdc4;
+    --danger: #ff6b6b;
+    --text: #e8eaf0;
+    --text-dim: #6b7280;
+    --text-muted: #3d4455;
+    --success: #52d68a;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Sans TC', sans-serif;
+    min-height: 100vh;
+    padding: 40px 20px 80px;
+  }
+
+  /* Grain overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.4;
+  }
+
+  .wrapper {
+    max-width: 720px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Header */
+  .header {
+    margin-bottom: 48px;
+    animation: fadeDown 0.6s ease;
+  }
+
+  .header-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .header-tag::before {
+    content: '';
+    display: inline-block;
+    width: 20px;
+    height: 1px;
+    background: var(--accent);
+  }
+
+  h1 {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+  }
+
+  h1 span {
+    color: var(--accent);
+  }
+
+  .header-sub {
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-top: 8px;
+    font-weight: 300;
+  }
+
+  /* Section */
+  .section {
+    margin-bottom: 32px;
+    animation: fadeUp 0.5s ease both;
+  }
+
+  .section:nth-child(2) { animation-delay: 0.05s; }
+  .section:nth-child(3) { animation-delay: 0.1s; }
+  .section:nth-child(4) { animation-delay: 0.15s; }
+  .section:nth-child(5) { animation-delay: 0.2s; }
+  .section:nth-child(6) { animation-delay: 0.25s; }
+
+  .section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .section-num {
+    color: var(--accent);
+    font-size: 10px;
+  }
+
+  /* Grid */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+
+  /* Field */
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .field.full { grid-column: 1 / -1; }
+
+  label {
+    font-size: 12px;
+    color: var(--text-dim);
+    font-weight: 500;
+    letter-spacing: 0.02em;
+  }
+
+  label .req {
+    color: var(--accent);
+    margin-left: 3px;
+  }
+
+  input, select, textarea {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 14px;
+    padding: 12px 14px;
+    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+    width: 100%;
+    outline: none;
+    -webkit-appearance: none;
+  }
+
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--accent);
+    background: var(--surface2);
+    box-shadow: 0 0 0 3px rgba(232, 197, 71, 0.08);
+  }
+
+  input::placeholder, textarea::placeholder {
+    color: var(--text-muted);
+    font-size: 13px;
+  }
+
+  select {
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b7280' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 36px;
+  }
+
+  select option { background: var(--surface2); }
+
+  textarea {
+    resize: vertical;
+    min-height: 80px;
+    line-height: 1.6;
+  }
+
+  /* Stage selector */
+  .stage-group {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .stage-btn {
+    flex: 1;
+    min-width: 80px;
+    padding: 10px 8px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--text-dim);
+    font-size: 13px;
+    font-family: 'Noto Sans TC', sans-serif;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .stage-btn:hover {
+    border-color: var(--accent);
+    color: var(--text);
+  }
+
+  .stage-btn.active {
+    border-color: var(--accent);
+    background: rgba(232, 197, 71, 0.1);
+    color: var(--accent);
+    font-weight: 500;
+  }
+
+  .stage-btn .dot {
+    display: block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--border);
+    margin: 0 auto 6px;
+    transition: background 0.2s;
+  }
+
+  .stage-btn.active .dot { background: var(--accent); }
+
+  /* Radio group */
+  .radio-group {
+    display: flex;
+    gap: 8px;
+  }
+
+  .radio-btn {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--text-dim);
+    font-size: 13px;
+    font-family: 'Noto Sans TC', sans-serif;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s;
+  }
+
+  .radio-btn:hover { border-color: var(--accent2); color: var(--text); }
+  .radio-btn.active {
+    border-color: var(--accent2);
+    background: rgba(78, 205, 196, 0.1);
+    color: var(--accent2);
+    font-weight: 500;
+  }
+
+  /* Date fields */
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(0.4);
+    cursor: pointer;
+  }
+
+  /* Hint */
+  .hint {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 2px;
+    font-weight: 300;
+  }
+
+  /* Submit */
+  .submit-area {
+    margin-top: 48px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .btn-submit {
+    flex: 1;
+    padding: 16px;
+    background: var(--accent);
+    color: #0d0f14;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 700;
+    font-family: 'Noto Sans TC', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.04em;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-submit:hover {
+    background: #f0d160;
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(232, 197, 71, 0.25);
+  }
+
+  .btn-submit:active { transform: translateY(0); }
+
+  .btn-submit.loading {
+    pointer-events: none;
+    opacity: 0.7;
+  }
+
+  .btn-reset {
+    padding: 16px 20px;
+    background: transparent;
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 14px;
+    font-family: 'Noto Sans TC', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-reset:hover { border-color: var(--danger); color: var(--danger); }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--surface2);
+    border: 1px solid var(--success);
+    border-radius: 12px;
+    padding: 14px 24px;
+    font-size: 14px;
+    color: var(--success);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: transform 0.3s ease;
+    z-index: 100;
+    white-space: nowrap;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .toast.error { border-color: var(--danger); color: var(--danger); }
+
+  /* Status indicator */
+  .webhook-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 32px;
+  }
+
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--text-muted);
+  }
+
+  .status-dot.ready { background: var(--success); box-shadow: 0 0 6px var(--success); }
+
+  /* Hidden input tracker */
+  input[type="hidden"] { display: none; }
+
+  /* Animations */
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (max-width: 560px) {
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    .stage-group { gap: 6px; }
+    .stage-btn { font-size: 12px; padding: 8px 4px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrapper">
+
+  <div class="header">
+    <div class="header-tag">業績推進系統 · CRM</div>
+    <h1>客戶<span>建檔</span> / 更新</h1>
+    <p class="header-sub">填寫後自動同步至 Google Sheets，AI 分析結果將於送出後更新</p>
+  </div>
+
+  <div class="webhook-status">
+    <div class="status-dot ready" id="statusDot"></div>
+    <span id="statusText">就緒</span>
+  </div>
+
+  <!-- 1. 基本識別 -->
+  <div class="section">
+    <div class="section-label"><span class="section-num">01</span> 基本識別</div>
+    <div class="grid-2">
+      <div class="field">
+        <label>姓名 / 代稱 <span class="req">*</span></label>
+        <input type="text" id="name" placeholder="Dr.陳 / 阿猴 / 超" required>
+      </div>
+      <div class="field">
+        <label>職業</label>
+        <input type="text" id="job" placeholder="醫師 / Trader / 護理師">
+      </div>
+      <div class="field">
+        <label>居住地</label>
+        <input type="text" id="location" placeholder="板橋 / 青埔 / 竹北">
+      </div>
+      <div class="field">
+        <label>熟識程度</label>
+        <div class="radio-group">
+          <button type="button" class="radio-btn active" data-field="familiarity" data-val="A">A 熟</button>
+          <button type="button" class="radio-btn" data-field="familiarity" data-val="B">B 認識</button>
+        </div>
+        <input type="hidden" id="familiarity" value="A">
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. 財務輪廓 -->
+  <div class="section">
+    <div class="section-label"><span class="section-num">02</span> 財務輪廓</div>
+    <div class="grid-2">
+      <div class="field">
+        <label>收入預估（萬/年）</label>
+        <input type="number" id="income" placeholder="150">
+      </div>
+      <div class="field">
+        <label>投資工具</label>
+        <input type="text" id="tools" placeholder="美股 / 幣 / 保單 / 期貨">
+      </div>
+      <div class="field">
+        <label>資金屬性</label>
+        <div class="radio-group">
+          <button type="button" class="radio-btn active" data-field="fundType" data-val="流量">流量</button>
+          <button type="button" class="radio-btn" data-field="fundType" data-val="存量">存量</button>
+          <button type="button" class="radio-btn" data-field="fundType" data-val="流量+存量">兩者</button>
+        </div>
+        <input type="hidden" id="fundType" value="流量">
+      </div>
+      <div class="field">
+        <label>房狀態</label>
+        <input type="text" id="house" placeholder="有房貸 / 租屋 / 家人房 / 無">
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. CRM 階段 -->
+  <div class="section">
+    <div class="section-label"><span class="section-num">03</span> 推進階段</div>
+    <div class="field">
+      <label>目前階段 <span class="req">*</span></label>
+      <div class="stage-group">
+        <button type="button" class="stage-btn" data-stage="潛在">
+          <span class="dot"></span>潛在
+        </button>
+        <button type="button" class="stage-btn active" data-stage="預約">
+          <span class="dot"></span>預約
+        </button>
+        <button type="button" class="stage-btn" data-stage="簡報">
+          <span class="dot"></span>簡報
+        </button>
+        <button type="button" class="stage-btn" data-stage="跟進">
+          <span class="dot"></span>跟進
+        </button>
+        <button type="button" class="stage-btn" data-stage="成交">
+          <span class="dot"></span>成交
+        </button>
+      </div>
+      <input type="hidden" id="stage" value="預約">
+    </div>
+  </div>
+
+  <!-- 4. 時間軸 -->
+  <div class="section">
+    <div class="section-label"><span class="section-num">04</span> 時間軸</div>
+    <div class="grid-2">
+      <div class="field">
+        <label>階段開始日</label>
+        <input type="date" id="stageStart">
+      </div>
+      <div class="field">
+        <label>最後聯繫日 <span class="req">*</span></label>
+        <input type="date" id="lastContact">
+      </div>
+      <div class="field">
+        <label>下次跟進日</label>
+        <input type="date" id="nextFollow">
+        <span class="hint">n8n 將於此日發送提醒</span>
+      </div>
+      <div class="field">
+        <label>預計成交日</label>
+        <input type="date" id="targetClose">
+        <span class="hint">AI 判斷時間壓力用</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. 需求分析 -->
+  <div class="section">
+    <div class="section-label"><span class="section-num">05</span> 需求分析</div>
+    <div class="grid-2">
+      <div class="field full">
+        <label>痛點 / 備註</label>
+        <textarea id="painpoint" placeholder="子女教育金、想有第二份收入、認為港保是中國的⋯⋯"></textarea>
+      </div>
+      <div class="field full">
+        <label>我收集的配置需求</label>
+        <textarea id="myConfig" placeholder="面談後收集到的：3W/5Y、資金移轉、房產活化⋯⋯"></textarea>
+        <span class="hint">這是你的原始紀錄，AI 會參考後給出建議配置</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. 成交資訊（選填） -->
+  <div class="section">
+    <div class="section-label"><span class="section-num">06</span> 成交資訊（已成交才填）</div>
+    <div class="grid-2">
+      <div class="field">
+        <label>商品 / 金額</label>
+        <input type="text" id="product" placeholder="FWD 2Y / 33,600 USD">
+      </div>
+      <div class="field">
+        <label>保單日期</label>
+        <input type="date" id="policyDate">
+      </div>
+    </div>
+  </div>
+
+  <!-- Submit -->
+  <div class="submit-area">
+    <button type="button" class="btn-reset" onclick="resetForm()">清除</button>
+    <button type="button" class="btn-submit" id="submitBtn" onclick="submitForm()">
+      送出並同步至 Sheets ↗
+    </button>
+  </div>
+
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+  // ── 設定 ──────────────────────────────────────────
+  const WEBHOOK_URL = 'YOUR_N8N_WEBHOOK_URL'; // ← 替換成你的 n8n webhook URL
+
+  // ── 初始化今天日期 ────────────────────────────────
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('lastContact').value = today;
+  document.getElementById('stageStart').value = today;
+
+  // ── Radio / Stage 按鈕邏輯 ────────────────────────
+  document.querySelectorAll('.radio-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const field = btn.dataset.field;
+      document.querySelectorAll(`.radio-btn[data-field="${field}"]`).forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(field).value = btn.dataset.val;
+    });
+  });
+
+  document.querySelectorAll('.stage-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.stage-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('stage').value = btn.dataset.stage;
+    });
+  });
+
+  // ── 收集表單資料 ──────────────────────────────────
+  function collectData() {
+    return {
+      姓名代稱: document.getElementById('name').value.trim(),
+      職業: document.getElementById('job').value.trim(),
+      居住地: document.getElementById('location').value.trim(),
+      熟識程度: document.getElementById('familiarity').value,
+      收入預估萬: document.getElementById('income').value,
+      投資工具: document.getElementById('tools').value.trim(),
+      資金屬性: document.getElementById('fundType').value,
+      房狀態: document.getElementById('house').value.trim(),
+      階段: document.getElementById('stage').value,
+      階段開始日: document.getElementById('stageStart').value,
+      最後聯繫日: document.getElementById('lastContact').value,
+      下次跟進日: document.getElementById('nextFollow').value,
+      預計成交日: document.getElementById('targetClose').value,
+      痛點備註: document.getElementById('painpoint').value.trim(),
+      我收集的配置需求: document.getElementById('myConfig').value.trim(),
+      商品金額: document.getElementById('product').value.trim(),
+      保單日期: document.getElementById('policyDate').value,
+      送出時間: new Date().toISOString(),
+    };
+  }
+
+  // ── 驗證 ──────────────────────────────────────────
+  function validate(data) {
+    if (!data.姓名代稱) return '請填寫姓名或代稱';
+    if (!data.最後聯繫日) return '請填寫最後聯繫日';
+    return null;
+  }
+
+  // ── 送出 ──────────────────────────────────────────
+  async function submitForm() {
+    const data = collectData();
+    const err = validate(data);
+    if (err) { showToast(err, true); return; }
+
+    const btn = document.getElementById('submitBtn');
+    btn.classList.add('loading');
+    btn.textContent = '傳送中⋯';
+
+    try {
+      const res = await fetch(WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+
+      if (res.ok) {
+        showToast('✓ 已同步至 Google Sheets');
+        setTimeout(() => {
+          if (confirm('送出成功！要清除表單繼續新增嗎？')) resetForm();
+        }, 1200);
+      } else {
+        throw new Error(`HTTP ${res.status}`);
+      }
+    } catch (e) {
+      // Dev mode: show data in console if webhook not set
+      if (WEBHOOK_URL === 'YOUR_N8N_WEBHOOK_URL') {
+        console.log('📋 表單資料（尚未設定 Webhook）：', data);
+        showToast('✓ 資料已輸出至 Console（測試模式）');
+      } else {
+        showToast('傳送失敗，請確認 n8n webhook', true);
+      }
+    } finally {
+      btn.classList.remove('loading');
+      btn.textContent = '送出並同步至 Sheets ↗';
+    }
+  }
+
+  // ── 清除 ──────────────────────────────────────────
+  function resetForm() {
+    ['name','job','location','income','tools','house',
+     'painpoint','myConfig','product'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
+    document.getElementById('familiarity').value = 'A';
+    document.getElementById('fundType').value = '流量';
+    document.getElementById('stage').value = '預約';
+    document.getElementById('lastContact').value = today;
+    document.getElementById('stageStart').value = today;
+    document.getElementById('nextFollow').value = '';
+    document.getElementById('targetClose').value = '';
+    document.getElementById('policyDate').value = '';
+
+    document.querySelectorAll('.radio-btn').forEach(b => b.classList.remove('active'));
+    document.querySelector('.radio-btn[data-val="A"]').classList.add('active');
+    document.querySelector('.radio-btn[data-val="流量"]').classList.add('active');
+
+    document.querySelectorAll('.stage-btn').forEach(b => b.classList.remove('active'));
+    document.querySelector('.stage-btn[data-stage="預約"]').classList.add('active');
+  }
+
+  // ── Toast ─────────────────────────────────────────
+  function showToast(msg, isError = false) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast' + (isError ? ' error' : '');
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+</script>
+
+</body>
+</html>
