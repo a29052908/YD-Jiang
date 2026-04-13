@@ -167,16 +167,48 @@
     }, 'update-result');
   }
 
-  function testAI() {
+  async function testAI() {
     const name = document.getElementById('ai-name').value.trim();
     if (!name) { alert('請填姓名'); return; }
-    // AI 分支需要先 load 客戶資料再帶入
-    callWebhook({
-      action: 'ai',
-      姓名代稱: name,
-      情境: document.getElementById('ai-context').value,
-      客戶資料: { '姓名/代稱': name }
-    }, 'ai-result');
+    const 情境 = document.getElementById('ai-context').value;
+    const el = document.getElementById('ai-result');
+    el.className = 'result show';
+    el.textContent = 'Step 1/2：載入客戶資料中...';
+
+    try {
+      // Step 1: Load 客戶資料
+      const loadRes = await fetch(WEBHOOK, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'load', 姓名代稱: name })
+      });
+      const loadData = await loadRes.json();
+
+      if (!loadData.success || !loadData.data) {
+        el.className = 'result show error';
+        el.textContent = '找不到客戶資料：' + name;
+        return;
+      }
+
+      const 客戶資料 = loadData.data;
+      el.textContent = 'Step 2/2：送給 AI 分析中...
+
+客戶資料已載入：' + (客戶資料['姓名/代稱'] || name);
+
+      // Step 2: 帶著真實資料打 AI
+      const aiRes = await fetch(WEBHOOK, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'ai', 姓名代稱: name, 情境, 客戶資料 })
+      });
+      const aiData = await aiRes.json();
+      el.className = 'result show success';
+      el.textContent = JSON.stringify(aiData, null, 2);
+
+    } catch(e) {
+      el.className = 'result show error';
+      el.textContent = '錯誤：' + e.message;
+    }
   }
 </script>
 </body>
