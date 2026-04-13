@@ -473,6 +473,18 @@
         <label>房狀態</label>
         <input type="text" id="house" placeholder="有房貸 / 租屋 / 家人房 / 無">
       </div>
+      <div class="field full">
+        <label>決策風格</label>
+        <div class="radio-group">
+          <button type="button" class="radio-btn" data-field="decisionStyle" data-val="自決">自決</button>
+          <button type="button" class="radio-btn" data-field="decisionStyle" data-val="需配偶">需配偶</button>
+          <button type="button" class="radio-btn" data-field="decisionStyle" data-val="拖延型">拖延型</button>
+          <button type="button" class="radio-btn" data-field="decisionStyle" data-val="衝動型">衝動型</button>
+          <button type="button" class="radio-btn" data-field="decisionStyle" data-val="謹慎型">謹慎型</button>
+        </div>
+        <input type="hidden" id="decisionStyle" value="">
+        <span class="hint">影響 AI 建議的推進策略和說話方式</span>
+      </div>
     </div>
   </div>
 
@@ -631,6 +643,7 @@
       預計成交日: document.getElementById('targetClose').value,
       痛點備註: document.getElementById('painpoint').value.trim(),
       我收集的配置需求: document.getElementById('myConfig').value.trim(),
+      決策風格: document.getElementById('decisionStyle').value,
       商品金額: document.getElementById('product').value.trim(),
       保單日期: document.getElementById('policyDate').value,
       送出時間: new Date().toISOString(),
@@ -690,6 +703,7 @@
       document.getElementById(id).value = '';
     });
     document.getElementById('familiarity').value = 'A';
+    document.getElementById('decisionStyle').value = '';
     document.getElementById('fundType').value = '流量';
     document.getElementById('stage').value = '預約';
     document.getElementById('lastContact').value = today;
