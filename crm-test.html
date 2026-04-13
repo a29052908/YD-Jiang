@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Workflow B 測試台</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap');
+  :root {
+    --bg: #0d0f14;
+    --surface: #161922;
+    --surface2: #1e2330;
+    --border: #2a2f3d;
+    --accent: #e8c547;
+    --accent2: #4ecdc4;
+    --success: #52d68a;
+    --danger: #ff6b6b;
+    --text: #e8eaf0;
+    --text-dim: #6b7280;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', sans-serif; padding: 40px 20px; min-height: 100vh; }
+  .wrapper { max-width: 700px; margin: 0 auto; }
+  h1 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+  h1 span { color: var(--accent); }
+  .sub { font-size: 13px; color: var(--text-dim); margin-bottom: 32px; font-family: 'DM Mono', monospace; }
+
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+  .card-title { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+  .card-title::before { content: ''; display: inline-block; width: 14px; height: 1px; background: var(--accent); }
+
+  .field { margin-bottom: 12px; }
+  label { display: block; font-size: 12px; color: var(--text-dim); margin-bottom: 5px; }
+  input, select { width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: 'Noto Sans TC', sans-serif; font-size: 14px; padding: 10px 12px; outline: none; transition: border-color 0.2s; }
+  input:focus, select:focus { border-color: var(--accent); }
+  select option { background: var(--surface2); }
+
+  .btn { width: 100%; padding: 12px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; font-family: 'Noto Sans TC', sans-serif; cursor: pointer; transition: all 0.2s; margin-top: 4px; }
+  .btn-load { background: var(--accent2); color: #0d0f14; }
+  .btn-load:hover { filter: brightness(1.1); }
+  .btn-update { background: var(--accent); color: #0d0f14; }
+  .btn-update:hover { filter: brightness(1.1); }
+  .btn-ai { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; }
+  .btn-ai:hover { filter: brightness(1.1); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .result { margin-top: 16px; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 14px; font-family: 'DM Mono', monospace; font-size: 12px; line-height: 1.7; color: var(--accent2); white-space: pre-wrap; word-break: break-all; min-height: 60px; display: none; }
+  .result.show { display: block; }
+  .result.error { color: var(--danger); border-color: var(--danger); }
+  .result.success { color: var(--success); border-color: var(--success); }
+
+  .status { display: flex; align-items: center; gap: 6px; font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text-dim); margin-bottom: 24px; }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); box-shadow: 0 0 6px var(--success); }
+
+  .webhook-url { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text-dim); background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 8px 12px; margin-bottom: 24px; word-break: break-all; }
+</style>
+</head>
+<body>
+<div class="wrapper">
+  <h1>Workflow B <span>測試台</span></h1>
+  <p class="sub">業績推進系統 · 分支測試</p>
+
+  <div class="status">
+    <div class="dot"></div>
+    <span>Webhook B：https://ydj.zeabur.app/webhook/90e38165-cd18-4dd0-85a4-c64a707aaf72</span>
+  </div>
+
+  <!-- Load 測試 -->
+  <div class="card">
+    <div class="card-title">① Load — 查詢客戶資料</div>
+    <div class="field">
+      <label>姓名/代稱</label>
+      <input type="text" id="load-name" placeholder="陳 / Dr.陳 / 超" value="陳">
+    </div>
+    <button class="btn btn-load" onclick="testLoad()">▶ 測試 Load</button>
+    <div class="result" id="load-result"></div>
+  </div>
+
+  <!-- Update 測試 -->
+  <div class="card">
+    <div class="card-title">② Update — 更新客戶資料</div>
+    <div class="field">
+      <label>姓名/代稱</label>
+      <input type="text" id="update-name" placeholder="陳" value="陳">
+    </div>
+    <div class="field">
+      <label>上次互動氛圍</label>
+      <select id="update-vibe">
+        <option value="熱絡">熱絡</option>
+        <option value="普通">普通</option>
+        <option value="冷淡">冷淡</option>
+        <option value="有防備">有防備</option>
+        <option value="主動詢問">主動詢問</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>上次卡住的原因</label>
+      <input type="text" id="update-stuck" placeholder="說要問老婆 / 覺得金額太大...">
+    </div>
+    <div class="field">
+      <label>最後聯繫日</label>
+      <input type="date" id="update-date">
+    </div>
+    <button class="btn btn-update" onclick="testUpdate()">▶ 測試 Update</button>
+    <div class="result" id="update-result"></div>
+  </div>
+
+  <!-- AI 測試 -->
+  <div class="card">
+    <div class="card-title">③ AI — 分析客戶</div>
+    <div class="field">
+      <label>姓名/代稱</label>
+      <input type="text" id="ai-name" placeholder="陳" value="陳">
+    </div>
+    <div class="field">
+      <label>情境</label>
+      <select id="ai-context">
+        <option value="行動前">行動前（準備聯繫）</option>
+        <option value="行動後">行動後（更新資料）</option>
+      </select>
+    </div>
+    <button class="btn btn-ai" onclick="testAI()">▶ 測試 AI 分析</button>
+    <div class="result" id="ai-result"></div>
+  </div>
+</div>
+
+<script>
+  const WEBHOOK = 'https://ydj.zeabur.app/webhook/90e38165-cd18-4dd0-85a4-c64a707aaf72';
+
+  // 初始化今天日期
+  document.getElementById('update-date').value = new Date().toISOString().split('T')[0];
+
+  async function callWebhook(body, resultId) {
+    const el = document.getElementById(resultId);
+    el.className = 'result show';
+    el.textContent = '傳送中...';
+    try {
+      const res = await fetch(WEBHOOK, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      el.className = 'result show success';
+      el.textContent = JSON.stringify(data, null, 2);
+    } catch(e) {
+      el.className = 'result show error';
+      el.textContent = '錯誤：' + e.message;
+    }
+  }
+
+  function testLoad() {
+    const name = document.getElementById('load-name').value.trim();
+    if (!name) { alert('請填姓名'); return; }
+    callWebhook({ action: 'load', 姓名代稱: name }, 'load-result');
+  }
+
+  function testUpdate() {
+    const name = document.getElementById('update-name').value.trim();
+    if (!name) { alert('請填姓名'); return; }
+    callWebhook({
+      action: 'update',
+      姓名代稱: name,
+      上次互動氛圍: document.getElementById('update-vibe').value,
+      上次卡住的原因: document.getElementById('update-stuck').value,
+      最後聯繫日: document.getElementById('update-date').value
+    }, 'update-result');
+  }
+
+  function testAI() {
+    const name = document.getElementById('ai-name').value.trim();
+    if (!name) { alert('請填姓名'); return; }
+    // AI 分支需要先 load 客戶資料再帶入
+    callWebhook({
+      action: 'ai',
+      姓名代稱: name,
+      情境: document.getElementById('ai-context').value,
+      客戶資料: { '姓名/代稱': name }
+    }, 'ai-result');
+  }
+</script>
+</body>
+</html>
