@@ -191,9 +191,7 @@
       }
 
       const 客戶資料 = loadData.data;
-      el.textContent = 'Step 2/2：送給 AI 分析中...
-
-客戶資料已載入：' + (客戶資料['姓名/代稱'] || name);
+      el.textContent = 'Step 2/2：送給 AI 分析中...\n\n客戶資料已載入：' + (客戶資料['姓名/代稱'] || name);
 
       // Step 2: 帶著真實資料打 AI
       const aiRes = await fetch(WEBHOOK, {
