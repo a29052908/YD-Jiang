@@ -675,10 +675,18 @@
       });
 
       if (res.ok) {
-        showToast('✓ 已同步至 Google Sheets');
-        setTimeout(() => {
-          if (confirm('送出成功！要清除表單繼續新增嗎？')) resetForm();
-        }, 1200);
+        const result = await res.json();
+        if (result.action === 'existing') {
+          showToast('⚠ 此客戶已存在，導向客戶檔案...');
+          setTimeout(() => {
+            window.location.href = 'crm-edit.html?name=' + encodeURIComponent(result.name);
+          }, 1000);
+        } else {
+          showToast('✓ 新客戶已建檔');
+          setTimeout(() => {
+            if (confirm('送出成功！要清除表單繼續新增嗎？')) resetForm();
+          }, 1200);
+        }
       } else {
         throw new Error(`HTTP ${res.status}`);
       }
