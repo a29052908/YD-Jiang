@@ -437,7 +437,7 @@ function submitForm(){
   const patient = document.getElementById('patientInput').value.trim();
   const patientId = document.getElementById('patientIdInput').value.trim();
   const doctor = document.getElementById('doctorSelect').value.trim();
-  const webhookUrl = "https://ydj.zeabur.app/webhook/manual-Baodao";
+  const webhookUrl = "https://ydj.zeabur.app/webhook/manual-baodao";
 
   if(!selectedHospital){ showToast('請選擇醫院','error'); return; }
   if(!productItems.length && !selectedBuwei){ showToast('請至少加入一個產品','error'); return; }
