@@ -103,7 +103,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', s
 
 <div class="topbar">
   <div class="topbar-left">
-    <div class="topbar-logo">Tandry</div>
+    <div class="topbar-logo">測試網頁</div>
     <h1>報刀系統</h1>
   </div>
   <div class="sales-badge" onclick="openSalesModal()">
@@ -206,8 +206,9 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', s
 
 
 
-<div class="submit-area">
+<div class="submit-area" style="display:flex;flex-direction:column;gap:8px;">
   <button class="submit-btn" id="submitBtn" onclick="submitForm()"><span>✅</span><span>確認報刀</span></button>
+  <button class="submit-btn" style="background:var(--green);" onclick="goToReport()"><span>📋</span><span>進入報刀單</span></button>
 </div>
   
 <script>
@@ -436,7 +437,7 @@ function submitForm(){
   const patient = document.getElementById('patientInput').value.trim();
   const patientId = document.getElementById('patientIdInput').value.trim();
   const doctor = document.getElementById('doctorSelect').value.trim();
-  const webhookUrl = "https://ydj.zeabur.app/webhook/manual-baodao";
+  const webhookUrl = "https://ydj.zeabur.app/webhook-test/manual-baodao";
 
   if(!selectedHospital){ showToast('請選擇醫院','error'); return; }
   if(!productItems.length && !selectedBuwei){ showToast('請至少加入一個產品','error'); return; }
@@ -492,6 +493,27 @@ function submitForm(){
 
   sendAll();
 }
+  function goToReport(){
+  const patient = document.getElementById('patientInput').value.trim();
+  const patientId = document.getElementById('patientIdInput').value.trim();
+  const doctor = document.getElementById('doctorSelect').value.trim();
+  if(!selectedHospital){ showToast('請選擇醫院','error'); return; }
+  if(!patient){ showToast('請輸入病人姓名','error'); return; }
+  if(selectedBuwei) addProduct();
+  const data = {
+    日期: getDateStr(), 業務: currentSales, 庫別: currentWarehouse,
+    醫院: selectedHospital, 醫師: doctor, 病人: patient, 病歷號: patientId,
+    productItems: productItems,
+    大區: productItems[0]?.大區||'',
+    負責業務: productItems[0]?.負責業務||currentSales,
+    部位: productItems.map(i=>i.buwei).join('、'),
+    品號: productItems.map(i=>i.product).join('、'),
+    院內碼: productItems.map(i=>i.innerCode).join('、'),
+  };
+  localStorage.setItem('tandry_phase2_data', JSON.stringify(data));
+  window.location.href = '報刀單.html';
+}
+
     function showToast(msg, type=''){
   const t = document.getElementById('toast');
   t.textContent = msg;
