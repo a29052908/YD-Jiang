@@ -11,6 +11,7 @@
   --green: #2d6a4f; --green-light: #d8f3dc; --text: #1a1a2e; --muted: #888680; --dim: #c5c3bc;
   --selected: #1a1a2e; --selected-text: #ffffff; --shadow: 0 2px 12px rgba(0,0,0,0.08); --radius: 12px;
 }
+  
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', sans-serif; min-height: 100vh; padding-bottom: 120px; }
 .topbar { background: var(--accent); color: white; padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
@@ -92,6 +93,13 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', s
 .baodao-sig-line { flex: 1; border-bottom: 1px solid #000; min-width: 40px; }
 .baodao-note-row { border-bottom: 1px solid #000; min-height: 40px; }
 .baodao-note-label { font-size: 11px; letter-spacing: 3px; text-align: center; padding: 4px; background: #f9f9f9; border-bottom: 1px solid #000; }
+  @media print {
+  body > *:not(.preview-modal) { display: none !important; }
+  .modal-overlay { position: static !important; background: none !important; padding: 0 !important; }
+  .preview-modal { border-radius: 0 !important; box-shadow: none !important; }
+  .preview-actions { display: none !important; }
+  #previewLoading { display: none !important; }
+}
 </style>
 </head>
 <body>
@@ -117,8 +125,9 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', s
       <img id="previewImage" style="width:100%;display:block;" />
     </div>
     <div class="preview-actions">
-      <button class="preview-action-btn btn-cancel" onclick="closePreview()">返回修改</button>
-      <button class="preview-action-btn btn-confirm" id="confirmBtn" onclick="confirmSubmit()">✅ 確認送出</button>
+  <button class="preview-action-btn btn-cancel" onclick="closePreview()">返回修改</button>
+  <button class="preview-action-btn" style="background:#065A82;color:white;" onclick="printForm()">🖨️ 列印/PDF</button>
+  <button class="preview-action-btn btn-confirm" id="confirmBtn" onclick="confirmSubmit()">✅ 確認送出</button>
     </div>
   </div>
 </div>
@@ -531,7 +540,9 @@ function showSuccessOverlay(serial) {
   document.body.appendChild(overlay);
   setTimeout(() => { if(document.body.contains(overlay)) document.body.removeChild(overlay); }, 4000);
 }
-
+function printForm() {
+  window.print();
+}
 function showToast(msg, type='') {
   const t = document.getElementById('toast');
   t.textContent = msg;
