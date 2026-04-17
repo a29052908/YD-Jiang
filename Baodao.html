@@ -101,6 +101,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', s
     <div class="topbar-logo">Tandry</div>
     <h1>報刀單</h1>
   </div>
+  <button onclick="window.location.href='手動報刀8.html'" style="background:rgba(255,255,255,0.15);border:none;color:white;padding:6px 12px;border-radius:8px;font-size:13px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;">← 返回</button>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -108,11 +109,11 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', s
 <div class="modal-overlay" id="previewModal">
   <div class="preview-modal">
     <div style="padding:12px 16px;background:var(--accent);color:white;font-size:14px;font-weight:600;">📄 報刀單預覽</div>
-    <div id="previewContent" style="padding:16px;background:white;"></div>
+    <div id="previewContent" style="padding:16px;background:white;overflow-y:auto;max-height:70vh;"></div>
     <div class="preview-actions">
-    <button class="preview-action-btn btn-cancel" onclick="closePreview()">返回修改</button>
-    <button class="preview-action-btn" style="background:#065A82;color:white;" onclick="window.print()">🖨️ 列印</button>
-    <button class="preview-action-btn btn-confirm" id="confirmBtn" onclick="confirmSubmit()">✅ 確認送出</button>
+      <button class="preview-action-btn btn-cancel" onclick="closePreview()">返回修改</button>
+      <button class="preview-action-btn" style="background:#065A82;color:white;" onclick="window.print()">🖨️ 列印</button>
+      <button class="preview-action-btn btn-confirm" id="confirmBtn" onclick="confirmSubmit()">✅ 確認送出</button>
     </div>
   </div>
 </div>
@@ -467,7 +468,23 @@ function showPreview() {
   const component = screwText + (extraComponent ? '\n'+extraComponent : '');
   const tool = document.getElementById('toolInput').value;
   const remark = document.getElementById('remarkInput').value;
-  const implant = (d.部位||'')+(d.品號?' ('+d.品號+')':'');
+
+  // 植入物：多品項合併同院內碼數量
+  let implantLines = [];
+  if (d.productItems && d.productItems.length > 0) {
+    const codeQtyMap = {};
+    d.productItems.forEach(item => {
+      const key = item.innerCode || item.buwei;
+      if (!codeQtyMap[key]) codeQtyMap[key] = {buwei: item.buwei, product: item.product, innerCode: item.innerCode, qty: 0};
+      codeQtyMap[key].qty += item.qty;
+    });
+    implantLines = Object.values(codeQtyMap).map(item =>
+      `${item.buwei}${item.product?' ('+item.product+')':''} ×${item.qty}`
+    );
+  } else {
+    implantLines = [(d.部位||'')+(d.品號?' ('+d.品號+')':'')+(d.數量?' ×'+d.數量:'')];
+  }
+  const implant = implantLines.join('\n');
 
   document.getElementById('previewContent').innerHTML = `
     <div style="font-family:'Noto Sans TC',sans-serif;font-size:13px;color:#000;">
@@ -511,7 +528,7 @@ function showPreview() {
             </div>
             <div style="border-bottom:1px solid #000;padding:8px;min-height:90px;">
               <div style="font-weight:700;font-size:12px;margin-bottom:4px;">組件：</div>
-              <div style="font-family:monospace;font-size:12px;white-space:pre-wrap;line-height:1.8;">${component}</div>
+              <div style="font-family:monospace;font-size:12px;white-space:pre-wrap;word-break:break-all;line-height:1.8;">${component}</div>
             </div>
             <div style="padding:8px;min-height:60px;">
               <div style="font-weight:700;font-size:12px;margin-bottom:4px;">工具：</div>
