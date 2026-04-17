@@ -406,8 +406,9 @@ function updateComponentFromScrews() {
         if (cnt > 0) entries.push({len, zheng: toZheng(cnt)});
       }
       if (entries.length > 0) {
-        const prefix = `${dia} ${type}:\t`;
-        diaLines.push(entries.map((e, i) => (i===0?prefix:'\t') + String(e.len).padStart(2,' ') + '×' + e.zheng).join('\n'));
+        const prefix = `${dia} ${type}: `;
+        const pad = ' '.repeat(prefix.length);
+        diaLines.push(entries.map((e, i) => (i===0?prefix:pad) + String(e.len).padStart(2,' ') + '×' + e.zheng).join('\n'));
       }
     }
     if (diaLines.length > 0) groups.push(diaLines.join('\n'));
@@ -578,7 +579,7 @@ function showPreview() {
             </div>
             <div style="border-bottom:1px solid #000;padding:8px;">
               <div style="font-weight:700;font-size:12px;margin-bottom:4px;">組件：</div>
-              <div style="font-family:monospace;font-size:12px;line-height:1.8;max-width:100%;">${component.split('\n\n').map(group => `<div style="margin-bottom:8px;">${group.split('\n').map(line => `<div style="white-space:pre;">${line}</div>`).join('')}</div>`).join('')}</div>
+              <pre style="font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.8;white-space:pre-wrap;word-break:break-all;margin:0;">${component}</pre>
             </div>
             <div style="padding:8px;min-height:60px;">
               <div style="font-weight:700;font-size:12px;margin-bottom:4px;">工具：</div>
