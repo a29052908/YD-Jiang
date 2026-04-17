@@ -393,10 +393,11 @@ function updateDot(dot, n, color, dark) {
 }
 
 function updateComponentFromScrews() {
-  const lines = [];
+  const groups = [];
   for (const {dia, id} of activeScrewBoards) {
     const def = screwBoardDefs[dia];
     if (!def) continue;
+    const diaLines = [];
     for (const {type} of def.types) {
       const lengths = dia === '5.0' ? (type === 'L' ? def.lengthsL : def.lengthsC) : def.lengths;
       const entries = [];
@@ -405,13 +406,13 @@ function updateComponentFromScrews() {
         if (cnt > 0) entries.push({len, zheng: toZheng(cnt)});
       }
       if (entries.length > 0) {
-        const prefix = `${dia} ${type}: `;
-        const pad = ' '.repeat(prefix.length);
-        lines.push(entries.map((e, i) => (i===0?prefix:pad) + String(e.len).padStart(2,' ') + '×' + e.zheng).join('\n'));
+        const prefix = `${dia} ${type}:\t`;
+        diaLines.push(entries.map((e, i) => (i===0?prefix:'\t') + String(e.len).padStart(2,' ') + '×' + e.zheng).join('\n'));
       }
     }
+    if (diaLines.length > 0) groups.push(diaLines.join('\n'));
   }
-  document.getElementById('componentInput').value = lines.join('\n\n');
+  document.getElementById('componentInput').value = groups.join('\n\n');
 }
 
 function selectType(t) {
@@ -442,10 +443,11 @@ function toZheng(n) {
 
 // ── 組合釘子文字 ──────────────────────────────
 function buildScrewText() {
-  const lines = [];
+  const groups = [];
   for (const {dia, id} of activeScrewBoards) {
     const def = screwBoardDefs[dia];
     if (!def) continue;
+    const diaLines = [];
     for (const {type} of def.types) {
       const lengths = dia === '5.0' ? (type === 'L' ? def.lengthsL : def.lengthsC) : def.lengths;
       const entries = [];
@@ -454,13 +456,13 @@ function buildScrewText() {
         if (cnt > 0) entries.push({len, zheng: toZheng(cnt)});
       }
       if (entries.length > 0) {
-        const prefix = `${dia} ${type}: `;
-        const pad = ' '.repeat(prefix.length);
-        lines.push(entries.map((e, i) => (i===0?prefix:pad) + String(e.len).padStart(2,' ') + '×' + e.zheng).join('\n'));
+        const prefix = `${dia} ${type}:\t`;
+        diaLines.push(entries.map((e, i) => (i===0?prefix:'\t') + String(e.len).padStart(2,' ') + '×' + e.zheng).join('\n'));
       }
     }
+    if (diaLines.length > 0) groups.push(diaLines.join('\n'));
   }
-    return lines.join('\n\n');
+  return groups.join('\n\n');
 }
 
 // ── 流水號 ────────────────────────────────────
@@ -513,9 +515,7 @@ function showPreview() {
   const mo = dateParts[1] ? dateParts[1]+'月' : '';
   const dy = dateParts[2] ? dateParts[2]+'日' : '';
   const cb = t => t===selectedType ? '☑' : '☐';
-  const screwText = buildScrewText();
-  const extraComponent = document.getElementById('componentInput').value;
-  const component = screwText + (extraComponent ? '\n'+extraComponent : '');
+  const component = document.getElementById('componentInput').value;
   const tool = document.getElementById('toolInput').value;
   const remark = document.getElementById('remarkInput').value;
 
