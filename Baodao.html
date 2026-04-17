@@ -108,16 +108,11 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', s
 <div class="modal-overlay" id="previewModal">
   <div class="preview-modal">
     <div style="padding:12px 16px;background:var(--accent);color:white;font-size:14px;font-weight:600;">📄 報刀單預覽</div>
-    <div id="previewLoading" style="padding:40px;text-align:center;color:var(--muted);display:none;">
-      <div style="font-size:32px;margin-bottom:12px;">⏳</div>
-      <div>產生中...</div>
-    </div>
-    <div id="previewImageWrap" style="display:none;">
-      <img id="previewImage" style="width:100%;display:block;" />
-    </div>
+    <div id="previewContent" style="padding:16px;background:white;"></div>
     <div class="preview-actions">
-      <button class="preview-action-btn btn-cancel" onclick="closePreview()">返回修改</button>
-      <button class="preview-action-btn btn-confirm" id="confirmBtn" onclick="confirmSubmit()">✅ 確認送出</button>
+    <button class="preview-action-btn btn-cancel" onclick="closePreview()">返回修改</button>
+    <button class="preview-action-btn" style="background:#065A82;color:white;" onclick="window.print()">🖨️ 列印</button>
+    <button class="preview-action-btn btn-confirm" id="confirmBtn" onclick="confirmSubmit()">✅ 確認送出</button>
     </div>
   </div>
 </div>
