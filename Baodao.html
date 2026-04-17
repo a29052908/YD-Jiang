@@ -12,7 +12,7 @@
   --selected: #1a1a2e; --selected-text: #ffffff; --shadow: 0 2px 12px rgba(0,0,0,0.08); --radius: 12px;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', sans-serif; min-height: 100vh; padding-bottom: 120px; }
+body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', sans-serif; min-height: 100vh; padding-bottom: 24px; }
 .topbar { background: var(--accent); color: white; padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
 .topbar-left { display: flex; align-items: center; gap: 12px; }
 .topbar-logo { background: var(--accent2); border-radius: 8px; padding: 6px 8px; font-weight: 700; font-size: 11px; letter-spacing: -0.5px; white-space: nowrap; }
@@ -47,7 +47,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', s
 .legend-dot { width: 12px; height: 12px; border-radius: 50%; }
 .text-area { width: 100%; padding: 12px 14px; border: 2px solid var(--border); border-radius: 10px; font-size: 14px; font-family: 'JetBrains Mono', monospace; background: var(--bg); color: var(--text); outline: none; resize: vertical; min-height: 80px; transition: border-color 0.2s; white-space: pre-wrap; word-break: break-all; }
 .text-area:focus { border-color: var(--accent); }
-.submit-area { position: fixed; bottom: 0; left: 0; right: 0; padding: 16px; background: var(--card); border-top: 1px solid var(--border); z-index: 50; display: flex; gap: 10px; }
+.submit-area { position: static; padding: 16px; background: var(--card); border-top: 1px solid var(--border); display: flex; gap: 10px; margin-top: 12px; border-radius: var(--radius); box-shadow: var(--shadow); }
 .preview-btn { flex: 1; padding: 16px; background: var(--accent); color: white; border: none; border-radius: 14px; font-size: 17px; font-weight: 700; cursor: pointer; font-family: 'Noto Sans TC', sans-serif; transition: all 0.2s; }
 .preview-btn:hover { background: #2d2d4e; }
 .toast { position: fixed; top: 80px; left: 50%; transform: translateX(-50%) translateY(-20px); background: var(--accent); color: white; padding: 12px 24px; border-radius: 30px; font-size: 14px; font-weight: 500; z-index: 300; opacity: 0; transition: all 0.3s; white-space: nowrap; }
@@ -173,7 +173,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', s
   <!-- 組件 -->
   <div class="card">
     <div class="card-label">🔧 組件</div>
-    <textarea class="text-area" id="componentInput" placeholder="例：3.5 L=14×正&#10;2.4 L: 10×T"></textarea>
+    <textarea class="text-area" id="componentInput" placeholder="例：3.5 L=14×正&#10;2.4 L: 10×T" style="min-height:160px;"></textarea>
   </div>
 
   <!-- 工具 -->
@@ -274,6 +274,40 @@ function addScrewBoard(dia) {
   activeScrewBoards.push({dia, id});
   document.getElementById('addScrewPanel').style.display = 'none';
   renderAllScrewBoards();
+  // 還原已有釘子狀態
+  Object.keys(screwState).forEach(key => {
+    const parts = key.split('_');
+    if (parts.length < 3) return;
+    const [boardId, type, len] = [parts.slice(0, -2).join('_'), parts[parts.length-2], parts[parts.length-1]];
+    const dot = document.getElementById(`dot_${boardId}_${type}_${len}`);
+    if (!dot) return;
+    const def = screwBoardDefs[activeScrewBoards.find(b => b.id === boardId)?.dia];
+    if (!def) return;
+    const t = def.types.find(t => t.type === type);
+    if (!t) return;
+    updateDot(dot, screwState[key], t.color, t.dark);
+  });
+}
+
+function restoreAllDots() {
+  Object.keys(screwState).forEach(key => {
+    const cnt = screwState[key];
+    if (!cnt) return;
+    // key格式: boardId_TYPE_len，boardId本身含底線所以從右切
+    const lastUnd2 = key.lastIndexOf('_', key.lastIndexOf('_') - 1);
+    const boardId = key.substring(0, lastUnd2);
+    const rest = key.substring(lastUnd2 + 1).split('_');
+    const type = rest[0], len = rest[1];
+    const dot = document.getElementById(`dot_${boardId}_${type}_${len}`);
+    if (!dot) return;
+    const board = activeScrewBoards.find(b => b.id === boardId);
+    if (!board) return;
+    const def = screwBoardDefs[board.dia];
+    if (!def) return;
+    const t = def.types.find(t => t.type === type);
+    if (!t) return;
+    updateDot(dot, cnt, t.color, t.dark);
+  });
 }
 
 function removeScrewBoard(id) {
@@ -297,7 +331,7 @@ function renderAllScrewBoards() {
     container.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:8px 0;">尚未新增釘盤，點「＋ 新增釘盤」開始</div>';
     return;
   }
-  container.innerHTML = activeScrewBoards.map(({dia, id}) => {
+container.innerHTML = activeScrewBoards.map(({dia, id}) => {
     const def = screwBoardDefs[dia];
     if (!def) return '';
     const typesHtml = def.types.map(({type, color, dark}) => {
@@ -327,6 +361,7 @@ function renderAllScrewBoards() {
         <div id="body_${id}" style="padding:12px;">${typesHtml}</div>
       </div>`;
   }).join('');
+  restoreAllDots();
 }
 
 function toggleScrew(id, type, len, color, dark) {
@@ -376,7 +411,7 @@ function updateComponentFromScrews() {
       }
     }
   }
-  document.getElementById('componentInput').value = lines.join('\n');
+  document.getElementById('componentInput').value = lines.join('\n\n');
 }
 
 function selectType(t) {
@@ -425,7 +460,7 @@ function buildScrewText() {
       }
     }
   }
-  return lines.join('\n');
+    return lines.join('\n\n');
 }
 
 // ── 流水號 ────────────────────────────────────
