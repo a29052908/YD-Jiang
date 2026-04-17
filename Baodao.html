@@ -455,6 +455,21 @@ function buildPayload() {
   };
 }
 
+function buildInnerCodeDisplay(d) {
+  if (d.productItems && d.productItems.length > 0) {
+    const codeQtyMap = {};
+    d.productItems.forEach(item => {
+      const key = item.innerCode || item.buwei || '';
+      if (!codeQtyMap[key]) codeQtyMap[key] = 0;
+      codeQtyMap[key] += item.qty || 1;
+    });
+    return Object.entries(codeQtyMap)
+      .map(([code, qty]) => qty > 1 ? `${code} ×${qty}` : code)
+      .join('\n');
+  }
+  return d.院內碼 || '';
+}
+
 function showPreview() {
   const d = baseData;
   const serial = getSerial();
@@ -491,7 +506,7 @@ function showPreview() {
       <div style="text-align:center;position:relative;margin-bottom:8px;">
         <div style="position:absolute;top:0;right:0;color:#e63946;font-size:18px;font-weight:700;font-family:monospace;">${serial}</div>
         <div style="display:flex;align-items:center;justify-content:center;gap:16px;">
-          <div style="font-size:18px;font-weight:900;">Tandry ∞</div>
+              <img src="圖片1.png" style="height:36px;object-fit:contain;" alt="Tandry">
           <div>
             <div style="font-size:20px;font-weight:700;letter-spacing:4px;">星 泓 股 份 有 限 公 司</div>
             <div style="font-size:10px;color:#333;">地址：114台北市內湖區瑞光路76巷65號2樓　電話：(02) 2796-2677　傳真：(02) 2796-2611</div>
@@ -511,7 +526,7 @@ function showPreview() {
             <table style="width:100%;border-collapse:collapse;">
               <tr><td style="width:65px;background:#f9f9f9;border-bottom:1px solid #000;border-right:1px solid #000;padding:4px;text-align:center;font-size:11px;letter-spacing:1px;">客戶名稱</td><td style="border-bottom:1px solid #000;padding:4px 8px;">${d.醫院||''}</td></tr>
               <tr><td style="width:65px;background:#f9f9f9;border-bottom:1px solid #000;border-right:1px solid #000;padding:4px;text-align:center;font-size:11px;letter-spacing:1px;">醫　　師</td><td style="border-bottom:1px solid #000;padding:4px 8px;">${d.醫師||''}</td></tr>
-              <tr><td style="width:65px;background:#f9f9f9;border-bottom:1px solid #000;border-right:1px solid #000;padding:4px;text-align:center;font-size:11px;letter-spacing:1px;">院 內 碼</td><td style="border-bottom:1px solid #000;padding:4px 8px;font-size:11px;">${d.院內碼||''}</td></tr>
+              <tr><td style="width:65px;background:#f9f9f9;border-bottom:1px solid #000;border-right:1px solid #000;padding:4px;text-align:center;font-size:11px;letter-spacing:1px;">院 內 碼</td><td style="border-bottom:1px solid #000;padding:4px 8px;font-size:11px;white-space:pre-wrap;">${buildInnerCodeDisplay(d)}</td></tr>
               <tr><td style="width:65px;background:#f9f9f9;border-bottom:1px solid #000;border-right:1px solid #000;padding:4px;text-align:center;font-size:11px;letter-spacing:1px;">病人姓名</td><td style="border-bottom:1px solid #000;padding:4px 8px;">${d.病人||''}</td></tr>
               <tr><td style="width:65px;background:#f9f9f9;border-bottom:1px solid #000;border-right:1px solid #000;padding:4px;text-align:center;font-size:11px;letter-spacing:1px;">病歷號碼</td><td style="border-bottom:1px solid #000;padding:4px 8px;font-size:11px;">${d.病歷號||''}</td></tr>
               <tr><td style="width:65px;background:#f9f9f9;border-bottom:1px solid #000;border-right:1px solid #000;padding:4px;text-align:center;font-size:11px;letter-spacing:1px;">業務人員</td><td style="border-bottom:1px solid #000;padding:4px 8px;">${d.業務||''}</td></tr>
@@ -526,9 +541,9 @@ function showPreview() {
               <div style="font-weight:700;font-size:12px;margin-bottom:4px;">植入物：</div>
               <div style="font-family:monospace;font-size:12px;white-space:pre-wrap;line-height:1.8;">${implant}</div>
             </div>
-            <div style="border-bottom:1px solid #000;padding:8px;min-height:90px;">
+            <div style="border-bottom:1px solid #000;padding:8px;">
               <div style="font-weight:700;font-size:12px;margin-bottom:4px;">組件：</div>
-              <div style="font-family:monospace;font-size:12px;white-space:pre-wrap;word-break:break-all;line-height:1.8;">${component}</div>
+              <div style="font-family:monospace;font-size:12px;white-space:pre-wrap;word-wrap:break-word;overflow-wrap:break-word;word-break:break-all;line-height:1.8;max-width:100%;overflow:hidden;">${component}</div>
             </div>
             <div style="padding:8px;min-height:60px;">
               <div style="font-weight:700;font-size:12px;margin-bottom:4px;">工具：</div>
@@ -537,7 +552,7 @@ function showPreview() {
           </td>
         </tr>
       </table>
-      <div style="display:flex;gap:12px;margin-top:10px;font-size:11px;flex-wrap:wrap;">
+      <div style="display:flex;justify-content:space-around;align-items:center;margin-top:10px;font-size:11px;border-top:1px solid #000;padding-top:8px;">
         <span>主管：＿＿＿＿</span>
         <span>會計：＿＿＿＿</span>
         <span>倉管：＿＿＿＿</span>
