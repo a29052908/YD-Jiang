@@ -270,8 +270,13 @@ p.style.display = p.style.display === 'none' ? 'block' : 'none';
 }
 
 function addScrewBoard(dia) {
-const id = `board_${dia}_${Date.now()}`;
-activeScrewBoards.push({dia, id});
+  if (activeScrewBoards.find(b => b.dia === dia)) {
+    showToast(`已有 ${dia} mm 釘盤，請先移除再新增`, 'error');
+    document.getElementById('addScrewPanel').style.display = 'none';
+    return;
+  }
+  const id = `board_${dia}_${Date.now()}`;
+  activeScrewBoards.push({dia, id});
 document.getElementById('addScrewPanel').style.display = 'none';
 renderAllScrewBoards();
 // 還原已有釘子狀態
@@ -311,10 +316,10 @@ updateDot(dot, cnt, t.color, t.dark);
 }
 
 function removeScrewBoard(id) {
-activeScrewBoards = activeScrewBoards.filter(b => b.id !== id);
-Object.keys(screwState).filter(k => k.startsWith(id)).forEach(k => delete screwState[k]);
-renderAllScrewBoards();
-updateComponentFromScrews();
+  activeScrewBoards = activeScrewBoards.filter(b => b.id !== id);
+  Object.keys(screwState).filter(k => k.startsWith(id + '_')).forEach(k => delete screwState[k]);
+  renderAllScrewBoards();
+  updateComponentFromScrews();
 }
 
 function toggleScrewBoard(id) {
