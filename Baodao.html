@@ -117,13 +117,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', s
 <div class="modal-overlay" id="previewModal">
   <div class="preview-modal">
     <div style="padding:12px 16px;background:var(--accent);color:white;font-size:14px;font-weight:600;">📄 報刀單預覽</div>
-    <div id="previewLoading" style="padding:40px;text-align:center;color:var(--muted);display:none;">
-      <div style="font-size:32px;margin-bottom:12px;">⏳</div>
-      <div>產生中...</div>
-    </div>
-    <div id="previewImageWrap" style="display:none;">
-      <img id="previewImage" style="width:100%;display:block;" />
-    </div>
+    <div id="previewContent" style="padding:16px;background:white;"></div>
     <div class="preview-actions">
   <button class="preview-action-btn btn-cancel" onclick="closePreview()">返回修改</button>
   <button class="preview-action-btn" style="background:#065A82;color:white;" onclick="printForm()">🖨️ 列印/PDF</button>
@@ -468,32 +462,81 @@ function buildPayload() {
   };
 }
 
-async function showPreview() {
-  document.getElementById('previewModal').classList.add('show');
-  document.getElementById('previewLoading').style.display = 'block';
-  document.getElementById('previewImageWrap').style.display = 'none';
-  document.getElementById('confirmBtn').disabled = true;
+function showPreview() {
+  const d = baseData;
+  const serial = getSerial();
+  const dateParts = (d.日期||'').split('/');
+  const yr = dateParts[0] ? (parseInt(dateParts[0])-1911)+'年' : '';
+  const mo = dateParts[1] ? dateParts[1]+'月' : '';
+  const dy = dateParts[2] ? dateParts[2]+'日' : '';
+  const cb = t => t===selectedType ? '☑' : '☐';
+  const screwText = buildScrewText();
+  const component = screwText + (document.getElementById('componentInput').value ? '\n'+document.getElementById('componentInput').value : '');
+  const tool = document.getElementById('toolInput').value;
+  const remark = document.getElementById('remarkInput').value;
+  const implant = (d.部位||'')+(d.品號?' ('+d.品號+')':'');
 
-  try {
-    const ctrl = new AbortController();
-    const t = setTimeout(() => ctrl.abort(), 15000);
-    const res = await fetch(PDF_WEBHOOK, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify(buildPayload()),
-      signal: ctrl.signal
-    });
-    clearTimeout(t);
-    const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
-    document.getElementById('previewImage').src = url;
-    document.getElementById('previewLoading').style.display = 'none';
-    document.getElementById('previewImageWrap').style.display = 'block';
-    document.getElementById('confirmBtn').disabled = false;
-  } catch(e) {
-    console.error(e);
-    document.getElementById('previewLoading').innerHTML = '<div style="font-size:32px;margin-bottom:12px;">❌</div><div>預覽失敗，請重試</div>';
-  }
+  document.getElementById('previewContent').innerHTML = `
+    <div style="font-family:'Noto Sans TC',sans-serif;font-size:13px;color:#000;max-width:100%;">
+      <div style="text-align:center;position:relative;margin-bottom:8px;">
+        <div style="position:absolute;top:0;right:0;color:#e63946;font-size:18px;font-weight:700;font-family:monospace;">${serial}</div>
+        <div style="display:flex;align-items:center;justify-content:center;gap:16px;">
+          <div style="font-size:18px;font-weight:900;">Tandry ∞</div>
+          <div>
+            <div style="font-size:22px;font-weight:700;letter-spacing:4px;">星 泓 股 份 有 限 公 司</div>
+            <div style="font-size:10px;color:#333;">地址：114台北市內湖區瑞光路76巷65號2樓　電話：(02) 2796-2677　傳真：(02) 2796-2611</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:center;gap:24px;margin:8px 0;font-size:12px;">
+          <span>${cb('出貨')} 出貨</span>
+          <span>${cb('借貨')} 借貨</span>
+          <span>${cb('換貨')} 換貨</span>
+          <span>${cb('還貨')} 還貨</span>
+          <span style="margin-left:auto;">日期：${yr} ${mo} ${dy}</span>
+        </div>
+      </div>
+      <table style="width:100%;border-collapse:collapse;border:1px solid #000;">
+        <tr>
+          <td style="width:28%;border-right:1px solid #000;padding:0;vertical-align:top;">
+            <table style="width:100%;border-collapse:collapse;">
+              <tr><td style="width:65px;background:#f9f9f9;border-bottom:1px solid #000;border-right:1px solid #000;padding:4px;text-align:center;font-size:11px;letter-spacing:2px;">客戶名稱</td><td style="border-bottom:1px solid #000;padding:4px 8px;">${d.醫院||''}</td></tr>
+              <tr><td style="width:65px;background:#f9f9f9;border-bottom:1px solid #000;border-right:1px solid #000;padding:4px;text-align:center;font-size:11px;letter-spacing:2px;">醫　　師</td><td style="border-bottom:1px solid #000;padding:4px 8px;">${d.醫師||''}</td></tr>
+              <tr><td style="width:65px;background:#f9f9f9;border-bottom:1px solid #000;border-right:1px solid #000;padding:4px;text-align:center;font-size:11px;letter-spacing:2px;">院 內 碼</td><td style="border-bottom:1px solid #000;padding:4px 8px;font-size:11px;">${d.院內碼||''}</td></tr>
+              <tr><td style="width:65px;background:#f9f9f9;border-bottom:1px solid #000;border-right:1px solid #000;padding:4px;text-align:center;font-size:11px;letter-spacing:2px;">病人姓名</td><td style="border-bottom:1px solid #000;padding:4px 8px;">${d.病人||''}</td></tr>
+              <tr><td style="width:65px;background:#f9f9f9;border-bottom:1px solid #000;border-right:1px solid #000;padding:4px;text-align:center;font-size:11px;letter-spacing:2px;">病歷號碼</td><td style="border-bottom:1px solid #000;padding:4px 8px;font-size:11px;">${d.病歷號||''}</td></tr>
+              <tr><td style="width:65px;background:#f9f9f9;border-bottom:1px solid #000;border-right:1px solid #000;padding:4px;text-align:center;font-size:11px;letter-spacing:2px;">業務人員</td><td style="border-bottom:1px solid #000;padding:4px 8px;">${d.業務||''}</td></tr>
+              <tr><td style="width:65px;background:#f9f9f9;border-bottom:1px solid #000;border-right:1px solid #000;padding:4px;text-align:center;font-size:11px;letter-spacing:2px;">庫　　別</td><td style="border-bottom:1px solid #000;padding:4px 8px;">${d.庫別||''}</td></tr>
+              <tr><td colspan="2" style="text-align:center;background:#f9f9f9;border-bottom:1px solid #000;padding:4px;font-size:11px;letter-spacing:4px;">備　　註</td></tr>
+              <tr><td colspan="2" style="padding:6px;min-height:50px;font-size:12px;">${remark}</td></tr>
+            </table>
+          </td>
+          <td style="vertical-align:top;padding:0;">
+            <div style="border-bottom:1px solid #000;padding:2px 8px;font-size:10px;display:flex;justify-content:space-between;"><span>品</span><span>名</span></div>
+            <div style="border-bottom:1px solid #000;padding:8px;min-height:100px;">
+              <div style="font-weight:700;font-size:12px;margin-bottom:4px;">植入物：</div>
+              <div style="font-family:monospace;font-size:12px;white-space:pre-wrap;line-height:1.8;">${implant}</div>
+            </div>
+            <div style="border-bottom:1px solid #000;padding:8px;min-height:90px;">
+              <div style="font-weight:700;font-size:12px;margin-bottom:4px;">組件：</div>
+              <div style="font-family:monospace;font-size:12px;white-space:pre-wrap;line-height:1.8;">${component}</div>
+            </div>
+            <div style="padding:8px;min-height:60px;">
+              <div style="font-weight:700;font-size:12px;margin-bottom:4px;">工具：</div>
+              <div style="font-family:monospace;font-size:12px;white-space:pre-wrap;line-height:1.8;">${tool}</div>
+            </div>
+          </td>
+        </tr>
+      </table>
+      <div style="display:flex;gap:16px;margin-top:10px;font-size:11px;">
+        <span>主管：＿＿＿＿＿</span>
+        <span>會計：＿＿＿＿＿</span>
+        <span>倉管：＿＿＿＿＿</span>
+        <span>業務：${d.業務||''}</span>
+        <span>客戶簽收：＿＿＿＿＿</span>
+      </div>
+    </div>
+  `;
+  document.getElementById('previewModal').classList.add('show');
 }
 
 function closePreview() {
