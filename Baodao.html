@@ -1,3 +1,464 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>報刀單</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Noto+Serif+TC:wght@400;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f5f4f0; --card: #ffffff; --border: #e0ddd6; --accent: #1a1a2e; --accent2: #e63946;
+  --green: #2d6a4f; --green-light: #d8f3dc; --text: #1a1a2e; --muted: #888680; --dim: #c5c3bc;
+  --selected: #1a1a2e; --selected-text: #ffffff; --shadow: 0 2px 12px rgba(0,0,0,0.08); --radius: 12px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', sans-serif; min-height: 100vh; padding-bottom: 120px; }
+.topbar { background: var(--accent); color: white; padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+.topbar-left { display: flex; align-items: center; gap: 12px; }
+.topbar-logo { background: var(--accent2); border-radius: 8px; padding: 6px 8px; font-weight: 700; font-size: 11px; letter-spacing: -0.5px; white-space: nowrap; }
+.topbar h1 { font-size: 17px; font-weight: 600; letter-spacing: 0.5px; }
+.content { padding: 20px 16px; max-width: 600px; margin: 0 auto; }
+.card { background: var(--card); border-radius: var(--radius); padding: 20px; margin-bottom: 12px; box-shadow: var(--shadow); border: 1px solid var(--border); }
+.card-label { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 12px; font-family: 'JetBrains Mono', monospace; }
+.info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.info-item { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; }
+.info-item-label { font-size: 10px; color: var(--muted); margin-bottom: 3px; }
+.info-item-value { font-size: 14px; font-weight: 600; color: var(--text); }
+.type-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.type-btn { padding: 10px 18px; border-radius: 10px; border: 2px solid var(--border); background: var(--bg); font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.15s; color: var(--text); font-family: 'Noto Sans TC', sans-serif; }
+.type-btn.selected { border-color: var(--accent); background: var(--accent); color: white; }
+.screw-section { margin-bottom: 20px; }
+.screw-title { font-size: 13px; font-weight: 700; color: var(--accent); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+.screw-type-label { font-size: 10px; font-weight: 700; color: var(--muted); letter-spacing: 1px; margin-bottom: 4px; font-family: 'JetBrains Mono', monospace; }
+.screw-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; align-items: center; }
+.screw-dot-wrap { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.screw-len { font-size: 9px; color: var(--muted); font-family: 'JetBrains Mono', monospace; text-align: center; }
+.screw-dot { width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--border); background: var(--bg); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; font-family: 'JetBrains Mono', monospace; transition: all 0.15s; color: var(--text); }
+.screw-dot.locking { border-color: #4CAF50; }
+.screw-dot.locking.active { background: #4CAF50; color: white; border-color: #4CAF50; }
+.screw-dot.cortex { border-color: #FF9800; }
+.screw-dot.cortex.active { background: #FF9800; color: white; border-color: #FF9800; }
+.screw-dot.locking.active-2 { background: #2E7D32; }
+.screw-dot.cortex.active-2 { background: #E65100; }
+.screw-dot.locking.active-3 { background: #1B5E20; }
+.screw-dot.cortex.active-3 { background: #BF360C; }
+.screw-legend { display: flex; gap: 12px; margin-bottom: 12px; }
+.legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--muted); }
+.legend-dot { width: 12px; height: 12px; border-radius: 50%; }
+.text-area { width: 100%; padding: 12px 14px; border: 2px solid var(--border); border-radius: 10px; font-size: 14px; font-family: 'JetBrains Mono', monospace; background: var(--bg); color: var(--text); outline: none; resize: vertical; min-height: 80px; transition: border-color 0.2s; white-space: pre-wrap; word-break: break-all; }
+.text-area:focus { border-color: var(--accent); }
+.submit-area { position: fixed; bottom: 0; left: 0; right: 0; padding: 16px; background: var(--card); border-top: 1px solid var(--border); z-index: 50; display: flex; gap: 10px; }
+.preview-btn { flex: 1; padding: 16px; background: var(--accent); color: white; border: none; border-radius: 14px; font-size: 17px; font-weight: 700; cursor: pointer; font-family: 'Noto Sans TC', sans-serif; transition: all 0.2s; }
+.preview-btn:hover { background: #2d2d4e; }
+.toast { position: fixed; top: 80px; left: 50%; transform: translateX(-50%) translateY(-20px); background: var(--accent); color: white; padding: 12px 24px; border-radius: 30px; font-size: 14px; font-weight: 500; z-index: 300; opacity: 0; transition: all 0.3s; white-space: nowrap; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast.error { background: var(--accent2); }
+.toast.success { background: var(--green); }
+
+/* Preview Modal */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200; display: none; align-items: flex-start; justify-content: center; overflow-y: auto; padding: 20px 0; }
+.modal-overlay.show { display: flex; }
+.preview-modal { background: white; width: 95%; max-width: 640px; border-radius: 16px; overflow: hidden; margin: auto; }
+.preview-actions { display: flex; gap: 10px; padding: 16px; background: var(--bg); border-top: 1px solid var(--border); }
+.preview-action-btn { flex: 1; padding: 14px; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; font-family: 'Noto Sans TC', sans-serif; }
+.btn-cancel { background: var(--border); color: var(--text); }
+.btn-confirm { background: var(--green); color: white; }
+
+/* 報刀單樣式 */
+.baodao-form { padding: 16px; font-family: 'Noto Serif TC', serif; font-size: 12px; color: #000; background: white; }
+.baodao-header { text-align: center; margin-bottom: 8px; position: relative; }
+.baodao-logo-area { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 4px; }
+.baodao-logo-text { font-size: 11px; font-weight: 700; font-family: 'Noto Sans TC', sans-serif; }
+.baodao-company { font-size: 22px; font-weight: 700; letter-spacing: 4px; }
+.baodao-addr { font-size: 10px; color: #333; line-height: 1.6; }
+.baodao-serial { position: absolute; top: 0; right: 0; color: #e63946; font-size: 16px; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+.baodao-type-row { display: flex; align-items: center; gap: 20px; margin: 8px 0; font-size: 12px; justify-content: center; }
+.baodao-checkbox { display: inline-flex; align-items: center; gap: 4px; }
+.baodao-date { margin-left: auto; font-size: 12px; }
+.baodao-body { display: flex; border: 1px solid #000; margin-top: 8px; }
+.baodao-left { width: 38%; border-right: 1px solid #000; }
+.baodao-right { flex: 1; }
+.baodao-row { display: flex; border-bottom: 1px solid #000; min-height: 28px; }
+.baodao-row:last-child { border-bottom: none; }
+.baodao-field-label { width: 60px; padding: 4px 6px; font-size: 11px; border-right: 1px solid #000; display: flex; align-items: center; justify-content: center; background: #f9f9f9; letter-spacing: 2px; flex-shrink: 0; }
+.baodao-field-value { flex: 1; padding: 4px 8px; font-size: 11px; display: flex; align-items: center; word-break: break-all; }
+.baodao-right-section { border-bottom: 1px solid #000; padding: 6px 8px; min-height: 80px; }
+.baodao-right-section:last-child { border-bottom: none; }
+.baodao-section-label { font-size: 11px; font-weight: 700; margin-bottom: 4px; }
+.baodao-section-content { font-size: 10px; line-height: 1.8; white-space: pre-wrap; }
+.baodao-footer { border-top: 1px solid #000; padding: 8px; margin-top: 0; }
+.baodao-sig-row { display: flex; gap: 20px; font-size: 11px; }
+.baodao-sig-item { display: flex; align-items: center; gap: 4px; flex: 1; }
+.baodao-sig-line { flex: 1; border-bottom: 1px solid #000; min-width: 40px; }
+.baodao-note-row { border-bottom: 1px solid #000; min-height: 40px; }
+.baodao-note-label { font-size: 11px; letter-spacing: 3px; text-align: center; padding: 4px; background: #f9f9f9; border-bottom: 1px solid #000; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="topbar-logo">Tandry</div>
+    <h1>報刀單</h1>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="modal-overlay" id="previewModal">
+  <div class="preview-modal">
+    <div style="padding:12px 16px;background:var(--accent);color:white;font-size:14px;font-weight:600;">📄 報刀單預覽</div>
+    <div id="previewLoading" style="padding:40px;text-align:center;color:var(--muted);display:none;">
+      <div style="font-size:32px;margin-bottom:12px;">⏳</div>
+      <div>產生中...</div>
+    </div>
+    <div id="previewImageWrap" style="display:none;">
+      <img id="previewImage" style="width:100%;display:block;" />
+    </div>
+    <div class="preview-actions">
+      <button class="preview-action-btn btn-cancel" onclick="closePreview()">返回修改</button>
+      <button class="preview-action-btn btn-confirm" id="confirmBtn" onclick="confirmSubmit()">✅ 確認送出</button>
+    </div>
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- 基本資料 -->
+  <div class="card">
+    <div class="card-label">📋 基本資料</div>
+    <div class="info-grid" id="infoGrid"></div>
+  </div>
+
+  <!-- 單據類型 -->
+  <div class="card" style="padding:14px 20px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;" onclick="toggleTypePanel()">
+      <div class="card-label" style="margin-bottom:0;">📦 單據類型</div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span id="typeDisplay" style="font-size:14px;font-weight:700;color:var(--accent);">出貨</span>
+        <span id="typeArrow" style="color:var(--muted);font-size:12px;">▼</span>
+      </div>
+    </div>
+    <div id="typePanel" style="display:none;margin-top:12px;">
+      <div class="type-row">
+        <button class="type-btn selected" onclick="selectType('出貨')">出貨</button>
+        <button class="type-btn" onclick="selectType('借貨')">借貨</button>
+        <button class="type-btn" onclick="selectType('換貨')">換貨</button>
+        <button class="type-btn" onclick="selectType('還貨')">還貨</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 釘盤 -->
+  <div class="card" id="screwCard">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <div class="card-label" style="margin-bottom:0;">🔩 釘子</div>
+      <button onclick="showAddScrewBoard()" style="padding:5px 14px;border-radius:20px;border:1.5px solid var(--accent);background:white;color:var(--accent);font-size:12px;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;">＋ 新增釘盤</button>
+    </div>
+    <div class="screw-legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#4CAF50"></div>L = Locking</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#FF9800"></div>C = Cortex</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#9C27B0"></div>VA-L</div>
+    </div>
+    <div id="addScrewPanel" style="display:none;margin-bottom:12px;padding:12px;background:var(--bg);border-radius:10px;border:1px solid var(--border);">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px;font-family:'JetBrains Mono',monospace;">選擇釘子直徑</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;">
+        <button class="type-btn" onclick="addScrewBoard('1.5')">1.5 mm</button>
+        <button class="type-btn" onclick="addScrewBoard('2.0')">2.0 mm</button>
+        <button class="type-btn" onclick="addScrewBoard('2.4')">2.4 mm</button>
+        <button class="type-btn" onclick="addScrewBoard('3.5')">3.5 mm</button>
+        <button class="type-btn" onclick="addScrewBoard('5.0')">5.0 mm</button>
+        <button class="type-btn" onclick="addScrewBoard('VA')">VA</button>
+      </div>
+    </div>
+    <div id="screwBoards"></div>
+  </div>
+
+  <!-- 組件 -->
+  <div class="card">
+    <div class="card-label">🔧 組件</div>
+    <textarea class="text-area" id="componentInput" placeholder="例：3.5 L=14×正&#10;2.4 L: 10×T"></textarea>
+  </div>
+
+  <!-- 工具 -->
+  <div class="card">
+    <div class="card-label">🛠 工具</div>
+    <textarea class="text-area" id="toolInput" placeholder="例：拉：0.8 guide pin (299112F-000)×2 正"></textarea>
+  </div>
+
+  <!-- 備註 -->
+  <div class="card">
+    <div class="card-label">📝 備註</div>
+    <textarea class="text-area" id="remarkInput" placeholder="備註..."></textarea>
+  </div>
+
+</div>
+
+<div class="submit-area">
+  <button class="preview-btn" onclick="showPreview()">👁 預覽報刀單</button>
+</div>
+
+<script>
+// ── 資料 ──────────────────────────────────────
+const WEBHOOK_URL = "https://ydj.zeabur.app/webhook/manual-baodao";
+const SERIAL_KEY = 'tandry_serial_number';
+let selectedType = '出貨';
+let screwState = {}; // {dia_type_len: count}
+
+// 從報刀系統帶過來的資料
+const baseData = JSON.parse(localStorage.getItem('tandry_phase2_data') || 'null') || {
+  日期: '2026/4/16', 業務: 'Ivan', 庫別: '桃庫', 醫院: '中天', 醫師: '楊崇光',
+  部位: '鎖骨', 品號: 'T2-441-074', 數量: 1, 病人: '測試', 病歷號: '123456',
+  院內碼: 'OS0211B', 大區: '桃竹苗', 負責業務: 'Ivan'
+};
+
+// ── 釘盤規格 ──────────────────────────────────
+function genLengths(rules) {
+  const lens = new Set();
+  for (const r of rules) {
+    for (let l = r.from; l <= r.to; l += r.step) lens.add(l);
+    if (r.extra) r.extra.forEach(e => lens.add(e));
+  }
+  return [...lens].sort((a,b) => a-b);
+}
+
+const std35 = genLengths([
+  {from:10, to:40, step:2},
+  {from:45, to:70, step:5, extra:[42,48]}
+]);
+const std24 = genLengths([{from:10, to:50, step:2}]);
+const std15 = genLengths([{from:6, to:14, step:1},{from:16, to:20, step:2}]);
+const std20 = genLengths([{from:6, to:14, step:1},{from:16, to:20, step:2}]);
+const std50L = genLengths([{from:20, to:50, step:2},{from:55, to:90, step:5}]);
+const std50C = genLengths([{from:20, to:50, step:2}]);
+std50C.push(...[54,60,64,70,80,90]);
+std50C.sort((a,b)=>a-b);
+
+// ── 初始化 ────────────────────────────────────
+window.onload = () => {
+  renderInfoGrid();
+  renderAllScrewBoards();
+};
+
+function renderInfoGrid() {
+  const fields = [
+    {label:'日期', val:baseData.日期},
+    {label:'業務', val:baseData.業務},
+    {label:'醫院', val:baseData.醫院},
+    {label:'醫師', val:baseData.醫師},
+    {label:'病人', val:baseData.病人},
+    {label:'病歷號', val:baseData.病歷號},
+    {label:'部位', val:baseData.部位},
+    {label:'庫別', val:baseData.庫別},
+  ];
+  document.getElementById('infoGrid').innerHTML = fields.map(f => `
+    <div class="info-item">
+      <div class="info-item-label">${f.label}</div>
+      <div class="info-item-value">${f.val || '—'}</div>
+    </div>`).join('');
+}
+const screwBoardDefs = {
+  '1.5': { types: [{type:'L',color:'#4CAF50',dark:'#2E7D32'},{type:'C',color:'#FF9800',dark:'#E65100'}], lengths: std15 },
+  '2.0': { types: [{type:'L',color:'#4CAF50',dark:'#2E7D32'},{type:'C',color:'#FF9800',dark:'#E65100'}], lengths: std20 },
+  '2.4': { types: [{type:'L',color:'#4CAF50',dark:'#2E7D32'},{type:'C',color:'#FF9800',dark:'#E65100'}], lengths: std24 },
+  '3.5': { types: [{type:'L',color:'#4CAF50',dark:'#2E7D32'},{type:'C',color:'#FF9800',dark:'#E65100'}], lengths: std35 },
+  '5.0': { types: [{type:'L',color:'#4CAF50',dark:'#2E7D32'},{type:'C',color:'#FF9800',dark:'#E65100'}], lengthsL: std50L, lengthsC: std50C },
+  'VA':  { types: [{type:'L',color:'#9C27B0',dark:'#6A1B9A'},{type:'C',color:'#FF9800',dark:'#E65100'}], lengths: [] },
+};
+
+let activeScrewBoards = [];
+
+function showAddScrewBoard() {
+  const p = document.getElementById('addScrewPanel');
+  p.style.display = p.style.display === 'none' ? 'block' : 'none';
+}
+
+function addScrewBoard(dia) {
+  const id = `board_${dia}_${Date.now()}`;
+  activeScrewBoards.push({dia, id});
+  document.getElementById('addScrewPanel').style.display = 'none';
+  renderAllScrewBoards();
+}
+
+function removeScrewBoard(id) {
+  activeScrewBoards = activeScrewBoards.filter(b => b.id !== id);
+  Object.keys(screwState).filter(k => k.startsWith(id)).forEach(k => delete screwState[k]);
+  renderAllScrewBoards();
+  updateComponentFromScrews();
+}
+
+function toggleScrewBoard(id) {
+  const body = document.getElementById(`body_${id}`);
+  const arrow = document.getElementById(`arrow_${id}`);
+  const isOpen = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : 'block';
+  arrow.textContent = isOpen ? '▶' : '▼';
+}
+
+function renderAllScrewBoards() {
+  const container = document.getElementById('screwBoards');
+  if (!activeScrewBoards.length) {
+    container.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:8px 0;">尚未新增釘盤，點「＋ 新增釘盤」開始</div>';
+    return;
+  }
+  container.innerHTML = activeScrewBoards.map(({dia, id}) => {
+    const def = screwBoardDefs[dia];
+    if (!def) return '';
+    const typesHtml = def.types.map(({type, color, dark}) => {
+      const lengths = dia === '5.0' ? (type === 'L' ? def.lengthsL : def.lengthsC) : def.lengths;
+      if (!lengths.length) return `<div style="color:var(--muted);font-size:12px;padding:6px 0;">${type} — 尺寸待補齊</div>`;
+      return `
+        <div class="screw-type-label" style="color:${color};margin-top:8px;">● ${type} — ${type==='L'?'Locking':'Cortex'}</div>
+        <div class="screw-row">
+          ${lengths.map(len => `
+            <div class="screw-dot-wrap">
+              <div class="screw-len">${len}</div>
+              <div class="screw-dot" id="dot_${id}_${type}_${len}"
+                   style="border-color:${color};background:var(--bg);color:var(--text);"
+                   onclick="toggleScrew('${id}','${type}',${len},'${color}','${dark}')"
+                   data-count="0">0</div>
+              <div onclick="decreaseScrew('${id}','${type}',${len},'${color}','${dark}')"
+                   style="width:32px;height:14px;border-radius:4px;background:var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;font-weight:700;color:var(--muted);user-select:none;">－</div>
+            </div>`).join('')}
+        </div>`;
+    }).join('');
+    return `
+      <div style="margin-bottom:10px;border:1px solid var(--border);border-radius:10px;overflow:hidden;">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg);cursor:pointer;" onclick="toggleScrewBoard('${id}')">
+          <div style="font-size:13px;font-weight:700;color:var(--accent);"><span id="arrow_${id}">▼</span> ⌀ ${dia} mm</div>
+          <button onclick="event.stopPropagation();removeScrewBoard('${id}')" style="padding:3px 10px;border-radius:6px;border:1px solid var(--accent2);background:white;color:var(--accent2);font-size:11px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;">移除</button>
+        </div>
+        <div id="body_${id}" style="padding:12px;">${typesHtml}</div>
+      </div>`;
+  }).join('');
+}
+
+function toggleScrew(id, type, len, color, dark) {
+  const key = `${id}_${type}_${len}`;
+  const dot = document.getElementById(`dot_${id}_${type}_${len}`);
+  const cur = screwState[key] || 0;
+  const next = cur >= 99 ? 0 : cur + 1;
+  screwState[key] = next;
+  updateDot(dot, next, color, dark);
+  updateComponentFromScrews();
+}
+
+function decreaseScrew(id, type, len, color, dark) {
+  const key = `${id}_${type}_${len}`;
+  const dot = document.getElementById(`dot_${id}_${type}_${len}`);
+  const cur = screwState[key] || 0;
+  const next = Math.max(0, cur - 1);
+  screwState[key] = next;
+  updateDot(dot, next, color, dark);
+  updateComponentFromScrews();
+}
+
+function updateDot(dot, n, color, dark) {
+  dot.dataset.count = n;
+  dot.textContent = n;
+  if (n === 0) { dot.style.background = 'var(--bg)'; dot.style.color = 'var(--text)'; }
+  else if (n <= 2) { dot.style.background = color; dot.style.color = 'white'; }
+  else { dot.style.background = dark; dot.style.color = 'white'; }
+}
+
+function updateComponentFromScrews() {
+  const lines = [];
+  for (const {dia, id} of activeScrewBoards) {
+    const def = screwBoardDefs[dia];
+    if (!def) continue;
+    for (const {type} of def.types) {
+      const lengths = dia === '5.0' ? (type === 'L' ? def.lengthsL : def.lengthsC) : def.lengths;
+      const entries = [];
+      for (const len of lengths) {
+        const cnt = screwState[`${id}_${type}_${len}`] || 0;
+        if (cnt > 0) entries.push({len, zheng: toZheng(cnt)});
+      }
+      if (entries.length > 0) {
+        const prefix = `${dia} ${type}: `;
+        const pad = ' '.repeat(prefix.length);
+        lines.push(entries.map((e, i) => (i===0?prefix:pad) + String(e.len).padStart(2,' ') + '×' + e.zheng).join('\n'));
+      }
+    }
+  }
+  document.getElementById('componentInput').value = lines.join('\n');
+}
+
+function selectType(t) {
+  selectedType = t;
+  document.getElementById('typeDisplay').textContent = t;
+  document.querySelectorAll('.type-btn').forEach(b => {
+    b.classList.toggle('selected', b.textContent === t);
+  });
+  document.getElementById('typePanel').style.display = 'none';
+  document.getElementById('typeArrow').textContent = '▼';
+}
+function toggleTypePanel() {
+  const p = document.getElementById('typePanel');
+  const arrow = document.getElementById('typeArrow');
+  const isOpen = p.style.display !== 'none';
+  p.style.display = isOpen ? 'none' : 'block';
+  arrow.textContent = isOpen ? '▼' : '▲';
+}
+
+// ── 正字轉換 ──────────────────────────────────
+function toZheng(n) {
+  if (n <= 0) return '';
+  const full = Math.floor(n / 5);
+  const rem = n % 5;
+  const strokes = ['', '一', '二', '三', '四'];
+  return '正'.repeat(full) + strokes[rem];
+}
+
+// ── 組合釘子文字 ──────────────────────────────
+function buildScrewText() {
+  const lines = [];
+  for (const {dia, id} of activeScrewBoards) {
+    const def = screwBoardDefs[dia];
+    if (!def) continue;
+    for (const {type} of def.types) {
+      const lengths = dia === '5.0' ? (type === 'L' ? def.lengthsL : def.lengthsC) : def.lengths;
+      const entries = [];
+      for (const len of lengths) {
+        const cnt = screwState[`${id}_${type}_${len}`] || 0;
+        if (cnt > 0) entries.push({len, zheng: toZheng(cnt)});
+      }
+      if (entries.length > 0) {
+        const prefix = `${dia} ${type}: `;
+        const pad = ' '.repeat(prefix.length);
+        lines.push(entries.map((e, i) => (i===0?prefix:pad) + String(e.len).padStart(2,' ') + '×' + e.zheng).join('\n'));
+      }
+    }
+  }
+  return lines.join('\n');
+}
+
+// ── 流水號 ────────────────────────────────────
+function getSerial() {
+  let s = parseInt(localStorage.getItem(SERIAL_KEY) || '30000');
+  return s;
+}
+function incrementSerial() {
+  let s = getSerial();
+  s++;
+  localStorage.setItem(SERIAL_KEY, s);
+  return s;
+}
+
+// ── 預覽 ──────────────────────────────────────
+const PDF_WEBHOOK = "https://ydj.zeabur.app/webhook/baodao-pdf";
+
+function buildPayload() {
+  return {
+    ...baseData,
+    流水號: getSerial(),
+    單據類型: selectedType,
+    釘子明細: buildScrewText(),
+    組件: document.getElementById('componentInput').value,
+    工具: document.getElementById('toolInput').value,
+    備註: document.getElementById('remarkInput').value,
+  };
+}
+
 function showPreview() {
   const d = baseData;
   const serial = getSerial();
@@ -7,42 +468,43 @@ function showPreview() {
   const dy = dateParts[2] ? dateParts[2]+'日' : '';
   const cb = t => t===selectedType ? '☑' : '☐';
   const screwText = buildScrewText();
-  const component = screwText + (document.getElementById('componentInput').value ? '\n'+document.getElementById('componentInput').value : '');
+  const extraComponent = document.getElementById('componentInput').value;
+  const component = screwText + (extraComponent ? '\n'+extraComponent : '');
   const tool = document.getElementById('toolInput').value;
   const remark = document.getElementById('remarkInput').value;
   const implant = (d.部位||'')+(d.品號?' ('+d.品號+')':'');
 
   document.getElementById('previewContent').innerHTML = `
-    <div style="font-family:'Noto Sans TC',sans-serif;font-size:13px;color:#000;max-width:100%;">
+    <div style="font-family:'Noto Sans TC',sans-serif;font-size:13px;color:#000;">
       <div style="text-align:center;position:relative;margin-bottom:8px;">
         <div style="position:absolute;top:0;right:0;color:#e63946;font-size:18px;font-weight:700;font-family:monospace;">${serial}</div>
         <div style="display:flex;align-items:center;justify-content:center;gap:16px;">
           <div style="font-size:18px;font-weight:900;">Tandry ∞</div>
           <div>
-            <div style="font-size:22px;font-weight:700;letter-spacing:4px;">星 泓 股 份 有 限 公 司</div>
+            <div style="font-size:20px;font-weight:700;letter-spacing:4px;">星 泓 股 份 有 限 公 司</div>
             <div style="font-size:10px;color:#333;">地址：114台北市內湖區瑞光路76巷65號2樓　電話：(02) 2796-2677　傳真：(02) 2796-2611</div>
           </div>
         </div>
-        <div style="display:flex;align-items:center;justify-content:center;gap:24px;margin:8px 0;font-size:12px;">
+        <div style="display:flex;align-items:center;justify-content:center;gap:20px;margin:8px 0;font-size:12px;flex-wrap:wrap;">
           <span>${cb('出貨')} 出貨</span>
           <span>${cb('借貨')} 借貨</span>
           <span>${cb('換貨')} 換貨</span>
           <span>${cb('還貨')} 還貨</span>
-          <span style="margin-left:auto;">日期：${yr} ${mo} ${dy}</span>
+          <span>日期：${yr} ${mo} ${dy}</span>
         </div>
       </div>
       <table style="width:100%;border-collapse:collapse;border:1px solid #000;">
         <tr>
           <td style="width:28%;border-right:1px solid #000;padding:0;vertical-align:top;">
             <table style="width:100%;border-collapse:collapse;">
-              <tr><td style="width:65px;background:#f9f9f9;border-bottom:1px solid #000;border-right:1px solid #000;padding:4px;text-align:center;font-size:11px;letter-spacing:2px;">客戶名稱</td><td style="border-bottom:1px solid #000;padding:4px 8px;">${d.醫院||''}</td></tr>
-              <tr><td style="width:65px;background:#f9f9f9;border-bottom:1px solid #000;border-right:1px solid #000;padding:4px;text-align:center;font-size:11px;letter-spacing:2px;">醫　　師</td><td style="border-bottom:1px solid #000;padding:4px 8px;">${d.醫師||''}</td></tr>
-              <tr><td style="width:65px;background:#f9f9f9;border-bottom:1px solid #000;border-right:1px solid #000;padding:4px;text-align:center;font-size:11px;letter-spacing:2px;">院 內 碼</td><td style="border-bottom:1px solid #000;padding:4px 8px;font-size:11px;">${d.院內碼||''}</td></tr>
-              <tr><td style="width:65px;background:#f9f9f9;border-bottom:1px solid #000;border-right:1px solid #000;padding:4px;text-align:center;font-size:11px;letter-spacing:2px;">病人姓名</td><td style="border-bottom:1px solid #000;padding:4px 8px;">${d.病人||''}</td></tr>
-              <tr><td style="width:65px;background:#f9f9f9;border-bottom:1px solid #000;border-right:1px solid #000;padding:4px;text-align:center;font-size:11px;letter-spacing:2px;">病歷號碼</td><td style="border-bottom:1px solid #000;padding:4px 8px;font-size:11px;">${d.病歷號||''}</td></tr>
-              <tr><td style="width:65px;background:#f9f9f9;border-bottom:1px solid #000;border-right:1px solid #000;padding:4px;text-align:center;font-size:11px;letter-spacing:2px;">業務人員</td><td style="border-bottom:1px solid #000;padding:4px 8px;">${d.業務||''}</td></tr>
-              <tr><td style="width:65px;background:#f9f9f9;border-bottom:1px solid #000;border-right:1px solid #000;padding:4px;text-align:center;font-size:11px;letter-spacing:2px;">庫　　別</td><td style="border-bottom:1px solid #000;padding:4px 8px;">${d.庫別||''}</td></tr>
-              <tr><td colspan="2" style="text-align:center;background:#f9f9f9;border-bottom:1px solid #000;padding:4px;font-size:11px;letter-spacing:4px;">備　　註</td></tr>
+              <tr><td style="width:65px;background:#f9f9f9;border-bottom:1px solid #000;border-right:1px solid #000;padding:4px;text-align:center;font-size:11px;letter-spacing:1px;">客戶名稱</td><td style="border-bottom:1px solid #000;padding:4px 8px;">${d.醫院||''}</td></tr>
+              <tr><td style="width:65px;background:#f9f9f9;border-bottom:1px solid #000;border-right:1px solid #000;padding:4px;text-align:center;font-size:11px;letter-spacing:1px;">醫　　師</td><td style="border-bottom:1px solid #000;padding:4px 8px;">${d.醫師||''}</td></tr>
+              <tr><td style="width:65px;background:#f9f9f9;border-bottom:1px solid #000;border-right:1px solid #000;padding:4px;text-align:center;font-size:11px;letter-spacing:1px;">院 內 碼</td><td style="border-bottom:1px solid #000;padding:4px 8px;font-size:11px;">${d.院內碼||''}</td></tr>
+              <tr><td style="width:65px;background:#f9f9f9;border-bottom:1px solid #000;border-right:1px solid #000;padding:4px;text-align:center;font-size:11px;letter-spacing:1px;">病人姓名</td><td style="border-bottom:1px solid #000;padding:4px 8px;">${d.病人||''}</td></tr>
+              <tr><td style="width:65px;background:#f9f9f9;border-bottom:1px solid #000;border-right:1px solid #000;padding:4px;text-align:center;font-size:11px;letter-spacing:1px;">病歷號碼</td><td style="border-bottom:1px solid #000;padding:4px 8px;font-size:11px;">${d.病歷號||''}</td></tr>
+              <tr><td style="width:65px;background:#f9f9f9;border-bottom:1px solid #000;border-right:1px solid #000;padding:4px;text-align:center;font-size:11px;letter-spacing:1px;">業務人員</td><td style="border-bottom:1px solid #000;padding:4px 8px;">${d.業務||''}</td></tr>
+              <tr><td style="width:65px;background:#f9f9f9;border-bottom:1px solid #000;border-right:1px solid #000;padding:4px;text-align:center;font-size:11px;letter-spacing:1px;">庫　　別</td><td style="border-bottom:1px solid #000;padding:4px 8px;">${d.庫別||''}</td></tr>
+              <tr><td colspan="2" style="text-align:center;background:#f9f9f9;border-bottom:1px solid #000;padding:4px;font-size:11px;letter-spacing:3px;">備　　註</td></tr>
               <tr><td colspan="2" style="padding:6px;min-height:50px;font-size:12px;">${remark}</td></tr>
             </table>
           </td>
@@ -63,10 +525,10 @@ function showPreview() {
           </td>
         </tr>
       </table>
-      <div style="display:flex;gap:16px;margin-top:10px;font-size:11px;">
-        <span>主管：＿＿＿＿＿</span>
-        <span>會計：＿＿＿＿＿</span>
-        <span>倉管：＿＿＿＿＿</span>
+      <div style="display:flex;gap:12px;margin-top:10px;font-size:11px;flex-wrap:wrap;">
+        <span>主管：＿＿＿＿</span>
+        <span>會計：＿＿＿＿</span>
+        <span>倉管：＿＿＿＿</span>
         <span>業務：${d.業務||''}</span>
         <span>客戶簽收：＿＿＿＿＿</span>
       </div>
@@ -74,3 +536,58 @@ function showPreview() {
   `;
   document.getElementById('previewModal').classList.add('show');
 }
+
+function closePreview() {
+  document.getElementById('previewModal').classList.remove('show');
+}
+
+// ── 送出 ──────────────────────────────────────
+async function confirmSubmit() {
+  const btn = document.getElementById('confirmBtn');
+  btn.disabled = true;
+  btn.textContent = '送出中...';
+
+  const serial = incrementSerial();
+  const data = { ...buildPayload(), 流水號: serial };
+
+  try {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 8000);
+    await fetch(WEBHOOK_URL, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(data),
+      signal: ctrl.signal
+    });
+    clearTimeout(t);
+  } catch(e) { console.error(e); }
+
+  closePreview();
+  showSuccessOverlay(serial);
+  btn.disabled = false;
+  btn.textContent = '✅ 確認送出';
+}
+
+function showSuccessOverlay(serial) {
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(45,106,79,0.96);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;';
+  overlay.innerHTML = `
+    <div style="font-size:64px;margin-bottom:16px;">✅</div>
+    <div style="color:white;font-size:22px;font-weight:700;margin-bottom:8px;">報刀單送出成功！</div>
+    <div style="color:rgba(255,255,255,0.8);font-size:16px;">流水號：<span style="font-family:'JetBrains Mono',monospace;font-weight:700;">${serial}</span></div>
+    <div style="color:rgba(255,255,255,0.5);font-size:13px;margin-top:16px;">點擊任意處關閉</div>
+  `;
+  overlay.onclick = () => document.body.removeChild(overlay);
+  document.body.appendChild(overlay);
+  setTimeout(() => { if(document.body.contains(overlay)) document.body.removeChild(overlay); }, 4000);
+}
+
+function showToast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast show ${type}`;
+  setTimeout(() => t.className = 'toast', 3000);
+}
+</script>
+</body>
+</html>
