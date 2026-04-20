@@ -957,10 +957,12 @@ function setV1(v) { sel.v1=v; sel.v2=''; sel.v3=''; sel.品號=''; renderLevels(
 function setV2(v) { sel.v2=v; sel.v3=''; sel.品號=''; renderLevels(); updateCode(); }
 function setV3(v) {
   sel.v3=v;
-  const r = DB.find(x=>x.部位===sel.buwei&&x.v1===sel.v1&&x.v2===sel.v2&&x.v3===v);
-  sel.品號 = r?.品號||'';
-  renderLevels(); updateCode();
-}
+  const r = DB.find(x =>
+  x.部位 === sel.buwei &&
+  x.v1 === sel.v1 &&
+  x.v2 === sel.v2 &&
+  (x.v3 === v || x.v3 === '')   // ← 加這個
+);
 
 // ─── 院內碼顯示 ──────────────────────────────────────────────
 function updateCode() {
