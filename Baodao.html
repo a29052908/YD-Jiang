@@ -132,6 +132,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', s
 
 @keyframes fadeIn{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:translateY(0);}}
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
 
@@ -148,7 +149,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', s
 <div class="modal-overlay" id="previewModal">
 <div class="preview-modal">
 <div style="padding:12px 16px;background:var(--accent);color:white;font-size:14px;font-weight:600;">📄 報刀單預覽</div>
-<div id="previewContent" style="padding:16px;background:white;overflow-y:auto;max-height:70vh;"></div>
+<div id="previewContent" style="padding:16px;background:white;overflow-x:auto;overflow-y:auto;max-height:70vh;"></div>
 <div class="preview-actions">
 <button class="preview-action-btn btn-cancel" onclick="closePreview()">返回修改</button>
 <button class="preview-action-btn" style="background:#065A82;color:white;" onclick="window.print()">🖨️ 列印</button>
@@ -357,8 +358,14 @@ function updateComponentFromScrews(){
     for(const{type}of def.types){
       const lengths=dia==='5.0'?(type==='L'?def.lengthsL:def.lengthsC):def.lengths;
       const entries=[];
-      for(const len of lengths){const cnt=screwState[`${id}_${type}_${len}`]||0;if(cnt>0)entries.push(`${len}×${toZheng(cnt)}`);}
-      if(entries.length>0) diaLines.push(`${dia} ${type}: ${entries.join(' ')}`);
+      for(const len of lengths){const cnt=screwState[`${id}_${type}_${len}`]||0;if(cnt>0)entries.push(`${len}x${toZheng(cnt)}`);}
+      if(entries.length>0){
+      const prefix=`${dia} ${type}: `;
+      const indent=' '.repeat(prefix.length);
+      const rows=[];
+      for(let i=0;i<entries.length;i+=6){rows.push(entries.slice(i,i+6).join('・'));}
+      diaLines.push(prefix+rows.join('\n'+indent));
+    }
     }
     if(diaLines.length>0) groups.push(diaLines.join('\n'));
   }
@@ -379,8 +386,24 @@ function toZheng(n){
 
 function buildScrewText(){
   const groups=[];
-  for(const{dia,id}of activeScrewBoards){const def=screwBoardDefs[dia];if(!def)continue;const diaLines=[];for(const{type}of def.types){const lengths=dia==='5.0'?(type==='L'?def.lengthsL:def.lengthsC):def.lengths;const entries=[];for(const len of lengths){const cnt=screwState[`${id}_${type}_${len}`]||0;if(cnt>0)entries.push({len,zheng:toZheng(cnt)});}if(entries.length>0){const prefix=`${dia} ${type}:\t`;diaLines.push(entries.map((e,i)=>(i===0?prefix:'\t')+String(e.len).padStart(2,' ')+'×'+e.zheng).join('\n'));}}if(diaLines.length>0)groups.push(diaLines.join('\n'));}
-  return groups.join('\n\n');
+  for(const{dia,id}of activeScrewBoards){
+    const def=screwBoardDefs[dia];if(!def)continue;
+    const diaLines=[];
+    for(const{type}of def.types){
+      const lengths=dia==='5.0'?(type==='L'?def.lengthsL:def.lengthsC):def.lengths;
+      const entries=[];
+      for(const len of lengths){const cnt=screwState[`${id}_${type}_${len}`]||0;if(cnt>0)entries.push(`${len}x${toZheng(cnt)}`);}
+      if(entries.length>0){
+        const prefix=`${dia} ${type}: `;
+        const indent=' '.repeat(prefix.length);
+        const rows=[];
+        for(let i=0;i<entries.length;i+=6){rows.push(entries.slice(i,i+6).join('・'));}
+        diaLines.push(prefix+rows.join('\n'+indent));
+      }
+    }
+    if(diaLines.length>0)groups.push(diaLines.join('\n'));
+  }
+  return groups.join('\n');
 }
 
 function selectType(t){selectedType=t;document.getElementById('typeDisplay').textContent=t;document.querySelectorAll('.type-btn').forEach(b=>{b.classList.toggle('selected',b.textContent===t);});document.getElementById('typePanel').style.display='none';document.getElementById('typeArrow').textContent='▼';}
@@ -444,20 +467,24 @@ function showPreview(){
   const implant=implantLines.join('\n');
   const innerCodeDisplay=innerCodeLines.filter(Boolean).join('\n')||d.院內碼||'';
 
-  document.getElementById('previewContent').innerHTML=`
+  document.getElementById('previewContent').innerHTML=`<div style="min-width:580px;">
     <div style="font-family:'Noto Sans TC',sans-serif;font-size:13px;color:#000;">
-      <div style="text-align:center;position:relative;margin-bottom:8px;">
-        <div style="position:absolute;top:0;right:0;color:#e63946;font-size:18px;font-weight:700;font-family:monospace;">${serial}</div>
-        <div style="display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:2px;">
+      <div style="margin-bottom:8px;">
+        <!-- 流水號 + logo + 公司名 同一行 -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
           <img src="圖片1.png" style="height:72px;object-fit:contain;" alt="Tandry">
-          <div>
-            <div style="font-size:20px;font-weight:700;letter-spacing:4px;">星 泓 股 份 有 限 公 司</div>
-            <div style="font-size:12px;color:#333;">地址：114台北市內湖區瑞光路76巷65號2樓　電話：(02) 2796-2677　傳真：(02) 2796-2611</div>
+          <div style="text-align:center;flex:1;padding:0 8px;">
+            <div style="font-size:16px;font-weight:700;letter-spacing:2px;white-space:nowrap;">星 泓 股 份 有 限 公 司</div>
+            <div style="font-size:11px;color:#333;word-break:break-all;line-height:1.5;">地址：114台北市內湖區瑞光路76巷65號2樓<br>電話：(02) 2796-2677　傳真：(02) 2796-2611</div>
           </div>
+          <div style="color:#e63946;font-size:16px;font-weight:700;font-family:monospace;white-space:nowrap;">${serial}</div>
         </div>
-        <div style="display:flex;align-items:center;justify-content:center;gap:20px;margin:2px 0;font-size:14px;flex-wrap:wrap;">
-          <span>${cb('出貨')} 出貨</span><span>${cb('借貨')} 借貨</span><span>${cb('換貨')} 換貨</span><span>${cb('還貨')} 還貨</span>
-          <span>日期：${yr} ${mo} ${dy}</span>
+        <!-- 出貨/借貨 + 日期 同一行 -->
+        <div style="display:flex;align-items:center;justify-content:space-between;font-size:13px;border-top:1px solid #eee;padding-top:4px;flex-wrap:wrap;gap:4px;">
+          <div style="display:flex;gap:12px;">
+            <span>${cb('出貨')} 出貨</span><span>${cb('借貨')} 借貨</span><span>${cb('換貨')} 換貨</span><span>${cb('還貨')} 還貨</span>
+          </div>
+          <span style="font-weight:600;">日期：${yr} ${mo} ${dy}</span>
         </div>
       </div>
       <table style="width:100%;border-collapse:collapse;border:1px solid #000;">
@@ -504,12 +531,48 @@ function closePreview(){document.getElementById('previewModal').classList.remove
 
 async function confirmSubmit(){
   const btn=document.getElementById('confirmBtn');
-  btn.disabled=true;btn.textContent='送出中...';
+  btn.disabled=true; btn.textContent='處理中...';
   const serial=incrementSerial();
   const data={...buildPayload(),流水號:serial};
-  try{const ctrl=new AbortController();const t=setTimeout(()=>ctrl.abort(),8000);await fetch(WEBHOOK_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data),signal:ctrl.signal});clearTimeout(t);}catch(e){console.error(e);}
-  closePreview();showSuccessOverlay(serial);
-  btn.disabled=false;btn.textContent='✅ 確認送出';
+
+  // 1. 送報刀資料
+  try{
+    const ctrl=new AbortController();
+    const t=setTimeout(()=>ctrl.abort(),8000);
+    await fetch(WEBHOOK_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data),signal:ctrl.signal});
+    clearTimeout(t);
+  }catch(e){console.error('報刀資料送出失敗',e);}
+
+  // 2. 截圖 → 下載 + 上傳 Drive
+  try{
+    const previewEl=document.getElementById('previewContent');
+    const canvas=await html2canvas(previewEl,{scale:2,useCORS:true,backgroundColor:'#ffffff',logging:false});
+    const jpgDataUrl=canvas.toDataURL('image/jpeg',0.92);
+    const base64=jpgDataUrl.split(',')[1];
+    const filename=`報刀單_${serial}_${data.醫院||''}_${data.病人||''}.jpg`;
+
+    // 業務端下載
+    const a=document.createElement('a');
+    a.href=jpgDataUrl; a.download=filename; a.click();
+
+    // 上傳 Google Drive via N8N
+    const DRIVE_WEBHOOK='https://ydj.zeabur.app/webhook/baodao-image';
+    try{
+      const ctrl2=new AbortController();
+      const t2=setTimeout(()=>ctrl2.abort(),15000);
+      await fetch(DRIVE_WEBHOOK,{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({流水號:serial,檔名:filename,日期:data.日期,業務:data.業務,醫院:data.醫院,病人:data.病人,image:base64}),
+        signal:ctrl2.signal
+      });
+      clearTimeout(t2);
+    }catch(e){console.error('Drive上傳失敗',e);}
+  }catch(e){console.error('截圖失敗',e);}
+
+  closePreview();
+  showSuccessOverlay(serial);
+  btn.disabled=false; btn.textContent='✅ 確認送出';
 }
 
 function showSuccessOverlay(serial){
