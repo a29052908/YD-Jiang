@@ -260,15 +260,6 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', s
     </div>
   </div>
 
-  <!-- 病人資料 -->
-  <div class="card">
-    <div class="card-label">👤 病人資料</div>
-    <div class="patient-row">
-      <input class="text-input" id="patientInput" type="text" placeholder="病人姓名" oninput="updateSummary()">
-      <input class="text-input-sm" id="patientIdInput" type="text" placeholder="病歷號" oninput="updateSummary()">
-    </div>
-  </div>
-
   <!-- 院內碼 -->
   <div class="card">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
@@ -278,9 +269,28 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', s
     <input class="inner-code-input-main" id="innerCodeInput" type="text" placeholder="選擇醫院與部位後自動帶入" oninput="innerCode=this.value">
   </div>
 
-  <div class="submit-area" style="display:flex;gap:8px;padding:12px 16px;">
-    <button class="submit-btn" id="submitBtn" onclick="submitForm()" style="flex:1;font-size:15px;padding:14px 8px;"><span>✅</span><span>確認報刀</span></button>
-    <button class="submit-btn" style="flex:1;background:var(--green);font-size:15px;padding:14px 8px;" onclick="goToReport()"><span>📋</span><span>進入報刀單</span></button>
+  <!-- 病人資料 -->
+  <div class="card">
+    <div class="card-label">👤 病人資料</div>
+    <div class="patient-row">
+      <input class="text-input" id="patientInput" type="text" placeholder="病人姓名" oninput="updateSummary()">
+      <input class="text-input-sm" id="patientIdInput" type="text" placeholder="病歷號" oninput="updateSummary()">
+    </div>
+  </div>
+
+  <!-- debug panel -->
+  <div class="card" id="debugPanel" style="display:none;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <div class="card-label" style="margin-bottom:0;">🔍 送出資料預覽</div>
+      <button onclick="document.getElementById('debugPanel').style.display='none'" style="padding:3px 10px;border-radius:6px;border:1px solid var(--border);background:white;font-size:12px;cursor:pointer;">關閉</button>
+    </div>
+    <pre id="debugContent" style="font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--bg);padding:12px;border-radius:8px;overflow-x:auto;white-space:pre-wrap;word-break:break-all;line-height:1.6;"></pre>
+  </div>
+
+  <div class="submit-area" style="display:flex;gap:8px;padding:12px 16px;flex-wrap:wrap;">
+    <button class="submit-btn" onclick="showDebug()" style="flex:1;font-size:14px;padding:12px 8px;background:#555;min-width:80px;"><span>🔍</span><span>預覽</span></button>
+    <button class="submit-btn" id="submitBtn" onclick="submitForm()" style="flex:2;font-size:15px;padding:14px 8px;"><span>✅</span><span>確認報刀</span></button>
+    <button class="submit-btn" style="flex:2;background:var(--green);font-size:15px;padding:14px 8px;" onclick="goToReport()"><span>📋</span><span>進入報刀單</span></button>
   </div>
 </div>
 
@@ -582,22 +592,22 @@ const DB = [
   {部位:'長骨',v1:'5.0',v2:'Narrow',v3:'12H',品號:'T2-424-621'},
 
   // 小骨
-  {部位:'小骨',v1:'1.5',v2:'直板',v3:'5H',品號:'T2-04-114-002'},
-  {部位:'小骨',v1:'1.5',v2:'直板',v3:'6H',品號:'T2-04-114-003'},
-  {部位:'小骨',v1:'1.5',v2:'直板',v3:'7H',品號:'T2-04-114-004'},
-  {部位:'小骨',v1:'1.5',v2:'直板',v3:'8H',品號:'T2-04-114-005'},
-  {部位:'小骨',v1:'1.5',v2:'直板',v3:'10H',品號:'T2-04-114-007'},
-  {部位:'小骨',v1:'1.5',v2:'直板',v3:'12H',品號:'T2-04-114-008'},
-  {部位:'小骨',v1:'1.5',v2:'Y',v3:'',品號:'T2-04-114-014'},
-  {部位:'小骨',v1:'1.5',v2:'T',v3:'',品號:'T2-04-114-009'},
-  {部位:'小骨',v1:'1.5',v2:'Z',v3:'',品號:'T2-04-114-010'},
+  {部位:'小骨',v1:'1.5',v2:'直版',v3:'5H',品號:'T2-04-114-002'},
+  {部位:'小骨',v1:'1.5',v2:'直版',v3:'6H',品號:'T2-04-114-003'},
+  {部位:'小骨',v1:'1.5',v2:'直版',v3:'7H',品號:'T2-04-114-004'},
+  {部位:'小骨',v1:'1.5',v2:'直版',v3:'8H',品號:'T2-04-114-005'},
+  {部位:'小骨',v1:'1.5',v2:'直版',v3:'10H',品號:'T2-04-114-007'},
+  {部位:'小骨',v1:'1.5',v2:'直版',v3:'12H',品號:'T2-04-114-008'},
+  {部位:'小骨',v1:'1.5',v2:'Y型',v3:'',品號:'T2-04-114-014'},
+  {部位:'小骨',v1:'1.5',v2:'T型',v3:'',品號:'T2-04-114-009'},
+  {部位:'小骨',v1:'1.5',v2:'Z型',v3:'',品號:'T2-04-114-010'},
   {部位:'小骨',v1:'2.0',v2:'直版',v3:'4H',品號:'T2-447-344'},
   {部位:'小骨',v1:'2.0',v2:'直版',v3:'5H',品號:'T2-447-345'},
   {部位:'小骨',v1:'2.0',v2:'直版',v3:'6H',品號:'T2-447-346'},
   {部位:'小骨',v1:'2.0',v2:'直版',v3:'7H',品號:'T2-447-347'},
   {部位:'小骨',v1:'2.0',v2:'直版',v3:'8H',品號:'T2-447-348'},
-  {部位:'小骨',v1:'2.0',v2:'Y',v3:'',品號:'T2-447-349'},
-  {部位:'小骨',v1:'2.0',v2:'T',v3:'',品號:'T2-447-615'},
+  {部位:'小骨',v1:'2.0',v2:'Y型',v3:'',品號:'T2-447-349'},
+  {部位:'小骨',v1:'2.0',v2:'T型',v3:'',品號:'T2-447-615'},
   {部位:'小骨',v1:'Volar',v2:'R',v3:'2H',品號:'T2-04-111-620'},
   {部位:'小骨',v1:'Volar',v2:'L',v3:'2H',品號:'T2-04-111-621'},
   {部位:'小骨',v1:'Volar',v2:'R',v3:'3H',品號:'T2-04-111-630'},
@@ -713,7 +723,7 @@ const NO_RL = {
   '小骨':['Radial Head'], // Radial Head neck無左右（v2=''），但head有
 };
 // Y/T/Z型無第三層
-const NO_V3 = ['Y','T','Z'];
+const NO_V3 = ['Y','T','Z','Y型','T型','Z型'];
 
 let sel = {buwei:'',v1:'',v2:'',v3:'',品號:'',innerCodeKey:''};
 let screwPayType = '健保';
@@ -954,7 +964,15 @@ function adjDhsComp(d){ dhsCompQty=Math.max(0,dhsCompQty+d); const el=document.g
 
 // ─── 選擇處理 ────────────────────────────────────────────────
 function setV1(v) { sel.v1=v; sel.v2=''; sel.v3=''; sel.品號=''; renderLevels(); updateCode(); }
-function setV2(v) { sel.v2=v; sel.v3=''; sel.品號=''; renderLevels(); updateCode(); }
+function setV2(v) {
+  sel.v2=v; sel.v3=''; sel.品號='';
+  // Y型/T型/Z型 無v3，直接查品號
+  if (NO_V3.includes(v)) {
+    const r = DB.find(x=>x.部位===sel.buwei&&x.v1===sel.v1&&x.v2===v&&x.v3==='');
+    sel.品號 = r?.品號||'';
+  }
+  renderLevels(); updateCode();
+}
 function setV3(v) {
   sel.v3=v;
   const r = DB.find(x=>x.部位===sel.buwei&&x.v1===sel.v1&&x.v2===sel.v2&&x.v3===v);
@@ -1010,7 +1028,26 @@ function adjustQty(d){ qty=Math.max(1,qty+d); document.getElementById('qtyDispla
 // ─── 加入品項 ────────────────────────────────────────────────
 function addProduct() {
   const specParts = [sel.v1, sel.v2, sel.v3].filter(Boolean);
-  const specLabel = specParts.join(' ');
+  let specLabel = specParts.join(' ');
+  // 埋頭釘：加 mm 單位描述，例如 '2.8 24' → '2.8mm 24mm'
+  if (sel.buwei === '埋頭釘' && sel.v1 && sel.v3) {
+    specLabel = `Ø${sel.v1} ${sel.v3}mm`;
+  }
+  // 小骨聖保祿格式轉換：讓 specLabel 直接對應 innerCodeDb 的 部位_院內碼
+  if (sel.buwei === '小骨') {
+    // '直版 5H' → '直版5H'（無空格）
+    specLabel = specLabel.replace(/(直版)\s+(\d+H)/, '$1$2');
+    // 'Volar R 2H' → '2.4 Volar R2H'
+    specLabel = specLabel.replace(/^Volar\s+([RL])\s+(\d+H)$/, '2.4 Volar $1$2');
+    // 'Juxta R 2H' → '2.4 Juxta R2H'
+    specLabel = specLabel.replace(/^Juxta\s+([RL])\s+(\d+H)$/, '2.4 Juxta $1$2');
+    // 'Fibula R 4H' → 'Distal fibula R4H'
+    specLabel = specLabel.replace(/^Fibula\s+([RL])\s+(\d+H)$/, 'Distal fibula $1$2');
+    // 'Radial Head 2H' (neck, no side) → 'Radial neck 2H'
+    specLabel = specLabel.replace(/^Radial Head\s+(\d+H)$/, 'Radial neck $1');
+    // 'Radial Head R 2H' → 'Radial head R2H'
+    specLabel = specLabel.replace(/^Radial Head\s+([RL])\s+(\d+H)$/, 'Radial head $1$2');
+  }
   let dhsNote = '';
   if (sel.buwei==='下肢' && sel.v1==='DHS') {
     const parts=[];
@@ -1096,10 +1133,8 @@ function lookupInnerCode(hospital, buwei, specLabel) {
     const r = innerCodeDb.find(x => x['院內碼_醫院']===hospital && x['部位_院內碼']===key);
     return r?.院內碼 || '';
   }
-  // 聖保祿小骨：直接用 specLabel 比對
+  // 聖保祿小骨：specLabel 已在 addProduct 處理，直接比對
   if (hospital === '聖保祿' && buwei === '小骨' && specLabel) {
-    // normalize: DB has 'R'/'L', innerCodeDb has 'R2H' etc, specLabel = '1.5 直板 5H' or 'Volar R 2H'
-    // Try direct match with specLabel joined
     const r = innerCodeDb.find(x => x['院內碼_醫院']==='聖保祿' && x['部位_院內碼']===specLabel);
     if (r) return r.院內碼;
   }
@@ -1111,7 +1146,26 @@ function lookupInnerCode(hospital, buwei, specLabel) {
 // ── 覆寫 updateCode ───────────────────────────────────────────
 function updateCode() {
   const specParts = [sel.v1, sel.v2, sel.v3].filter(Boolean);
-  const specLabel = specParts.join(' ');
+  let specLabel = specParts.join(' ');
+  // 埋頭釘：加 mm 單位描述，例如 '2.8 24' → '2.8mm 24mm'
+  if (sel.buwei === '埋頭釘' && sel.v1 && sel.v3) {
+    specLabel = `Ø${sel.v1} ${sel.v3}mm`;
+  }
+  // 小骨聖保祿格式轉換：讓 specLabel 直接對應 innerCodeDb 的 部位_院內碼
+  if (sel.buwei === '小骨') {
+    // '直版 5H' → '直版5H'（無空格）
+    specLabel = specLabel.replace(/(直版)\s+(\d+H)/, '$1$2');
+    // 'Volar R 2H' → '2.4 Volar R2H'
+    specLabel = specLabel.replace(/^Volar\s+([RL])\s+(\d+H)$/, '2.4 Volar $1$2');
+    // 'Juxta R 2H' → '2.4 Juxta R2H'
+    specLabel = specLabel.replace(/^Juxta\s+([RL])\s+(\d+H)$/, '2.4 Juxta $1$2');
+    // 'Fibula R 4H' → 'Distal fibula R4H'
+    specLabel = specLabel.replace(/^Fibula\s+([RL])\s+(\d+H)$/, 'Distal fibula $1$2');
+    // 'Radial Head 2H' (neck, no side) → 'Radial neck 2H'
+    specLabel = specLabel.replace(/^Radial Head\s+(\d+H)$/, 'Radial neck $1');
+    // 'Radial Head R 2H' → 'Radial head R2H'
+    specLabel = specLabel.replace(/^Radial Head\s+([RL])\s+(\d+H)$/, 'Radial head $1$2');
+  }
   innerCode = lookupInnerCode(selectedHospital, sel.buwei, specLabel);
   const input = document.getElementById('innerCodeInput');
   if (input) {
@@ -1131,7 +1185,26 @@ function toggleNegotiate() {
 // ── 覆寫 addProduct 整合院內碼/另洽/payNote ──────────────────
 window.addProduct = function() {
   const specParts = [sel.v1, sel.v2, sel.v3].filter(Boolean);
-  const specLabel = specParts.join(' ');
+  let specLabel = specParts.join(' ');
+  // 埋頭釘：加 mm 單位描述，例如 '2.8 24' → '2.8mm 24mm'
+  if (sel.buwei === '埋頭釘' && sel.v1 && sel.v3) {
+    specLabel = `Ø${sel.v1} ${sel.v3}mm`;
+  }
+  // 小骨聖保祿格式轉換：讓 specLabel 直接對應 innerCodeDb 的 部位_院內碼
+  if (sel.buwei === '小骨') {
+    // '直版 5H' → '直版5H'（無空格）
+    specLabel = specLabel.replace(/(直版)\s+(\d+H)/, '$1$2');
+    // 'Volar R 2H' → '2.4 Volar R2H'
+    specLabel = specLabel.replace(/^Volar\s+([RL])\s+(\d+H)$/, '2.4 Volar $1$2');
+    // 'Juxta R 2H' → '2.4 Juxta R2H'
+    specLabel = specLabel.replace(/^Juxta\s+([RL])\s+(\d+H)$/, '2.4 Juxta $1$2');
+    // 'Fibula R 4H' → 'Distal fibula R4H'
+    specLabel = specLabel.replace(/^Fibula\s+([RL])\s+(\d+H)$/, 'Distal fibula $1$2');
+    // 'Radial Head 2H' (neck, no side) → 'Radial neck 2H'
+    specLabel = specLabel.replace(/^Radial Head\s+(\d+H)$/, 'Radial neck $1');
+    // 'Radial Head R 2H' → 'Radial head R2H'
+    specLabel = specLabel.replace(/^Radial Head\s+([RL])\s+(\d+H)$/, 'Radial head $1$2');
+  }
   let dhsNote = '';
   if (sel.buwei==='下肢' && sel.v1==='DHS') {
     const parts=[];
@@ -1287,6 +1360,32 @@ function goToReport(){
   };
   localStorage.setItem('tandry_phase2_data',JSON.stringify(data));
   window.location.href='Baodao.html';
+}
+
+function showDebug() {
+  const patient = document.getElementById('patientInput').value.trim();
+  const patientId = document.getElementById('patientIdInput').value.trim();
+  const doctor = document.getElementById('doctorSelect').value.trim();
+  const items = sel.buwei ? [...productItems, {
+    buwei: sel.buwei, spec: [sel.v1,sel.v2,sel.v3].filter(Boolean).join(' '),
+    品號: sel.品號, qty, payNote: sel.buwei==='埋頭釘'?screwPayType:'',
+    innerCode: document.getElementById('innerCodeInput')?.value.trim()||innerCode,
+    另洽: negotiateMode,
+  }] : [...productItems];
+  const preview = items.map((item,i) => ({
+    [`品項${i+1}`]: {
+      部位: item.buwei, 規格: item.spec, 品號: item.品號||'',
+      費用類型: item.payNote||'', 院內碼: item.另洽?item.innerCode+'（另洽）':item.innerCode,
+      另洽: item.另洽?'是':'', DHS: item.dhsNote||'', 數量: item.qty,
+      負責業務: item.負責業務||currentSales, 大區: item.大區||'',
+    }
+  }));
+  const base = { 日期: getDateStr(), 業務: currentSales, 庫別: currentWarehouse,
+    醫院: selectedHospital, 醫師: doctor, 病人: patient, 病歷號: patientId };
+  document.getElementById('debugContent').textContent = JSON.stringify({...base, 品項: preview}, null, 2);
+  const panel = document.getElementById('debugPanel');
+  panel.style.display = 'block';
+  panel.scrollIntoView({behavior:'smooth'});
 }
 
 function showToast(msg,type=''){const t=document.getElementById('toast');t.textContent=msg;t.className=`toast show ${type}`;setTimeout(()=>t.className='toast',3000);}
