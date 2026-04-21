@@ -33,11 +33,11 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', s
 .screw-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; align-items: center; }
 .screw-dot-wrap { display: flex; flex-direction: column; align-items: center; gap: 3px; }
 .screw-len { font-size: 9px; color: var(--muted); font-family: 'JetBrains Mono', monospace; text-align: center; }
-.screw-dot { width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--border); background: var(--bg); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; font-family: 'JetBrains Mono', monospace; transition: all 0.15s; color: var(--text); }
+.screw-dot { width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--border); background: var(--bg); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; font-family: 'Noto Sans TC', sans-serif; transition: all 0.15s; color: var(--text); }
 .screw-legend { display: flex; gap: 12px; margin-bottom: 12px; }
 .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--muted); }
 .legend-dot { width: 12px; height: 12px; border-radius: 50%; }
-.text-area { width: 100%; padding: 12px 14px; border: 2px solid var(--border); border-radius: 10px; font-size: 14px; font-family: 'JetBrains Mono', monospace; background: var(--bg); color: var(--text); outline: none; resize: vertical; min-height: 80px; transition: border-color 0.2s; white-space: pre-wrap; word-break: break-all; }
+.text-area { width: 100%; padding: 12px 14px; border: 2px solid var(--border); border-radius: 10px; font-size: 15px; font-family: 'Noto Sans TC', 'JetBrains Mono', monospace; background: var(--bg); color: var(--text); outline: none; resize: vertical; min-height: 80px; transition: border-color 0.2s; white-space: pre-wrap; word-break: break-all; }
 .text-area:focus { border-color: var(--accent); }
 .submit-area { position: static; padding: 16px; background: var(--card); border-top: 1px solid var(--border); display: flex; gap: 10px; margin-top: 12px; border-radius: var(--radius); box-shadow: var(--shadow); }
 .preview-btn { flex: 1; padding: 16px; background: var(--accent); color: white; border: none; border-radius: 14px; font-size: 17px; font-weight: 700; cursor: pointer; font-family: 'Noto Sans TC', sans-serif; transition: all 0.2s; }
@@ -351,11 +351,19 @@ function updateDot(dot,n,color,dark){dot.dataset.count=n;dot.textContent=n;if(n=
 
 function updateComponentFromScrews(){
   const groups=[];
-  for(const{dia,id}of activeScrewBoards){const def=screwBoardDefs[dia];if(!def)continue;for(const{type}of def.types){const lengths=dia==='5.0'?(type==='L'?def.lengthsL:def.lengthsC):def.lengths;const entries=[];for(const len of lengths){const cnt=screwState[`${id}_${type}_${len}`]||0;if(cnt>0)entries.push(`${len}×${toZheng(cnt)}`);}if(entries.length>0){const perLine=10;const rows=[];entries.forEach((item,i)=>{if(i%perLine===0)rows.push([]);rows[rows.length-1].push(item);});groups.push(`${dia} ${type}:\n`+rows.map(r=>r.join(' ')).join('\n'));}}}
+  for(const{dia,id}of activeScrewBoards){const def=screwBoardDefs[dia];if(!def)continue;for(const{type}of def.types){const lengths=dia==='5.0'?(type==='L'?def.lengthsL:def.lengthsC):def.lengths;const entries=[];for(const len of lengths){const cnt=screwState[`${id}_${type}_${len}`]||0;if(cnt>0)entries.push(`${len}×${toZheng(cnt)} `);}if(entries.length>0){const perLine=10;const rows=[];entries.forEach((item,i)=>{if(i%perLine===0)rows.push([]);rows[rows.length-1].push(item);});groups.push(`${dia} ${type}:\n`+rows.map(r=>r.join(' ')).join('\n'));}}}
   document.getElementById('componentInput').value=groups.join('\n\n');
 }
 
-function toZheng(n){if(n<=0)return'';const full=Math.floor(n/5);const rem=n%5;const strokes=['','一','二','三','四'];return'正'.repeat(full)+strokes[rem];}
+function toZheng(n){
+  if(n<=0)return'';
+  const circled=['','①','②','③','④','⑤','⑥','⑦','⑧','⑨','⑩',
+    '⑪','⑫','⑬','⑭','⑮','⑯','⑰','⑱','⑲','⑳',
+    '㉑','㉒','㉓','㉔','㉕','㉖','㉗','㉘','㉙','㉚',
+    '㉛','㉜','㉝','㉞','㉟','㊱','㊲','㊳','㊴','㊵',
+    '㊶','㊷','㊸','㊹','㊺','㊻','㊼','㊽','㊾','㊿'];
+  return n<=50?circled[n]:String(n);
+}
 
 function buildScrewText(){
   const groups=[];
@@ -429,7 +437,7 @@ function showPreview(){
       <div style="text-align:center;position:relative;margin-bottom:8px;">
         <div style="position:absolute;top:0;right:0;color:#e63946;font-size:18px;font-weight:700;font-family:monospace;">${serial}</div>
         <div style="display:flex;align-items:center;justify-content:center;gap:16px;">
-          <img src="圖片1.png" style="height:36px;object-fit:contain;" alt="Tandry">
+          <img src="圖片1.png" style="height:108px;object-fit:contain;" alt="Tandry">
           <div>
             <div style="font-size:20px;font-weight:700;letter-spacing:4px;">星 泓 股 份 有 限 公 司</div>
             <div style="font-size:10px;color:#333;">地址：114台北市內湖區瑞光路76巷65號2樓　電話：(02) 2796-2677　傳真：(02) 2796-2611</div>
@@ -463,7 +471,7 @@ function showPreview(){
             </div>
             <div style="border-bottom:1px solid #000;padding:8px;">
               <div style="font-weight:700;font-size:12px;margin-bottom:4px;">組件：</div>
-              <pre style="font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.8;white-space:pre-wrap;word-break:break-all;margin:0;">${component}</pre>
+              <pre style="font-family:'Noto Sans TC','JetBrains Mono',monospace;font-size:14px;line-height:2;white-space:pre-wrap;word-break:break-all;margin:0;">${component}</pre>
             </div>
             <div style="padding:8px;min-height:60px;">
               <div style="font-weight:700;font-size:12px;margin-bottom:4px;">工具：</div>
