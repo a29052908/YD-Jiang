@@ -7,7 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg: #f5f4f0; --card: #ffffff; --border: #e0ddd6; --accent: #1a1a2e; --accent2: #e63946;
+  --bg: #f5f4f0; --card: #ffffff; --border: #e0ddd6; --accent: #1a1a2e; --accent2: #e63946;ㄑ
   --green: #2d6a4f; --green-light: #d8f3dc; --text: #1a1a2e; --muted: #888680; --dim: #c5c3bc;
   --selected: #1a1a2e; --selected-text: #ffffff; --shadow: 0 2px 12px rgba(0,0,0,0.08); --radius: 12px;
   --blue:#3a5bd9; --blue-light:#e8ecff;
@@ -263,9 +263,12 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', s
   <!-- 院內碼 -->
   <div class="card">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-      <div class="card-label" style="margin-bottom:0;">🔖 院內碼</div>
-      <button class="negotiate-btn" id="negotiateBtn" onclick="toggleNegotiate()">另洽</button>
-    </div>
+  <div class="card-label" style="margin-bottom:0;">🔖 院內碼</div>
+  <div style="display:flex;gap:8px;align-items:center;">
+    <button class="negotiate-btn" id="payTypeBtn" onclick="toggleScrewPayType()" style="display:none;">健保</button>
+    <button class="negotiate-btn" id="negotiateBtn" onclick="toggleNegotiate()">另洽</button>
+  </div>
+</div>
     <input class="inner-code-input-main" id="innerCodeInput" type="text" placeholder="選擇醫院與部位後自動帶入" oninput="innerCode=this.value">
   </div>
 
@@ -743,6 +746,9 @@ function renderBuwei() {
 function selectBuwei(b) {
   sel = {buwei:b,v1:'',v2:'',v3:'',品號:''};
   qty=1; dhsLagLen=''; dhsLagQty=1; dhsCompQty=0;
+  screwPayType='健保';
+  const pb = document.getElementById('payTypeBtn');
+  if (pb) { pb.style.display = b==='埋頭釘' ? 'inline-block' : 'none'; pb.classList.remove('active'); pb.textContent='健保'; }
   renderBuwei();
   document.getElementById('levelSection').classList.add('show');
   renderLevels();
@@ -1389,6 +1395,17 @@ function showDebug() {
 }
 
 function showToast(msg,type=''){const t=document.getElementById('toast');t.textContent=msg;t.className=`toast show ${type}`;setTimeout(()=>t.className='toast',3000);}
+function toggleScrewPayType() {
+  screwPayType = screwPayType === '健保' ? '自費' : '健保';
+  const btn = document.getElementById('payTypeBtn');
+  if (screwPayType === '自費') {
+    btn.classList.add('active');
+    btn.textContent = '自費';
+  } else {
+    btn.classList.remove('active');
+    btn.textContent = '健保';
+  }
+}
 </script>
 </body>
 </html>
