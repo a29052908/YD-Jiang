@@ -14,496 +14,122 @@
     --foam: #a8e6ef;
     --sand: #f5f0e8;
     --sand-dark: #e8dfc8;
-    --coral: #ff6b6b;
     --sun: #ffd166;
     --white: #ffffff;
     --text-dark: #0d1b2a;
     --text-mid: #2c4a6e;
   }
-
   * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Noto Sans TC', sans-serif; background: var(--sand); color: var(--text-dark); overflow-x: hidden; }
 
-  body {
-    font-family: 'Noto Sans TC', sans-serif;
-    background: var(--sand);
-    color: var(--text-dark);
-    overflow-x: hidden;
-  }
-
-  /* ── HERO ── */
+  /* HERO */
   .hero {
-    position: relative;
-    min-height: 100vh;
+    position: relative; min-height: 100vh;
     background: linear-gradient(160deg, var(--ocean-deep) 0%, var(--ocean-mid) 40%, var(--ocean-light) 70%, var(--ocean-bright) 100%);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    padding: 60px 24px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    overflow: hidden; padding: 60px 24px;
   }
-
-  /* Wave layers */
-  .wave-container {
-    position: absolute;
-    bottom: 0; left: 0; right: 0;
-    height: 180px;
-    pointer-events: none;
-  }
-  .wave {
-    position: absolute;
-    bottom: 0; left: -10%;
-    width: 120%;
-    height: 100%;
-  }
+  .wave-container { position: absolute; bottom: 0; left: 0; right: 0; height: 180px; pointer-events: none; }
+  .wave { position: absolute; bottom: 0; left: -10%; width: 120%; height: 100%; }
   .wave svg { width: 100%; height: 100%; }
   .wave-1 { opacity: 0.5; animation: waveMove 7s ease-in-out infinite; }
   .wave-2 { opacity: 0.35; animation: waveMove 10s ease-in-out infinite reverse; bottom: 10px; }
   .wave-3 { opacity: 0.8; animation: waveMove 5s ease-in-out infinite 1s; bottom: -5px; }
-
-  @keyframes waveMove {
-    0%, 100% { transform: translateX(0); }
-    50% { transform: translateX(-5%); }
-  }
-
-  /* Floating bubbles */
+  @keyframes waveMove { 0%,100%{transform:translateX(0)} 50%{transform:translateX(-5%)} }
   .bubbles { position: absolute; inset: 0; pointer-events: none; }
-  .bubble {
-    position: absolute;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.08);
-    animation: float linear infinite;
-  }
-  @keyframes float {
-    0% { transform: translateY(100vh) scale(0); opacity: 0; }
-    10% { opacity: 1; }
-    90% { opacity: 0.3; }
-    100% { transform: translateY(-10vh) scale(1); opacity: 0; }
-  }
+  .bubble { position: absolute; border-radius: 50%; background: rgba(255,255,255,0.08); animation: float linear infinite; }
+  @keyframes float { 0%{transform:translateY(100vh) scale(0);opacity:0} 10%{opacity:1} 90%{opacity:0.3} 100%{transform:translateY(-10vh) scale(1);opacity:0} }
+  .hero-badge { background: rgba(255,255,255,0.15); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.3); color: var(--foam); font-size: 0.8rem; letter-spacing: 0.2em; padding: 6px 18px; border-radius: 100px; margin-bottom: 28px; animation: fadeDown 0.8s ease; }
+  .hero-title { font-family: 'Playfair Display', serif; font-size: clamp(3rem,10vw,5.5rem); color: var(--white); text-align: center; line-height: 1.1; margin-bottom: 8px; animation: fadeDown 0.8s ease 0.1s both; text-shadow: 0 4px 24px rgba(0,0,0,0.3); }
+  .hero-subtitle { font-size: clamp(1rem,3vw,1.3rem); color: var(--foam); letter-spacing: 0.15em; text-align: center; margin-bottom: 40px; font-weight: 300; animation: fadeDown 0.8s ease 0.2s both; }
+  .hero-meta { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; animation: fadeDown 0.8s ease 0.3s both; }
+  .meta-chip { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.15); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.25); color: var(--white); padding: 10px 20px; border-radius: 100px; font-size: 0.88rem; font-weight: 500; }
+  .scroll-hint { position: absolute; bottom: 200px; left: 50%; transform: translateX(-50%); color: rgba(255,255,255,0.5); font-size: 0.75rem; letter-spacing: 0.15em; animation: pulse 2s ease-in-out infinite; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .scroll-hint::after { content:''; width:1px; height:40px; background:linear-gradient(to bottom,rgba(255,255,255,0.5),transparent); animation: grow 2s ease-in-out infinite; }
+  @keyframes pulse{0%,100%{opacity:0.5}50%{opacity:1}}
+  @keyframes grow{0%,100%{transform:scaleY(0.5)}50%{transform:scaleY(1)}}
+  @keyframes fadeDown{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
 
-  .hero-badge {
-    background: rgba(255,255,255,0.15);
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(255,255,255,0.3);
-    color: var(--foam);
-    font-size: 0.8rem;
-    letter-spacing: 0.2em;
-    padding: 6px 18px;
-    border-radius: 100px;
-    margin-bottom: 28px;
-    animation: fadeDown 0.8s ease;
-  }
+  /* REMINDERS */
+  .reminder-section { background: #112a1c; padding: 32px 24px; }
+  .reminder-inner { max-width: 760px; margin: 0 auto; }
+  .reminder-title { color: #7ecfa0; font-size: 0.75rem; letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 16px; font-weight: 600; }
+  .reminder-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(200px,1fr)); gap: 10px; }
+  .reminder-card { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 14px 16px; display: flex; gap: 10px; align-items: flex-start; }
+  .reminder-icon { font-size: 1.3rem; flex-shrink: 0; margin-top: 1px; }
+  .reminder-text strong { display: block; color: var(--sun); font-size: 0.83rem; margin-bottom: 3px; }
+  .reminder-text span { color: rgba(255,255,255,0.7); font-size: 0.78rem; line-height: 1.5; }
 
-  .hero-title {
+  /* DAYS */
+  .days-section { max-width: 800px; margin: 0 auto; padding: 60px 24px; display: flex; flex-direction: column; gap: 48px; }
+  .day-card { background: var(--white); border-radius: 24px; overflow: hidden; box-shadow: 0 8px 40px rgba(10,35,66,0.1); transition: transform 0.3s ease, box-shadow 0.3s ease; }
+  .day-card:hover { transform: translateY(-4px); box-shadow: 0 16px 60px rgba(10,35,66,0.15); }
+  .day-img {
+    width: 100%; height: 180px; display: flex;
+    align-items: flex-end; justify-content: flex-start;
+    padding: 18px 24px;
     font-family: 'Playfair Display', serif;
-    font-size: clamp(3rem, 10vw, 5.5rem);
-    color: var(--white);
-    text-align: center;
-    line-height: 1.1;
-    margin-bottom: 8px;
-    animation: fadeDown 0.8s ease 0.1s both;
-    text-shadow: 0 4px 24px rgba(0,0,0,0.3);
-  }
-
-  .hero-subtitle {
-    font-size: clamp(1rem, 3vw, 1.3rem);
-    color: var(--foam);
-    letter-spacing: 0.15em;
-    text-align: center;
-    margin-bottom: 40px;
-    font-weight: 300;
-    animation: fadeDown 0.8s ease 0.2s both;
-  }
-
-  .hero-meta {
-    display: flex;
-    gap: 24px;
-    flex-wrap: wrap;
-    justify-content: center;
-    animation: fadeDown 0.8s ease 0.3s both;
-  }
-
-  .meta-chip {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: rgba(255,255,255,0.15);
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(255,255,255,0.25);
-    color: var(--white);
-    padding: 10px 20px;
-    border-radius: 100px;
-    font-size: 0.9rem;
-    font-weight: 500;
-  }
-
-  .scroll-hint {
-    position: absolute;
-    bottom: 200px;
-    left: 50%;
-    transform: translateX(-50%);
-    color: rgba(255,255,255,0.5);
-    font-size: 0.75rem;
-    letter-spacing: 0.15em;
-    animation: pulse 2s ease-in-out infinite;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 6px;
-  }
-  .scroll-hint::after {
-    content: '';
-    width: 1px;
-    height: 40px;
-    background: linear-gradient(to bottom, rgba(255,255,255,0.5), transparent);
-    animation: grow 2s ease-in-out infinite;
-  }
-  @keyframes pulse { 0%,100%{opacity:0.5} 50%{opacity:1} }
-  @keyframes grow { 0%,100%{transform:scaleY(0.5)} 50%{transform:scaleY(1)} }
-
-  @keyframes fadeDown {
-    from { opacity: 0; transform: translateY(-20px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  /* ── NOTICE BOX ── */
-  .notice-section {
-    background: var(--ocean-deep);
-    padding: 32px 24px;
-  }
-
-  .notice-inner {
-    max-width: 760px;
-    margin: 0 auto;
-  }
-
-  .notice-title {
-    color: var(--foam);
-    font-size: 0.75rem;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    margin-bottom: 16px;
-    opacity: 0.7;
-  }
-
-  .notice-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 12px;
-  }
-
-  .notice-card {
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.12);
-    border-radius: 12px;
-    padding: 16px;
-    display: flex;
-    gap: 12px;
-    align-items: flex-start;
-  }
-
-  .notice-icon { font-size: 1.4rem; flex-shrink: 0; margin-top: 2px; }
-
-  .notice-text strong {
-    display: block;
-    color: var(--sun);
-    font-size: 0.85rem;
-    margin-bottom: 4px;
-  }
-
-  .notice-text span {
-    color: rgba(255,255,255,0.7);
-    font-size: 0.8rem;
-    line-height: 1.5;
-  }
-
-  /* ── DAYS ── */
-  .days-section {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 60px 24px;
-    display: flex;
-    flex-direction: column;
-    gap: 48px;
-  }
-
-  .day-card {
-    background: var(--white);
-    border-radius: 24px;
-    overflow: hidden;
-    box-shadow: 0 8px 40px rgba(10,35,66,0.1);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-  }
-  .day-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 16px 60px rgba(10,35,66,0.15);
-  }
-
-  .day-header {
-    padding: 28px 32px 24px;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .day-header::before {
-    content: attr(data-day);
-    position: absolute;
-    right: -10px; top: -20px;
-    font-family: 'Playfair Display', serif;
-    font-size: 8rem;
-    font-weight: 700;
-    color: rgba(255,255,255,0.12);
-    line-height: 1;
-    pointer-events: none;
-  }
-
-  .day-1 .day-header { background: linear-gradient(135deg, #1a5276, #2e86ab); }
-  .day-2 .day-header { background: linear-gradient(135deg, #0e6655, #1abc9c); }
-  .day-3 .day-header { background: linear-gradient(135deg, #784212, #e67e22); }
-  .day-4 .day-header { background: linear-gradient(135deg, #1a237e, #2979ff); }
-  .day-5 .day-header { background: linear-gradient(135deg, #4a235a, #8e24aa); }
-
-  .day-num {
-    font-size: 0.7rem;
-    letter-spacing: 0.2em;
-    color: rgba(255,255,255,0.7);
-    text-transform: uppercase;
-    margin-bottom: 6px;
-  }
-
-  .day-title {
-    font-family: 'Playfair Display', serif;
-    font-size: 1.8rem;
-    color: var(--white);
-    margin-bottom: 6px;
-  }
-
-  .day-date {
-    color: rgba(255,255,255,0.8);
-    font-size: 0.85rem;
-    font-weight: 300;
-  }
-
-  .day-tag {
-    display: inline-block;
-    margin-top: 12px;
-    background: rgba(255,255,255,0.2);
-    color: var(--white);
-    font-size: 0.75rem;
-    padding: 4px 14px;
-    border-radius: 100px;
-    letter-spacing: 0.05em;
-  }
-
-  .day-body { padding: 28px 32px; }
-
-  .timeline {
-    display: flex;
-    flex-direction: column;
-    gap: 0;
-  }
-
-  .tl-item {
-    display: flex;
-    gap: 16px;
-    position: relative;
-  }
-
-  .tl-item:not(:last-child)::after {
-    content: '';
-    position: absolute;
-    left: 19px;
-    top: 36px;
-    bottom: 0;
-    width: 2px;
-    background: linear-gradient(to bottom, var(--foam), transparent);
-  }
-
-  .tl-dot {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: var(--sand);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    font-style: italic;
     font-size: 1.1rem;
-    flex-shrink: 0;
-    position: relative;
-    z-index: 1;
-    border: 2px solid var(--sand-dark);
+    color: rgba(255,255,255,0.85);
+    letter-spacing: 0.05em;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.3);
   }
+  .day-img-1 { background: linear-gradient(135deg, #0077b6 0%, #48cae4 40%, #90e0ef 70%, #ade8f4 100%); }
+  .day-img-2 { background: linear-gradient(135deg, #f4a261 0%, #e76f51 40%, #264653 100%); }
+  .day-img-3 { background: linear-gradient(135deg, #06d6a0 0%, #118ab2 50%, #073b4c 100%); }
+  .day-img-4 { background: linear-gradient(135deg, #023e8a 0%, #0096c7 50%, #48cae4 100%); }
+  .day-img-5 { background: linear-gradient(135deg, #7b2d8b 0%, #c77dff 50%, #e0aaff 100%); }
+  .day-header { padding: 24px 32px 20px; position: relative; overflow: hidden; }
+  .day-header::before { content: attr(data-day); position: absolute; right: -10px; top: -20px; font-family: 'Playfair Display', serif; font-size: 8rem; font-weight: 700; color: rgba(255,255,255,0.12); line-height: 1; pointer-events: none; }
+  .day-1 .day-header { background: linear-gradient(135deg,#1a5276,#2e86ab); }
+  .day-2 .day-header { background: linear-gradient(135deg,#0e6655,#1abc9c); }
+  .day-3 .day-header { background: linear-gradient(135deg,#784212,#e67e22); }
+  .day-4 .day-header { background: linear-gradient(135deg,#1a237e,#2979ff); }
+  .day-5 .day-header { background: linear-gradient(135deg,#4a235a,#8e24aa); }
+  .day-num { font-size: 0.7rem; letter-spacing: 0.2em; color: rgba(255,255,255,0.7); text-transform: uppercase; margin-bottom: 6px; }
+  .day-title { font-family: 'Playfair Display', serif; font-size: 1.8rem; color: var(--white); margin-bottom: 6px; }
+  .day-date { color: rgba(255,255,255,0.8); font-size: 0.85rem; font-weight: 300; }
+  .day-tag { display: inline-block; margin-top: 12px; background: rgba(255,255,255,0.2); color: var(--white); font-size: 0.75rem; padding: 4px 14px; border-radius: 100px; }
+  .day-body { padding: 28px 32px; }
+  .timeline { display: flex; flex-direction: column; }
+  .tl-item { display: flex; gap: 16px; position: relative; }
+  .tl-item:not(:last-child)::after { content:''; position:absolute; left:19px; top:36px; bottom:0; width:2px; background:linear-gradient(to bottom,var(--foam),transparent); }
+  .tl-dot { width:40px; height:40px; border-radius:50%; background:var(--sand); display:flex; align-items:center; justify-content:center; font-size:1.1rem; flex-shrink:0; position:relative; z-index:1; border:2px solid var(--sand-dark); }
+  .tl-content { padding: 8px 0 24px; flex: 1; }
+  .tl-time { font-size: 0.7rem; color: var(--ocean-light); font-weight: 600; letter-spacing: 0.1em; margin-bottom: 4px; text-transform: uppercase; }
+  .tl-label { font-size: 0.95rem; font-weight: 500; color: var(--text-dark); margin-bottom: 4px; }
+  .tl-detail { font-size: 0.82rem; color: #666; line-height: 1.6; }
+  .tl-items-list { list-style: none; margin-top: 6px; display: flex; flex-direction: column; gap: 3px; }
+  .tl-items-list li::before { content:'·'; margin-right:6px; color:var(--ocean-bright); font-weight:bold; }
+  .tl-items-list li { font-size: 0.82rem; color: #555; line-height: 1.5; }
+  .day-focus { margin-top: 8px; padding: 14px 20px; background: var(--sand); border-radius: 12px; border-left: 4px solid var(--ocean-bright); font-size: 0.85rem; color: var(--text-mid); font-weight: 500; line-height: 1.6; }
 
-  .tl-content {
-    padding: 8px 0 24px;
-    flex: 1;
-  }
+  /* CHECKLIST */
+  .checklist-section { background: var(--ocean-deep); padding: 60px 24px; }
+  .checklist-inner { max-width: 800px; margin: 0 auto; }
+  .section-heading { font-family: 'Playfair Display', serif; font-size: 2rem; color: var(--white); margin-bottom: 8px; }
+  .section-sub { color: rgba(255,255,255,0.5); font-size: 0.85rem; margin-bottom: 32px; }
+  .check-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap: 16px; }
+  .check-group { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 20px; }
+  .check-group-title { color: var(--sun); font-size: 0.8rem; letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 14px; font-weight: 600; }
+  .check-item { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; cursor: pointer; }
+  .check-box { width:18px; height:18px; border:2px solid rgba(255,255,255,0.3); border-radius:4px; flex-shrink:0; margin-top:1px; transition:all 0.2s; display:flex; align-items:center; justify-content:center; font-size:0.7rem; color:transparent; }
+  .check-item.checked .check-box { background:var(--ocean-bright); border-color:var(--ocean-bright); color:white; }
+  .check-item.checked .check-label { opacity:0.4; text-decoration:line-through; }
+  .check-label { color:rgba(255,255,255,0.8); font-size:0.83rem; line-height:1.5; transition:all 0.2s; }
 
-  .tl-time {
-    font-size: 0.7rem;
-    color: var(--ocean-light);
-    font-weight: 600;
-    letter-spacing: 0.1em;
-    margin-bottom: 4px;
-    text-transform: uppercase;
-  }
+  /* FOOTER */
+  .footer { background:var(--ocean-deep); border-top:1px solid rgba(255,255,255,0.08); padding:32px 24px; text-align:center; }
+  .footer-text { color:rgba(255,255,255,0.3); font-size:0.8rem; letter-spacing:0.1em; }
+  .footer-emoji { font-size:1.5rem; margin-bottom:8px; display:block; }
 
-  .tl-label {
-    font-size: 0.95rem;
-    font-weight: 500;
-    color: var(--text-dark);
-    margin-bottom: 4px;
-  }
-
-  .tl-detail {
-    font-size: 0.82rem;
-    color: #666;
-    line-height: 1.6;
-  }
-
-  .tl-items-list {
-    list-style: none;
-    margin-top: 6px;
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-  }
-
-  .tl-items-list li::before {
-    content: '·';
-    margin-right: 6px;
-    color: var(--ocean-bright);
-    font-weight: bold;
-  }
-
-  .tl-items-list li {
-    font-size: 0.82rem;
-    color: #555;
-    line-height: 1.5;
-  }
-
-  .day-focus {
-    margin-top: 8px;
-    padding: 14px 20px;
-    background: var(--sand);
-    border-radius: 12px;
-    border-left: 4px solid var(--ocean-bright);
-    font-size: 0.85rem;
-    color: var(--text-mid);
-    font-weight: 500;
-  }
-
-  .day-focus span { margin-right: 6px; }
-
-  /* ── CHECKLIST ── */
-  .checklist-section {
-    background: var(--ocean-deep);
-    padding: 60px 24px;
-  }
-
-  .checklist-inner {
-    max-width: 800px;
-    margin: 0 auto;
-  }
-
-  .section-heading {
-    font-family: 'Playfair Display', serif;
-    font-size: 2rem;
-    color: var(--white);
-    margin-bottom: 8px;
-  }
-
-  .section-sub {
-    color: rgba(255,255,255,0.5);
-    font-size: 0.85rem;
-    margin-bottom: 32px;
-  }
-
-  .check-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 16px;
-  }
-
-  .check-group {
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 16px;
-    padding: 20px;
-  }
-
-  .check-group-title {
-    color: var(--sun);
-    font-size: 0.8rem;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    margin-bottom: 14px;
-    font-weight: 600;
-  }
-
-  .check-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    margin-bottom: 10px;
-    cursor: pointer;
-  }
-
-  .check-box {
-    width: 18px;
-    height: 18px;
-    border: 2px solid rgba(255,255,255,0.3);
-    border-radius: 4px;
-    flex-shrink: 0;
-    margin-top: 1px;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.7rem;
-    color: transparent;
-  }
-
-  .check-item.checked .check-box {
-    background: var(--ocean-bright);
-    border-color: var(--ocean-bright);
-    color: white;
-  }
-
-  .check-item.checked .check-label {
-    opacity: 0.4;
-    text-decoration: line-through;
-  }
-
-  .check-label {
-    color: rgba(255,255,255,0.8);
-    font-size: 0.83rem;
-    line-height: 1.5;
-    transition: all 0.2s;
-  }
-
-  /* ── FOOTER ── */
-  .footer {
-    background: var(--ocean-deep);
-    border-top: 1px solid rgba(255,255,255,0.08);
-    padding: 32px 24px;
-    text-align: center;
-  }
-
-  .footer-text {
-    color: rgba(255,255,255,0.3);
-    font-size: 0.8rem;
-    letter-spacing: 0.1em;
-  }
-
-  .footer-emoji { font-size: 1.5rem; margin-bottom: 8px; display: block; }
-
-  /* Responsive */
-  @media (max-width: 600px) {
-    .day-header { padding: 22px 20px 18px; }
-    .day-body { padding: 20px; }
-    .day-title { font-size: 1.4rem; }
-    .notice-grid { grid-template-columns: 1fr; }
+  @media(max-width:600px){
+    .day-header{padding:20px 20px 16px}
+    .day-body{padding:20px}
+    .day-title{font-size:1.4rem}
+    .day-img{height:160px}
+    .reminder-grid{grid-template-columns:1fr}
   }
 </style>
 </head>
@@ -512,76 +138,67 @@
 <!-- HERO -->
 <section class="hero">
   <div class="bubbles" id="bubbles"></div>
-
   <div class="hero-badge">✈️ &nbsp; 12 人出發 &nbsp; · &nbsp; 5天4夜</div>
   <h1 class="hero-title">🏝 普吉島</h1>
   <p class="hero-subtitle">PHUKET · MAY 2025</p>
-
   <div class="hero-meta">
     <div class="meta-chip">📅 5/2（六）→ 5/6（三）</div>
     <div class="meta-chip">🌊 跳島 · 海灘 · 老城</div>
-    <div class="meta-chip">🚗 包車全程</div>
+    <div class="meta-chip">🍀 泰 Chill，出發！</div>
   </div>
-
   <div class="scroll-hint">SCROLL</div>
-
   <div class="wave-container">
-    <div class="wave wave-3">
-      <svg viewBox="0 0 1440 120" preserveAspectRatio="none">
-        <path fill="#f5f0e8" d="M0,60 C240,110 480,10 720,60 C960,110 1200,10 1440,60 L1440,120 L0,120 Z"/>
-      </svg>
-    </div>
-    <div class="wave wave-1">
-      <svg viewBox="0 0 1440 120" preserveAspectRatio="none">
-        <path fill="rgba(72,184,208,0.3)" d="M0,40 C360,100 720,0 1080,60 C1260,90 1380,30 1440,50 L1440,120 L0,120 Z"/>
-      </svg>
-    </div>
-    <div class="wave wave-2">
-      <svg viewBox="0 0 1440 120" preserveAspectRatio="none">
-        <path fill="rgba(168,230,239,0.25)" d="M0,80 C200,20 500,100 800,50 C1000,20 1300,90 1440,70 L1440,120 L0,120 Z"/>
-      </svg>
-    </div>
+    <div class="wave wave-3"><svg viewBox="0 0 1440 120" preserveAspectRatio="none"><path fill="#f5f0e8" d="M0,60 C240,110 480,10 720,60 C960,110 1200,10 1440,60 L1440,120 L0,120 Z"/></svg></div>
+    <div class="wave wave-1"><svg viewBox="0 0 1440 120" preserveAspectRatio="none"><path fill="rgba(72,184,208,0.3)" d="M0,40 C360,100 720,0 1080,60 C1260,90 1380,30 1440,50 L1440,120 L0,120 Z"/></svg></div>
+    <div class="wave wave-2"><svg viewBox="0 0 1440 120" preserveAspectRatio="none"><path fill="rgba(168,230,239,0.25)" d="M0,80 C200,20 500,100 800,50 C1000,20 1300,90 1440,70 L1440,120 L0,120 Z"/></svg></div>
   </div>
 </section>
 
-<!-- NOTICE -->
-<section class="notice-section">
-  <div class="notice-inner">
-    <p class="notice-title">⚠️ 行前確認事項</p>
-    <div class="notice-grid">
-      <div class="notice-card">
-        <div class="notice-icon">🏨</div>
-        <div class="notice-text">
-          <strong>Day 2 早入住確認</strong>
-          <span>建議電話/Email 提前與 Villa 確認 Early Check-in 或免費寄放行李（12人）</span>
+<!-- TEAM REMINDERS -->
+<section class="reminder-section">
+  <div class="reminder-inner">
+    <p class="reminder-title">📌 團員出發前確認</p>
+    <div class="reminder-grid">
+      <div class="reminder-card">
+        <div class="reminder-icon">🛵</div>
+        <div class="reminder-text">
+          <strong>國際駕照必備</strong>
+          <span>D2–D4 租機車移動，出發前請務必辦好國際駕照，泰國執法嚴格，無照騎車罰款高</span>
         </div>
       </div>
-      <div class="notice-card">
-        <div class="notice-icon">🌅</div>
-        <div class="notice-text">
-          <strong>Day 3 岬角卡位</strong>
-          <span>Promthep Cape 傍晚人潮眾多，提醒包車司機提早到達卡位停車</span>
+      <div class="reminder-card">
+        <div class="reminder-icon">🌧️</div>
+        <div class="reminder-text">
+          <strong>5月雨季準備</strong>
+          <span>隨身備輕便雨衣，騎機車遇雨可穿，跳島天氣以業者公告為準</span>
         </div>
       </div>
-      <div class="notice-card">
-        <div class="notice-icon">🍽️</div>
-        <div class="notice-text">
-          <strong>Day 4 晚餐預訂</strong>
-          <span>請包船業者推薦 Wichit 碼頭附近適合 12 人的海鮮餐廳並提前訂位</span>
+      <div class="reminder-card">
+        <div class="reminder-icon">💊</div>
+        <div class="reminder-text">
+          <strong>暈船藥自備</strong>
+          <span>D4 跳島，容易暈船者請提前備好，上船前 30 分鐘服用</span>
         </div>
       </div>
-      <div class="notice-card">
-        <div class="notice-icon">✈️</div>
-        <div class="notice-text">
-          <strong>Day 5 出發提早</strong>
-          <span>建議改為 09:00–09:15 出發，確保國內線充足報到時間（已包票轉機無虞）</span>
+      <div class="reminder-card">
+        <div class="reminder-icon">💰</div>
+        <div class="reminder-text">
+          <strong>泰幣換好</strong>
+          <span>機車租金、按摩、市場小吃多用現金，建議每人備 3,000–5,000 THB</span>
         </div>
       </div>
-      <div class="notice-card">
-        <div class="notice-icon">🌧️</div>
-        <div class="notice-text">
-          <strong>5月雨季提醒</strong>
-          <span>確認跳島行程的天候取消與退款政策，備選室內活動方案</span>
+      <div class="reminder-card">
+        <div class="reminder-icon">📱</div>
+        <div class="reminder-text">
+          <strong>泰國網路 SIM / eSIM</strong>
+          <span>叫 Grab、查地圖都需要網路，建議出發前在台灣購買</span>
+        </div>
+      </div>
+      <div class="reminder-card">
+        <div class="reminder-icon">☀️</div>
+        <div class="reminder-text">
+          <strong>防曬乳 SPF50+</strong>
+          <span>普吉紫外線超強，海邊、騎車都要擦，建議每 2 小時補擦一次</span>
         </div>
       </div>
     </div>
@@ -593,10 +210,11 @@
 
   <!-- DAY 1 -->
   <div class="day-card day-1">
+    <div class="day-img day-img-1"><span>🏖️ Naiyang Beach</span></div>
     <div class="day-header" data-day="1">
       <div class="day-num">Day 01</div>
-      <div class="day-title">奈揚 · 暖身日</div>
-      <div class="day-date">5月2日（六）· 住宿：Bella Nara</div>
+      <div class="day-title">奈揚 · 移動日</div>
+      <div class="day-date">5月2日（六）· 住宿：Bella Nara Hotel（含早餐）</div>
       <span class="day-tag">🎯 放鬆開局，進入度假狀態</span>
     </div>
     <div class="day-body">
@@ -605,8 +223,8 @@
           <div class="tl-dot">✈️</div>
           <div class="tl-content">
             <div class="tl-time">抵達</div>
-            <div class="tl-label">入住 Bella Nara</div>
-            <div class="tl-detail">安頓行李，梳洗換裝</div>
+            <div class="tl-label">機場 → Bella Nara Hotel</div>
+            <div class="tl-detail">Bolt / Grab 約 200 THB，車程約 10 分鐘</div>
           </div>
         </div>
         <div class="tl-item">
@@ -618,24 +236,33 @@
           </div>
         </div>
         <div class="tl-item">
-          <div class="tl-dot">🌇</div>
+          <div class="tl-dot">🍽️</div>
           <div class="tl-content">
             <div class="tl-time">晚上</div>
-            <div class="tl-label">海灘晚餐 + 沙灘酒吧</div>
-            <div class="tl-detail">奈揚海灘邊用餐，小酌放鬆，為這趟旅程開個好頭</div>
+            <div class="tl-label">Phen's Restaurant Bar & Coffee</div>
+            <div class="tl-detail">奈揚海灘旁海鮮餐廳，步行可達，環境輕鬆舒適</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot">🍹</div>
+          <div class="tl-content">
+            <div class="tl-time">餐後</div>
+            <div class="tl-label">沙灘酒吧小酌</div>
+            <div class="tl-detail">吹著海風，為旅程開個好頭</div>
           </div>
         </div>
       </div>
-      <div class="day-focus"><span>💡</span> 第一天不要排太滿，讓大家好好休息、調整時差</div>
+      <div class="day-focus">💡 第一天不排太滿，讓大家好好調整狀態</div>
     </div>
   </div>
 
   <!-- DAY 2 -->
   <div class="day-card day-2">
+    <div class="day-img day-img-2"><span>🏛️ Phuket Old Town</span></div>
     <div class="day-header" data-day="2">
       <div class="day-num">Day 02</div>
-      <div class="day-title">移動 + 老城主日</div>
-      <div class="day-date">5月3日（日）· 移入奈涵 Villa</div>
+      <div class="day-title">Old Town Walk</div>
+      <div class="day-date">5月3日（日）· 移入 Villa Omari（Karon）含早餐</div>
       <span class="day-tag">🎯 最熱鬧的一天</span>
     </div>
     <div class="day-body">
@@ -644,30 +271,30 @@
           <div class="tl-dot">🚗</div>
           <div class="tl-content">
             <div class="tl-time">10:00</div>
-            <div class="tl-label">包車出發（整天）</div>
-            <div class="tl-detail">奈揚 → 奈涵 Villa，先放行李後移動</div>
+            <div class="tl-label">包車 · 奈揚 → Villa Omari</div>
+            <div class="tl-detail">先放行李，車程約 1–1.5 小時</div>
           </div>
         </div>
         <div class="tl-item">
-          <div class="tl-dot">🏠</div>
+          <div class="tl-dot">🛵</div>
           <div class="tl-content">
-            <div class="tl-time">上午</div>
-            <div class="tl-label">抵達 Villa · 放行李入住</div>
-            <div class="tl-detail">⚠️ 提前確認 Early Check-in 或寄放行李</div>
+            <div class="tl-time">入住後</div>
+            <div class="tl-label">附近租機車（約 6 台）</div>
+            <div class="tl-detail">入住後立即去租好，攜帶國際駕照 + 台灣駕照正本</div>
           </div>
         </div>
         <div class="tl-item">
           <div class="tl-dot">😴</div>
           <div class="tl-content">
             <div class="tl-time">中午</div>
-            <div class="tl-label">Villa 午休</div>
-            <div class="tl-detail">1.5～2小時，養足精神迎接下午</div>
+            <div class="tl-label">Villa 午休 1.5–2 小時</div>
+            <div class="tl-detail">養足精神迎接下午老城</div>
           </div>
         </div>
         <div class="tl-item">
           <div class="tl-dot">🏛️</div>
           <div class="tl-content">
-            <div class="tl-time">下午 → 晚上</div>
+            <div class="tl-time">傍晚 → 晚上</div>
             <div class="tl-label">Phuket Old Town 普吉老城</div>
             <ul class="tl-items-list">
               <li>漫步彩色騎樓街道，拍照打卡</li>
@@ -680,21 +307,22 @@
           <div class="tl-dot">🌙</div>
           <div class="tl-content">
             <div class="tl-time">晚間</div>
-            <div class="tl-label">返回 Villa</div>
-            <div class="tl-detail">包車接送，安全回家</div>
+            <div class="tl-label">騎機車返回 Villa</div>
+            <div class="tl-detail">老城 → Villa Omari 約 30 分鐘</div>
           </div>
         </div>
       </div>
-      <div class="day-focus"><span>💡</span> 全程包車最方便，老城建議傍晚前到，趕上黃金時段光線拍照</div>
+      <div class="day-focus">💡 老城建議傍晚前到，趕上黃金光線拍照，夜市約 18:00 後最熱鬧</div>
     </div>
   </div>
 
   <!-- DAY 3 -->
   <div class="day-card day-3">
+    <div class="day-img day-img-3"><span>🌊 Kata Beach</span></div>
     <div class="day-header" data-day="3">
       <div class="day-num">Day 03</div>
       <div class="day-title">慢活 + 夕陽 + 海鮮</div>
-      <div class="day-date">5月4日（一）· 住宿：奈涵 Villa</div>
+      <div class="day-date">5月4日（一）· 住宿：Villa Omari（含早餐）</div>
       <span class="day-tag">🎯 放鬆＋質感體驗</span>
     </div>
     <div class="day-body">
@@ -712,7 +340,7 @@
           <div class="tl-content">
             <div class="tl-time">中午</div>
             <div class="tl-label">Kata / Karon 海景早午餐</div>
-            <div class="tl-detail">吹著海風，悠閒 Brunch</div>
+            <div class="tl-detail">🛵 騎機車前往，沿海岸線吹風超舒服</div>
           </div>
         </div>
         <div class="tl-item">
@@ -728,7 +356,7 @@
           <div class="tl-content">
             <div class="tl-time">傍晚</div>
             <div class="tl-label">Promthep Cape 懸崖咖啡賞夕陽</div>
-            <div class="tl-detail">⚠️ 人潮多，請司機提早卡位停車<br/>夕陽時間約 18:30–19:00（5月）</div>
+            <div class="tl-detail">🛵 騎機車前往，提早到停車位比較好找<br/>夕陽時間約 18:30–19:00（5月）</div>
           </div>
         </div>
         <div class="tl-item">
@@ -736,20 +364,29 @@
           <div class="tl-content">
             <div class="tl-time">晚上</div>
             <div class="tl-label">Rawai 海鮮晚餐</div>
-            <div class="tl-detail">距 Promthep Cape 僅 5 分鐘，動線超順<br/>自選活海鮮現烤，超值又美味</div>
+            <div class="tl-detail">距 Promthep Cape 僅 5 分鐘，騎機車直接到<br/>自選活海鮮現烤，超值又美味</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot">🌙</div>
+          <div class="tl-content">
+            <div class="tl-time">晚間</div>
+            <div class="tl-label">騎機車返回 Villa</div>
+            <div class="tl-detail">Rawai → Villa Omari 約 15–20 分鐘</div>
           </div>
         </div>
       </div>
-      <div class="day-focus"><span>💡</span> 傍晚動線：Kata 海灘 → Promthep Cape → Rawai 海鮮，一氣呵成</div>
+      <div class="day-focus">💡 傍晚動線超順：Kata → Promthep Cape → Rawai，全程騎機車搞定</div>
     </div>
   </div>
 
   <!-- DAY 4 -->
   <div class="day-card day-4">
+    <div class="day-img day-img-4"><span>🚤 Island Hopping</span></div>
     <div class="day-header" data-day="4">
       <div class="day-num">Day 04</div>
       <div class="day-title">跳島日 · 海上時光</div>
-      <div class="day-date">5月5日（二）· 碼頭：Wichit</div>
+      <div class="day-date">5月5日（二）· 住宿：Villa Omari（含早餐）</div>
       <span class="day-tag">🎯 海上體驗＋舒服收尾</span>
     </div>
     <div class="day-body">
@@ -763,11 +400,11 @@
           </div>
         </div>
         <div class="tl-item">
-          <div class="tl-dot">🚗</div>
+          <div class="tl-dot">🛵</div>
           <div class="tl-content">
             <div class="tl-time">12:45</div>
-            <div class="tl-label">Villa → Wichit 碼頭出發</div>
-            <div class="tl-detail">目標 13:45 前抵達碼頭</div>
+            <div class="tl-label">出發 → Wichit 碼頭</div>
+            <div class="tl-detail">機車或 Grab 彈性選擇，目標 13:45 前抵達<br/>Villa → 碼頭約 35–45 分鐘</div>
           </div>
         </div>
         <div class="tl-item">
@@ -775,7 +412,7 @@
           <div class="tl-content">
             <div class="tl-time">下午</div>
             <div class="tl-label">包船跳島 · 海上夕陽</div>
-            <div class="tl-detail">浮潛、島嶼探索、海上看夕陽<br/>⚠️ 確認包船含餐點飲料及回港時間</div>
+            <div class="tl-detail">浮潛、島嶼探索、海上看夕陽</div>
           </div>
         </div>
         <div class="tl-item">
@@ -783,29 +420,30 @@
           <div class="tl-content">
             <div class="tl-time">晚上</div>
             <div class="tl-label">Wichit 碼頭附近海鮮晚餐</div>
-            <div class="tl-detail">下船即吃，省去舟車勞頓<br/>⚠️ 請包船業者提前推薦餐廳並訂位</div>
+            <div class="tl-detail">下船直接吃，省去舟車勞頓</div>
           </div>
         </div>
         <div class="tl-item">
-          <div class="tl-dot">🏠</div>
+          <div class="tl-dot">🌙</div>
           <div class="tl-content">
             <div class="tl-time">晚間</div>
-            <div class="tl-label">返回奈涵 Villa</div>
-            <div class="tl-detail">車程約 40 分鐘，早點休息</div>
+            <div class="tl-label">返回 Villa</div>
+            <div class="tl-detail">機車或 Grab 彈性安排，視下船狀態決定</div>
           </div>
         </div>
       </div>
-      <div class="day-focus"><span>💡</span> 包船自由度高，但 5 月雨季記得確認天候退款政策</div>
+      <div class="day-focus">💡 下船後視狀態決定騎機車或叫 Grab，彈性最大。前一晚記得確認隔天天氣</div>
     </div>
   </div>
 
   <!-- DAY 5 -->
   <div class="day-card day-5">
+    <div class="day-img day-img-5"><span>✈️ See You Next Time</span></div>
     <div class="day-header" data-day="5">
       <div class="day-num">Day 05</div>
-      <div class="day-title">回程 · 輕鬆收尾</div>
+      <div class="day-title">回程 · 滿載而歸</div>
       <div class="day-date">5月6日（三）· 普吉 → 曼谷 → 台灣</div>
-      <span class="day-tag">🎯 輕鬆收尾，滿載而歸</span>
+      <span class="day-tag">🎯 輕鬆收尾，平安回家</span>
     </div>
     <div class="day-body">
       <div class="timeline">
@@ -813,24 +451,24 @@
           <div class="tl-dot">☀️</div>
           <div class="tl-content">
             <div class="tl-time">07:30</div>
-            <div class="tl-label">早餐 · 行李整理</div>
-            <div class="tl-detail">建議前一晚先打包好行李，早上輕鬆出發</div>
+            <div class="tl-label">早餐 · 整理行李</div>
+            <div class="tl-detail">建議前一晚先打包好，早上輕鬆出發</div>
           </div>
         </div>
         <div class="tl-item">
           <div class="tl-dot">🚗</div>
           <div class="tl-content">
-            <div class="tl-time">09:00–09:15</div>
-            <div class="tl-label">⚠️ 出發機場（已調整）</div>
-            <div class="tl-detail">原訂 10:00 → 建議改為 09:00–09:15<br/>Karon → 普吉機場約 50–60 分鐘</div>
+            <div class="tl-time">09:45</div>
+            <div class="tl-label">Villa 管家安排包車出發</div>
+            <div class="tl-detail">Karon → 普吉機場約 50 分鐘，約 10:35 抵達</div>
           </div>
         </div>
         <div class="tl-item">
           <div class="tl-dot">✈️</div>
           <div class="tl-content">
             <div class="tl-time">13:00</div>
-            <div class="tl-label">普吉起飛 → 曼谷</div>
-            <div class="tl-detail">國內線 · 包票轉機，曼谷接台灣班機</div>
+            <div class="tl-label">普吉起飛 → 曼谷轉機</div>
+            <div class="tl-detail">包票轉機，曼谷接台灣班機</div>
           </div>
         </div>
         <div class="tl-item">
@@ -842,7 +480,7 @@
           </div>
         </div>
       </div>
-      <div class="day-focus"><span>💡</span> 12 人集合出發務必提早，Grab 或包車需提前預約</div>
+      <div class="day-focus">💡 前一晚記得還機車，早上不用再跑一趟</div>
     </div>
   </div>
 
@@ -851,87 +489,36 @@
 <!-- CHECKLIST -->
 <section class="checklist-section">
   <div class="checklist-inner">
-    <h2 class="section-heading">📋 行前確認清單</h2>
-    <p class="section-sub">點擊即可勾選，確保萬無一失</p>
+    <h2 class="section-heading">📋 個人行前清單</h2>
+    <p class="section-sub">出發前逐一確認，點擊打勾</p>
     <div class="check-grid">
       <div class="check-group">
-        <div class="check-group-title">🏨 住宿</div>
-        <div class="check-item" onclick="toggle(this)">
-          <div class="check-box">✓</div>
-          <div class="check-label">Bella Nara — 確認 Day 1 入住時間</div>
-        </div>
-        <div class="check-item" onclick="toggle(this)">
-          <div class="check-box">✓</div>
-          <div class="check-label">奈涵 Villa — 確認 Early Check-in 或寄放行李（12人）</div>
-        </div>
-        <div class="check-item" onclick="toggle(this)">
-          <div class="check-box">✓</div>
-          <div class="check-label">奈涵 Villa — 確認 Day 5 Check-out 時間</div>
-        </div>
+        <div class="check-group-title">🪪 證件</div>
+        <div class="check-item" onclick="toggle(this)"><div class="check-box">✓</div><div class="check-label">護照（有效期 6 個月以上）</div></div>
+        <div class="check-item" onclick="toggle(this)"><div class="check-box">✓</div><div class="check-label">國際駕照（騎機車必備）</div></div>
+        <div class="check-item" onclick="toggle(this)"><div class="check-box">✓</div><div class="check-label">台灣駕照正本（搭配國際駕照）</div></div>
+        <div class="check-item" onclick="toggle(this)"><div class="check-box">✓</div><div class="check-label">機票確認單（包票）</div></div>
       </div>
-
       <div class="check-group">
-        <div class="check-group-title">🚤 跳島</div>
-        <div class="check-item" onclick="toggle(this)">
-          <div class="check-box">✓</div>
-          <div class="check-label">確認包船含餐點、飲料、浮潛裝備</div>
-        </div>
-        <div class="check-item" onclick="toggle(this)">
-          <div class="check-box">✓</div>
-          <div class="check-label">確認回港時間</div>
-        </div>
-        <div class="check-item" onclick="toggle(this)">
-          <div class="check-box">✓</div>
-          <div class="check-label">確認天候取消及退款政策</div>
-        </div>
-        <div class="check-item" onclick="toggle(this)">
-          <div class="check-box">✓</div>
-          <div class="check-label">請業者推薦碼頭附近 12 人海鮮餐廳並訂位</div>
-        </div>
+        <div class="check-group-title">💊 健康備品</div>
+        <div class="check-item" onclick="toggle(this)"><div class="check-box">✓</div><div class="check-label">暈船藥（D4 跳島備用）</div></div>
+        <div class="check-item" onclick="toggle(this)"><div class="check-box">✓</div><div class="check-label">防曬乳 SPF50+</div></div>
+        <div class="check-item" onclick="toggle(this)"><div class="check-box">✓</div><div class="check-label">腸胃藥 / 止瀉藥 <span style="color:#ffd166;font-size:0.75rem;font-weight:700;">⚠️ 重要</span></div></div>
+        <div class="check-item" onclick="toggle(this)"><div class="check-box">✓</div><div class="check-label">防蚊液 <span style="color:#ffd166;font-size:0.75rem;font-weight:700;">⚠️ 重要</span></div></div>
       </div>
-
       <div class="check-group">
-        <div class="check-group-title">🚗 交通</div>
-        <div class="check-item" onclick="toggle(this)">
-          <div class="check-box">✓</div>
-          <div class="check-label">Day 2 包車確認（整天行程說明給司機）</div>
-        </div>
-        <div class="check-item" onclick="toggle(this)">
-          <div class="check-box">✓</div>
-          <div class="check-label">Day 3 交通方式確認（Grab / 包車）</div>
-        </div>
-        <div class="check-item" onclick="toggle(this)">
-          <div class="check-box">✓</div>
-          <div class="check-label">Day 5 機場接送車（09:00 出發）</div>
-        </div>
-        <div class="check-item" onclick="toggle(this)">
-          <div class="check-box">✓</div>
-          <div class="check-label">提醒司機 Day 3 Promthep Cape 早到卡位</div>
-        </div>
+        <div class="check-group-title">💰 金錢 & 通訊</div>
+        <div class="check-item" onclick="toggle(this)"><div class="check-box">✓</div><div class="check-label">泰幣現金（建議 3,000–5,000 THB）</div></div>
+        <div class="check-item" onclick="toggle(this)"><div class="check-box">✓</div><div class="check-label">泰國網路 SIM 卡 / eSIM</div></div>
+        <div class="check-item" onclick="toggle(this)"><div class="check-box">✓</div><div class="check-label">電源轉接頭（泰國 A/B/C 型）</div></div>
+        <div class="check-item" onclick="toggle(this)"><div class="check-box">✓</div><div class="check-label">行動電源充滿電</div></div>
       </div>
-
       <div class="check-group">
-        <div class="check-group-title">🧳 個人準備</div>
-        <div class="check-item" onclick="toggle(this)">
-          <div class="check-box">✓</div>
-          <div class="check-label">防曬乳（SPF50+）</div>
-        </div>
-        <div class="check-item" onclick="toggle(this)">
-          <div class="check-box">✓</div>
-          <div class="check-label">泰幣換好</div>
-        </div>
-        <div class="check-item" onclick="toggle(this)">
-          <div class="check-box">✓</div>
-          <div class="check-label">電源轉接頭</div>
-        </div>
-        <div class="check-item" onclick="toggle(this)">
-          <div class="check-box">✓</div>
-          <div class="check-label">暈船藥（跳島備用）</div>
-        </div>
-        <div class="check-item" onclick="toggle(this)">
-          <div class="check-box">✓</div>
-          <div class="check-label">泰國網路 SIM 卡 / eSIM</div>
-        </div>
+        <div class="check-group-title">👙 裝備</div>
+        <div class="check-item" onclick="toggle(this)"><div class="check-box">✓</div><div class="check-label">比基尼 / 泳褲</div></div>
+        <div class="check-item" onclick="toggle(this)"><div class="check-box">✓</div><div class="check-label">輕便雨衣（騎機車遇雨用）</div></div>
+        <div class="check-item" onclick="toggle(this)"><div class="check-box">✓</div><div class="check-label">防水袋（跳島時保護手機）</div></div>
+        <div class="check-item" onclick="toggle(this)"><div class="check-box">✓</div><div class="check-label">拖鞋 + 涼鞋</div></div>
       </div>
     </div>
   </div>
@@ -945,26 +532,15 @@
 </footer>
 
 <script>
-// Bubbles
 const container = document.getElementById('bubbles');
 for (let i = 0; i < 18; i++) {
   const b = document.createElement('div');
   b.className = 'bubble';
   const size = Math.random() * 60 + 10;
-  b.style.cssText = `
-    width:${size}px; height:${size}px;
-    left:${Math.random()*100}%;
-    animation-duration:${Math.random()*15+8}s;
-    animation-delay:${Math.random()*10}s;
-  `;
+  b.style.cssText = `width:${size}px;height:${size}px;left:${Math.random()*100}%;animation-duration:${Math.random()*15+8}s;animation-delay:${Math.random()*10}s;`;
   container.appendChild(b);
 }
-
-// Checklist toggle
-function toggle(el) {
-  el.classList.toggle('checked');
-}
+function toggle(el) { el.classList.toggle('checked'); }
 </script>
-
 </body>
 </html>
