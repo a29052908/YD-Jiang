@@ -8,61 +8,66 @@
   @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap');
 
   :root {
-  --bg: #f0ece4;
-  --surface: #faf8f4;
-  --surface2: #f5f1ea;
-  --border: #ddd8ce;
-  --accent: #b5934a;
-  --accent2: #5a8a80;
-  --success: #4a8a6a;
-  --danger: #b85c5c;
-  --purple: #7c6fa0;
-  --text: #2c2620;
-  --text-dim: #7a6f63;
-  --text-muted: #b5ad9f;
-}
+    --bg: #f0ece4;
+    --surface: #faf8f4;
+    --surface2: #f5f1ea;
+    --border: #ddd8ce;
+    --border-focus: #9b8f7e;
+    --accent: #b5934a;
+    --accent2: #5a8a80;
+    --success: #4a8a6a;
+    --danger: #b85c5c;
+    --purple: #7c6fa0;
+    --text: #2c2620;
+    --text-dim: #7a6f63;
+    --text-muted: #b5ad9f;
+    --shadow: rgba(100, 85, 65, 0.10);
+  }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: 'Noto Sans TC', sans-serif;
-  min-height: 100vh;
-  padding: 32px 20px 80px;
-  background-image: 
-    radial-gradient(ellipse at 20% 0%, rgba(180,160,120,0.10) 0%, transparent 60%),
-    radial-gradient(ellipse at 80% 100%, rgba(90,138,128,0.07) 0%, transparent 60%);
-}
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Sans TC', sans-serif;
+    min-height: 100vh;
+    padding: 40px 24px 100px;
+    background-image:
+      radial-gradient(ellipse at 20% 0%, rgba(180,160,120,0.10) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 100%, rgba(90,138,128,0.07) 0%, transparent 60%);
+  }
 
   .wrapper { max-width: 720px; margin: 0 auto; }
 
   /* Header */
   .header { margin-bottom: 32px; animation: fadeDown 0.5s ease; }
+
   .back-btn {
     display: inline-flex; align-items: center; gap: 6px;
-    font-family: 'DM Mono', monospace; font-size: 11px;
+    font-family: 'DM Mono', monospace; font-size: 12px;
     color: var(--text-dim); text-decoration: none;
     margin-bottom: 16px; transition: color 0.2s;
   }
   .back-btn:hover { color: var(--accent); }
-  .client-name { font-size: 28px; font-weight: 700; letter-spacing: -0.02em; }
+
+  .client-name { font-size: 30px; font-weight: 700; letter-spacing: -0.02em; color: var(--text); }
   .client-name span { color: var(--accent); }
-  .client-meta { display: flex; gap: 12px; margin-top: 8px; flex-wrap: wrap; }
+
+  .client-meta { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
   .tag {
-    font-family: 'DM Mono', monospace; font-size: 11px;
-    padding: 3px 10px; border-radius: 20px;
+    font-family: 'DM Mono', monospace; font-size: 12px;
+    padding: 4px 12px; border-radius: 20px;
     border: 1px solid var(--border); color: var(--text-dim);
   }
   .tag.stage { border-color: var(--accent); color: var(--accent); }
-  .tag.prob-high { border-color: var(--success); color: var(--success); }
-  .tag.prob-mid { border-color: var(--accent); color: var(--accent); }
-  .tag.prob-low { border-color: var(--danger); color: var(--danger); }
+  .tag.prob-高 { border-color: var(--success); color: var(--success); }
+  .tag.prob-中 { border-color: var(--accent); color: var(--accent); }
+  .tag.prob-低 { border-color: var(--danger); color: var(--danger); }
 
   /* Loading */
   .loading {
     text-align: center; padding: 80px 20px;
-    font-family: 'DM Mono', monospace; font-size: 13px; color: var(--text-dim);
+    font-family: 'DM Mono', monospace; font-size: 14px; color: var(--text-dim);
   }
   .spinner {
     width: 32px; height: 32px; border: 2px solid var(--border);
@@ -71,68 +76,78 @@
   }
 
   /* Section */
-  .section { margin-bottom: 24px; animation: fadeUp 0.4s ease both; }
+  .section {
+    margin-bottom: 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px 24px;
+    box-shadow: 0 2px 10px var(--shadow);
+    animation: fadeUp 0.4s ease both;
+  }
   .section:nth-child(2) { animation-delay: 0.05s; }
   .section:nth-child(3) { animation-delay: 0.1s; }
   .section:nth-child(4) { animation-delay: 0.15s; }
 
   .section-label {
-    font-family: 'DM Mono', monospace; font-size: 10px;
-    letter-spacing: 0.18em; text-transform: uppercase;
-    color: var(--text-dim); margin-bottom: 14px;
+    font-family: 'DM Mono', monospace; font-size: 11px;
+    letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--text-muted); margin-bottom: 16px;
     display: flex; align-items: center; gap: 10px;
   }
   .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
-  .section-num { color: var(--accent); font-size: 10px; }
+  .section-num { color: var(--accent); font-size: 11px; font-weight: 500; }
 
   /* 客戶卡 唯讀 */
   .info-card {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 12px; padding: 20px;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 18px;
   }
   .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-  .info-item {}
   .info-item.full { grid-column: 1 / -1; }
-  .info-label { font-size: 11px; color: var(--text-dim); margin-bottom: 4px; }
-  .info-value {
-    font-size: 14px; color: var(--text);
-    min-height: 22px;
-  }
+  .info-label { font-size: 12px; color: var(--text-muted); margin-bottom: 4px; font-weight: 500; }
+  .info-value { font-size: 15px; color: var(--text); min-height: 22px; line-height: 1.5; }
   .info-value.empty { color: var(--text-muted); font-style: italic; font-size: 13px; }
 
   /* 時間指標 */
-  .time-badges { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
-  .time-badge {
-    flex: 1; min-width: 120px;
-    background: var(--surface2); border: 1px solid var(--border);
-    border-radius: 8px; padding: 10px 14px; text-align: center;
+  .time-badges {
+    display: flex; gap: 10px; flex-wrap: wrap;
+    margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border);
   }
-  .time-badge .num { font-family: 'DM Mono', monospace; font-size: 22px; font-weight: 500; color: var(--accent); }
+  .time-badge {
+    flex: 1; min-width: 110px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 12px 14px; text-align: center;
+  }
+  .time-badge .num {
+    font-family: 'DM Mono', monospace; font-size: 24px;
+    font-weight: 500; color: var(--accent);
+  }
   .time-badge .num.warn { color: var(--danger); }
-  .time-badge .label { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+  .time-badge .label { font-size: 12px; color: var(--text-dim); margin-top: 3px; }
 
   /* AI 分析區 */
-  .ai-card {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 12px; padding: 20px;
-  }
-  .ai-context-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+  .ai-context-tabs { display: flex; gap: 8px; margin-bottom: 14px; }
   .ctx-tab {
-    flex: 1; padding: 8px; border: 1px solid var(--border);
-    border-radius: 8px; background: var(--surface2);
-    color: var(--text-dim); font-size: 13px;
+    flex: 1; padding: 10px; border: 1.5px solid var(--border);
+    border-radius: 10px; background: var(--surface2);
+    color: var(--text-dim); font-size: 14px;
     font-family: 'Noto Sans TC', sans-serif;
     cursor: pointer; text-align: center; transition: all 0.2s;
   }
-  .ctx-tab.active { border-color: var(--purple); background: rgba(167,139,250,0.1); color: var(--purple); }
+  .ctx-tab.active {
+    border-color: var(--purple);
+    background: rgba(124,111,160,0.10);
+    color: var(--purple); font-weight: 500;
+  }
 
   .btn-ai {
-    width: 100%; padding: 13px;
+    width: 100%; padding: 14px;
     background: linear-gradient(135deg, #6366f1, #8b5cf6);
     color: white; border: none; border-radius: 10px;
-    font-size: 14px; font-weight: 600;
+    font-size: 15px; font-weight: 600;
     font-family: 'Noto Sans TC', sans-serif;
-    cursor: pointer; transition: all 0.2s; margin-bottom: 16px;
+    cursor: pointer; transition: all 0.2s; margin-bottom: 14px;
   }
   .btn-ai:hover { filter: brightness(1.1); transform: translateY(-1px); }
   .btn-ai:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
@@ -142,80 +157,109 @@
 
   .ai-row {
     display: flex; gap: 10px; margin-bottom: 10px;
-    padding: 12px 14px; background: var(--surface2);
-    border-radius: 8px; border-left: 3px solid var(--purple);
+    padding: 13px 15px; background: var(--surface2);
+    border-radius: 10px; border-left: 3px solid var(--purple);
     align-items: flex-start;
   }
   .ai-row-label {
     font-family: 'DM Mono', monospace; font-size: 11px;
-    color: var(--purple); min-width: 80px; padding-top: 1px;
+    color: var(--purple); min-width: 72px; padding-top: 2px; letter-spacing: 0.04em;
   }
-  .ai-row-value { font-size: 14px; color: var(--text); line-height: 1.6; flex: 1; }
+  .ai-row-value { font-size: 15px; color: var(--text); line-height: 1.6; flex: 1; }
+
+  /* 複製按鈕 */
+  .ai-row-copy {
+    background: none; border: 1px solid var(--border);
+    border-radius: 6px; padding: 3px 8px;
+    font-size: 12px; color: var(--text-muted);
+    cursor: pointer; transition: all 0.2s;
+    white-space: nowrap; margin-left: 8px; flex-shrink: 0;
+  }
+  .ai-row-copy:hover { border-color: var(--accent2); color: var(--accent2); }
+  .ai-row-copy.copied { border-color: var(--success); color: var(--success); }
 
   .prob-badge {
-    display: inline-block; padding: 2px 10px; border-radius: 20px;
-    font-size: 12px; font-weight: 600;
+    display: inline-block; padding: 3px 12px; border-radius: 20px;
+    font-size: 13px; font-weight: 600;
   }
-  .prob-高 { background: rgba(82,214,138,0.15); color: var(--success); }
-  .prob-中 { background: rgba(232,197,71,0.15); color: var(--accent); }
-  .prob-低 { background: rgba(255,107,107,0.15); color: var(--danger); }
+  .prob-高 { background: rgba(74,138,106,0.12); color: var(--success); }
+  .prob-中 { background: rgba(181,147,74,0.12); color: var(--accent); }
+  .prob-低 { background: rgba(184,92,92,0.12); color: var(--danger); }
 
   .ai-save-btn {
-    width: 100%; padding: 11px;
-    background: transparent; border: 1px solid var(--purple);
-    color: var(--purple); border-radius: 8px; font-size: 13px;
+    width: 100%; padding: 12px;
+    background: transparent; border: 1.5px solid var(--purple);
+    color: var(--purple); border-radius: 10px; font-size: 14px;
     font-family: 'Noto Sans TC', sans-serif;
-    cursor: pointer; transition: all 0.2s; margin-top: 8px;
+    cursor: pointer; transition: all 0.2s; margin-top: 10px;
   }
-  .ai-save-btn:hover { background: rgba(167,139,250,0.1); }
+  .ai-save-btn:hover { background: rgba(124,111,160,0.10); }
 
   /* 快速更新區 */
-  .update-card {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 12px; padding: 20px;
-  }
-  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .field { display: flex; flex-direction: column; gap: 6px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .field { display: flex; flex-direction: column; gap: 7px; }
   .field.full { grid-column: 1 / -1; }
 
-  label { font-size: 12px; color: var(--text-dim); }
+  label { font-size: 13px; color: var(--text-dim); font-weight: 500; }
 
   input, select, textarea {
-    background: var(--surface2); border: 1px solid var(--border);
-    border-radius: 8px; color: var(--text);
-    font-family: 'Noto Sans TC', sans-serif; font-size: 14px;
-    padding: 10px 12px; outline: none; transition: border-color 0.2s; width: 100%;
+    background: var(--surface2); border: 1.5px solid var(--border);
+    border-radius: 10px; color: var(--text);
+    font-family: 'Noto Sans TC', sans-serif; font-size: 15px;
+    padding: 12px 14px; outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+    width: 100%; -webkit-appearance: none;
   }
-  input:focus, select:focus, textarea:focus { border-color: var(--accent2); }
-  select option { background: var(--surface2); }
-  textarea { resize: vertical; min-height: 70px; line-height: 1.6; }
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--border-focus); background: #fff;
+    box-shadow: 0 0 0 3px rgba(124, 106, 82, 0.10);
+  }
+  input::placeholder, textarea::placeholder { color: var(--text-muted); font-size: 14px; }
+  select {
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23b5ad9f' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px;
+  }
+  select option { background: var(--surface); color: var(--text); }
+  textarea { resize: vertical; min-height: 76px; line-height: 1.6; }
+
+  input[type="date"]::-webkit-calendar-picker-indicator { opacity: 0.4; cursor: pointer; }
 
   .stage-group { display: flex; gap: 6px; flex-wrap: wrap; }
   .stage-btn {
-    flex: 1; min-width: 70px; padding: 8px 4px;
-    border: 1px solid var(--border); border-radius: 8px;
+    flex: 1; min-width: 66px; padding: 10px 4px;
+    border: 1.5px solid var(--border); border-radius: 10px;
     background: var(--surface2); color: var(--text-dim);
-    font-size: 12px; font-family: 'Noto Sans TC', sans-serif;
+    font-size: 14px; font-family: 'Noto Sans TC', sans-serif;
     cursor: pointer; text-align: center; transition: all 0.2s;
   }
-  .stage-btn.active { border-color: var(--accent); background: rgba(232,197,71,0.1); color: var(--accent); }
+  .stage-btn:hover { border-color: var(--accent); color: var(--text); background: #fff; }
+  .stage-btn.active {
+    border-color: var(--accent); background: rgba(181,147,74,0.10);
+    color: var(--accent); font-weight: 600;
+  }
 
   .btn-update {
-  ...
-  background: var(--accent);
-  color: #fff;   /* 原本是 #0d0f14，改成白字 */
-  ...
-}
-.btn-update:hover { background: #c9a45a; transform: translateY(-1px); }
+    width: 100%; padding: 15px;
+    background: var(--accent); color: #fff;
+    border: none; border-radius: 10px;
+    font-size: 15px; font-weight: 700;
+    font-family: 'Noto Sans TC', sans-serif;
+    cursor: pointer; transition: all 0.2s; margin-top: 16px;
+    box-shadow: 0 4px 14px rgba(181,147,74,0.22);
+  }
+  .btn-update:hover { background: #c9a45a; transform: translateY(-1px); }
+  .btn-update:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
   /* Toast */
   .toast {
     position: fixed; bottom: 30px; left: 50%;
     transform: translateX(-50%) translateY(80px);
-    background: var(--surface2); border: 1px solid var(--success);
-    border-radius: 12px; padding: 12px 24px;
-    font-size: 14px; color: var(--success);
+    background: var(--surface); border: 1.5px solid var(--success);
+    border-radius: 14px; padding: 14px 26px;
+    font-size: 15px; color: var(--success);
     transition: transform 0.3s ease; z-index: 100;
-    white-space: nowrap; box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    white-space: nowrap; box-shadow: 0 8px 32px rgba(100,85,65,0.15);
   }
   .toast.show { transform: translateX(-50%) translateY(0); }
   .toast.error { border-color: var(--danger); color: var(--danger); }
@@ -226,9 +270,9 @@
   @keyframes spin { to { transform: rotate(360deg); } }
 
   @media (max-width: 560px) {
-    .grid-2 { grid-template-columns: 1fr; }
-    .info-grid { grid-template-columns: 1fr; }
+    .grid-2, .info-grid { grid-template-columns: 1fr; }
     .time-badges { flex-direction: column; }
+    .section { padding: 18px 16px; }
   }
 </style>
 </head>
@@ -236,18 +280,18 @@
 
 <div class="wrapper">
 
-  <!-- Loading 狀態 -->
+  <!-- Loading -->
   <div class="loading" id="loadingState">
     <div class="spinner"></div>
     載入客戶資料中...
   </div>
 
-  <!-- 主內容（載入後顯示） -->
+  <!-- 主內容 -->
   <div id="mainContent" style="display:none;">
 
     <!-- Header -->
     <div class="header">
-      <a href="crm-input.html" class="back-btn">← 返回新增</a>
+      <a href="crm-input.html" class="back-btn">← 返回建檔</a>
       <div class="client-name" id="headerName">客戶名稱</div>
       <div class="client-meta" id="headerMeta"></div>
     </div>
@@ -276,6 +320,10 @@
           <div class="info-item">
             <div class="info-label">收入預估</div>
             <div class="info-value" id="v-income">—</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">預計投入金額</div>
+            <div class="info-value" id="v-budget">—</div>
           </div>
           <div class="info-item">
             <div class="info-label">投資工具</div>
@@ -324,76 +372,71 @@
     <!-- 02 AI 分析 -->
     <div class="section">
       <div class="section-label"><span class="section-num">02</span> AI 分析</div>
-      <div class="ai-card">
-        <div class="ai-context-tabs">
-          <button class="ctx-tab active" data-ctx="行動前" onclick="setContext(this)">🎯 行動前（準備聯繫）</button>
-          <button class="ctx-tab" data-ctx="行動後" onclick="setContext(this)">📝 行動後（更新評估）</button>
-        </div>
-        <button class="btn-ai" id="aiBtn" onclick="runAI()">✨ 請 AI 分析</button>
-        <div class="ai-result" id="aiResult"></div>
+      <div class="ai-context-tabs">
+        <button class="ctx-tab active" data-ctx="行動前" onclick="setContext(this)">🎯 行動前（準備聯繫）</button>
+        <button class="ctx-tab" data-ctx="行動後" onclick="setContext(this)">📝 行動後（更新評估）</button>
       </div>
+      <button class="btn-ai" id="aiBtn" onclick="runAI()">✨ 請 AI 分析</button>
+      <div class="ai-result" id="aiResult"></div>
     </div>
 
     <!-- 03 快速更新 -->
     <div class="section">
       <div class="section-label"><span class="section-num">03</span> 快速更新</div>
-      <div class="update-card">
-        <div class="grid-2">
-          <div class="field full">
-            <label>目前階段</label>
-            <div class="stage-group" id="stageGroup">
-              <button class="stage-btn" data-stage="潛在" onclick="setStage(this)">潛在</button>
-              <button class="stage-btn" data-stage="預約" onclick="setStage(this)">預約</button>
-              <button class="stage-btn" data-stage="簡報" onclick="setStage(this)">簡報</button>
-              <button class="stage-btn" data-stage="跟進" onclick="setStage(this)">跟進</button>
-              <button class="stage-btn" data-stage="成交" onclick="setStage(this)">成交</button>
-            </div>
-            <input type="hidden" id="u-stage">
+      <div class="grid-2">
+        <div class="field full">
+          <label>目前階段</label>
+          <div class="stage-group" id="stageGroup">
+            <button class="stage-btn" data-stage="潛在" onclick="setStage(this)">潛在</button>
+            <button class="stage-btn" data-stage="預約" onclick="setStage(this)">預約</button>
+            <button class="stage-btn" data-stage="簡報" onclick="setStage(this)">簡報</button>
+            <button class="stage-btn" data-stage="跟進" onclick="setStage(this)">跟進</button>
+            <button class="stage-btn" data-stage="成交" onclick="setStage(this)">成交</button>
           </div>
-          <div class="field">
-            <label>最後聯繫日</label>
-            <input type="date" id="u-lastContact">
-          </div>
-          <div class="field">
-            <label>下次跟進日</label>
-            <input type="date" id="u-nextFollow">
-          </div>
-          <div class="field">
-            <label>上次互動氛圍</label>
-            <select id="u-vibe">
-              <option value="">— 選擇 —</option>
-              <option value="熱絡">熱絡</option>
-              <option value="普通">普通</option>
-              <option value="冷淡">冷淡</option>
-              <option value="有防備">有防備</option>
-              <option value="主動詢問">主動詢問</option>
-            </select>
-          </div>
-          <div class="field">
-            <label>預計成交日</label>
-            <input type="date" id="u-targetClose">
-          </div>
-          <div class="field full">
-            <label>上次卡住的原因</label>
-            <input type="text" id="u-stuck" placeholder="說要問老婆 / 覺得金額太大...">
-          </div>
-          <div class="field full">
-            <label>痛點補充</label>
-            <textarea id="u-pain" placeholder="這次接觸新發現的痛點或需求..."></textarea>
-          </div>
-          <div class="field full">
-            <label>配置需求補充</label>
-            <textarea id="u-config" placeholder="更新的配置意向..."></textarea>
-          </div>
+          <input type="hidden" id="u-stage">
         </div>
-        <button class="btn-update" id="updateBtn" onclick="submitUpdate()">更新客戶資料 →</button>
+        <div class="field">
+          <label>最後聯繫日</label>
+          <input type="date" id="u-lastContact">
+        </div>
+        <div class="field">
+          <label>下次跟進日</label>
+          <input type="date" id="u-nextFollow">
+        </div>
+        <div class="field">
+          <label>上次互動氛圍</label>
+          <select id="u-vibe">
+            <option value="">— 選擇 —</option>
+            <option value="熱絡">熱絡</option>
+            <option value="普通">普通</option>
+            <option value="冷淡">冷淡</option>
+            <option value="有防備">有防備</option>
+            <option value="主動詢問">主動詢問</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>預計成交日</label>
+          <input type="date" id="u-targetClose">
+        </div>
+        <div class="field full">
+          <label>上次卡住的原因</label>
+          <input type="text" id="u-stuck" placeholder="說要問老婆 / 覺得金額太大 / 還在考慮...">
+        </div>
+        <div class="field full">
+          <label>痛點補充</label>
+          <textarea id="u-pain" placeholder="這次接觸新發現的痛點或需求、情緒變化..."></textarea>
+        </div>
+        <div class="field full">
+          <label>配置需求補充</label>
+          <textarea id="u-config" placeholder="更新的配置意向、金額調整、新提到的目標..."></textarea>
+        </div>
       </div>
+      <button class="btn-update" id="updateBtn" onclick="submitUpdate()">更新客戶資料 →</button>
     </div>
 
   </div>
 </div>
 
-<!-- Toast -->
 <div class="toast" id="toast"></div>
 
 <script>
@@ -403,13 +446,12 @@
   let currentContext = '行動前';
   let aiResultData = null;
 
-  // ── 從 URL 取得客戶名稱 ──────────────────────────
+  // ── URL 取客戶名 ──────────────────────────────────
   function getNameFromURL() {
-    const params = new URLSearchParams(window.location.search);
-    return params.get('name') || '';
+    return new URLSearchParams(window.location.search).get('name') || '';
   }
 
-  // ── 載入客戶資料 ─────────────────────────────────
+  // ── 載入客戶 ─────────────────────────────────────
   async function loadClient(name) {
     try {
       const res = await fetch(WEBHOOK_B, {
@@ -433,27 +475,25 @@
 
   // ── 渲染客戶資料 ─────────────────────────────────
   function renderClient(d) {
-    const val = (v) => v || '<span class="empty">未填寫</span>';
+    const val = (v) => v ? `<span>${v}</span>` : '<span class="empty">未填寫</span>';
 
     document.getElementById('headerName').innerHTML = d['姓名/代稱'] || '未知客戶';
 
-    // Meta tags
-    const meta = document.getElementById('headerMeta');
     const stage = d['階段'] || '';
     const prob = d['成交機率'] || '';
-    meta.innerHTML = `
+    document.getElementById('headerMeta').innerHTML = `
       ${stage ? `<span class="tag stage">${stage}</span>` : ''}
       ${d['職業'] ? `<span class="tag">${d['職業']}</span>` : ''}
       ${d['熟識程度'] ? `<span class="tag">熟識 ${d['熟識程度']}</span>` : ''}
-      ${prob ? `<span class="tag prob-${prob}">${prob}成交機率</span>` : ''}
+      ${prob ? `<span class="tag prob-${prob === '高' ? '高' : prob === '中' ? '中' : '低'}">${prob} 成交機率</span>` : ''}
     `;
 
-    // 資料欄位
     document.getElementById('v-job').innerHTML = val(d['職業']);
     document.getElementById('v-location').innerHTML = val(d['居住地']);
     document.getElementById('v-familiarity').innerHTML = val(d['熟識程度']);
     document.getElementById('v-decision').innerHTML = val(d['決策風格']);
     document.getElementById('v-income').innerHTML = d['收入預估'] ? d['收入預估'] + ' 萬/年' : '<span class="empty">未填寫</span>';
+    document.getElementById('v-budget').innerHTML = d['預計投入金額'] ? d['預計投入金額'] + ' 萬' : '<span class="empty">未填寫</span>';
     document.getElementById('v-tools').innerHTML = val(d['投資工具']);
     document.getElementById('v-fund').innerHTML = val(d['流量/存量']);
     document.getElementById('v-house').innerHTML = val(d['房狀態']);
@@ -469,13 +509,13 @@
     const overdue = d['跟進逾期天數'];
 
     const sinceEl = document.getElementById('t-since');
-    sinceEl.textContent = since !== undefined && since !== '' ? since : '—';
+    sinceEl.textContent = (since !== undefined && since !== '') ? since : '—';
     if (since > 14) sinceEl.classList.add('warn');
 
-    document.getElementById('t-stage').textContent = stageDay !== undefined && stageDay !== '' ? stageDay : '—';
+    document.getElementById('t-stage').textContent = (stageDay !== undefined && stageDay !== '') ? stageDay : '—';
 
     const overdueEl = document.getElementById('t-overdue');
-    overdueEl.textContent = overdue !== undefined && overdue !== '' ? overdue : '—';
+    overdueEl.textContent = (overdue !== undefined && overdue !== '') ? overdue : '—';
     if (overdue > 0) overdueEl.classList.add('warn');
 
     // 預填更新區
@@ -495,7 +535,7 @@
       });
     }
 
-    // 如果有 AI 推薦配置，顯示
+    // 如有已存 AI 結果就顯示
     if (d['AI推薦配置'] || d['下一步行動']) {
       renderAIResult({
         成交機率: d['成交機率'],
@@ -545,24 +585,27 @@
     }
   }
 
-  // ── 渲染 AI 結果 ─────────────────────────────────
+  // ── 渲染 AI 結果（含複製按鈕）────────────────────
   function renderAIResult(result) {
     if (!result) return;
     const el = document.getElementById('aiResult');
     const probClass = result['成交機率'] ? `prob-${result['成交機率']}` : '';
+
+    const copyBtn = (text) =>
+      `<button class="ai-row-copy" onclick="copyText(this, \`${text.replace(/`/g,'\\`')}\`)">複製</button>`;
 
     let html = '';
     if (result['成交機率']) {
       html += `<div class="ai-row"><div class="ai-row-label">成交機率</div><div class="ai-row-value"><span class="prob-badge ${probClass}">${result['成交機率']}</span></div></div>`;
     }
     if (result['AI推薦配置']) {
-      html += `<div class="ai-row"><div class="ai-row-label">推薦配置</div><div class="ai-row-value">${result['AI推薦配置']}</div></div>`;
+      html += `<div class="ai-row"><div class="ai-row-label">推薦配置</div><div class="ai-row-value">${result['AI推薦配置']}</div>${copyBtn(result['AI推薦配置'])}</div>`;
     }
     if (result['下一步行動']) {
-      html += `<div class="ai-row"><div class="ai-row-label">下一步</div><div class="ai-row-value">${result['下一步行動']}</div></div>`;
+      html += `<div class="ai-row"><div class="ai-row-label">下一步</div><div class="ai-row-value">${result['下一步行動']}</div>${copyBtn(result['下一步行動'])}</div>`;
     }
     if (result['開場建議']) {
-      html += `<div class="ai-row"><div class="ai-row-label">開場建議</div><div class="ai-row-value">${result['開場建議']}</div></div>`;
+      html += `<div class="ai-row"><div class="ai-row-label">開場建議</div><div class="ai-row-value">${result['開場建議']}</div>${copyBtn(result['開場建議'])}</div>`;
     }
     if (result['注意事項']) {
       html += `<div class="ai-row"><div class="ai-row-label">注意事項</div><div class="ai-row-value">${result['注意事項']}</div></div>`;
@@ -582,7 +625,19 @@
     el.className = 'ai-result show';
   }
 
-  // ── 儲存 AI 結果到 Sheets ────────────────────────
+  // ── 複製文字 ─────────────────────────────────────
+  function copyText(btn, text) {
+    navigator.clipboard.writeText(text).then(() => {
+      btn.textContent = '✓ 已複製';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.textContent = '複製';
+        btn.classList.remove('copied');
+      }, 2000);
+    });
+  }
+
+  // ── 儲存 AI 結果 ─────────────────────────────────
   async function saveAIResult() {
     if (!aiResultData) return;
     try {
@@ -652,7 +707,7 @@
     }
   }
 
-  // ── Toast ────────────────────────────────────────
+  // ── Toast ─────────────────────────────────────────
   function showToast(msg, isError = false) {
     const t = document.getElementById('toast');
     t.textContent = msg;
