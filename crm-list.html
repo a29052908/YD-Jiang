@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>客戶列表 · CRM</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg: #f0ece4;
+    --surface: #faf8f4;
+    --surface2: #f5f1ea;
+    --border: #ddd8ce;
+    --accent: #b5934a;
+    --accent2: #5a8a80;
+    --danger: #b85c5c;
+    --warning: #c87d3a;
+    --success: #4a8a6a;
+    --purple: #7c6fa0;
+    --text: #2c2620;
+    --text-dim: #7a6f63;
+    --text-muted: #b5ad9f;
+    --shadow: rgba(100, 85, 65, 0.10);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Sans TC', sans-serif;
+    min-height: 100vh;
+    padding: 40px 24px 80px;
+    background-image:
+      radial-gradient(ellipse at 20% 0%, rgba(180,160,120,0.10) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 100%, rgba(90,138,128,0.07) 0%, transparent 60%);
+  }
+
+  .wrapper { max-width: 900px; margin: 0 auto; }
+
+  /* Header */
+  .header {
+    display: flex; align-items: flex-end;
+    justify-content: space-between; flex-wrap: wrap;
+    gap: 16px; margin-bottom: 32px;
+    animation: fadeDown 0.5s ease;
+  }
+
+  .header-left {}
+  .header-tag {
+    font-family: 'DM Mono', monospace; font-size: 11px;
+    letter-spacing: 0.18em; color: var(--accent2);
+    text-transform: uppercase; margin-bottom: 10px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .header-tag::before {
+    content: ''; display: inline-block;
+    width: 20px; height: 1.5px; background: var(--accent2);
+  }
+  h1 { font-size: 30px; font-weight: 700; letter-spacing: -0.02em; }
+  h1 span { color: var(--accent); }
+
+  .btn-new {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 12px 20px;
+    background: var(--accent); color: #fff;
+    border: none; border-radius: 10px;
+    font-size: 14px; font-weight: 600;
+    font-family: 'Noto Sans TC', sans-serif;
+    cursor: pointer; text-decoration: none;
+    transition: all 0.2s;
+    box-shadow: 0 3px 12px rgba(181,147,74,0.22);
+    white-space: nowrap;
+  }
+  .btn-new:hover { background: #c9a45a; transform: translateY(-1px); }
+
+  /* Stats bar */
+  .stats-bar {
+    display: flex; gap: 10px; flex-wrap: wrap;
+    margin-bottom: 24px;
+    animation: fadeUp 0.4s ease both 0.05s;
+  }
+  .stat-chip {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 8px 16px;
+    font-family: 'DM Mono', monospace; font-size: 12px;
+    color: var(--text-dim); cursor: pointer;
+    transition: all 0.2s; white-space: nowrap;
+  }
+  .stat-chip:hover { border-color: var(--accent); color: var(--text); }
+  .stat-chip.active { border-color: var(--accent); background: rgba(181,147,74,0.10); color: var(--accent); font-weight: 500; }
+  .stat-chip .num { font-size: 15px; font-weight: 500; margin-right: 4px; }
+  .stat-chip.urgent .num { color: var(--danger); }
+  .stat-chip.warn .num { color: var(--warning); }
+
+  /* Loading */
+  .loading-state {
+    text-align: center; padding: 80px 20px;
+    font-family: 'DM Mono', monospace; font-size: 13px; color: var(--text-dim);
+  }
+  .spinner {
+    width: 28px; height: 28px; border: 2px solid var(--border);
+    border-top-color: var(--accent); border-radius: 50%;
+    animation: spin 0.8s linear infinite; margin: 0 auto 14px;
+  }
+
+  /* Empty */
+  .empty-state {
+    text-align: center; padding: 80px 20px; display: none;
+    font-size: 14px; color: var(--text-muted);
+  }
+
+  /* Grid */
+  .client-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 14px;
+  }
+
+  /* Card */
+  .client-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px; padding: 18px;
+    cursor: pointer; text-decoration: none; color: inherit;
+    display: block;
+    transition: all 0.2s;
+    box-shadow: 0 2px 8px var(--shadow);
+    animation: fadeUp 0.4s ease both;
+    position: relative; overflow: hidden;
+  }
+  .client-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(100,85,65,0.14);
+    border-color: var(--accent);
+  }
+
+  /* 左側urgency bar */
+  .client-card::before {
+    content: '';
+    position: absolute; left: 0; top: 0; bottom: 0;
+    width: 3px; border-radius: 14px 0 0 14px;
+    background: var(--border);
+    transition: background 0.2s;
+  }
+  .client-card.urgent::before { background: var(--danger); }
+  .client-card.warning::before { background: var(--warning); }
+  .client-card.ok::before { background: var(--success); }
+
+  .card-top {
+    display: flex; justify-content: space-between;
+    align-items: flex-start; margin-bottom: 12px;
+  }
+  .card-name {
+    font-size: 17px; font-weight: 700; color: var(--text);
+    line-height: 1.2;
+  }
+  .card-job {
+    font-size: 12px; color: var(--text-muted);
+    margin-top: 3px; font-weight: 300;
+  }
+
+  .prob-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px; font-weight: 500;
+    padding: 3px 9px; border-radius: 20px;
+    flex-shrink: 0;
+  }
+  .prob-高 { background: rgba(74,138,106,0.12); color: var(--success); border: 1px solid rgba(74,138,106,0.25); }
+  .prob-中 { background: rgba(181,147,74,0.12); color: var(--accent); border: 1px solid rgba(181,147,74,0.25); }
+  .prob-低 { background: rgba(184,92,92,0.12); color: var(--danger); border: 1px solid rgba(184,92,92,0.25); }
+  .prob-未知 { background: var(--surface2); color: var(--text-muted); border: 1px solid var(--border); }
+
+  .card-tags {
+    display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px;
+  }
+  .tag {
+    font-family: 'DM Mono', monospace; font-size: 11px;
+    padding: 3px 9px; border-radius: 6px;
+    border: 1px solid var(--border); color: var(--text-dim);
+    background: var(--surface2);
+  }
+  .tag.stage-潛在 { border-color: var(--text-muted); color: var(--text-muted); }
+  .tag.stage-預約 { border-color: var(--accent2); color: var(--accent2); background: rgba(90,138,128,0.07); }
+  .tag.stage-簡報 { border-color: var(--accent); color: var(--accent); background: rgba(181,147,74,0.07); }
+  .tag.stage-跟進 { border-color: var(--warning); color: var(--warning); background: rgba(200,125,58,0.07); }
+  .tag.stage-成交 { border-color: var(--success); color: var(--success); background: rgba(74,138,106,0.07); }
+
+  .card-metrics {
+    display: grid; grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px; padding-top: 12px;
+    border-top: 1px solid var(--border);
+  }
+  .metric { text-align: center; }
+  .metric-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 18px; font-weight: 500; color: var(--text);
+    display: block; line-height: 1;
+  }
+  .metric-num.red { color: var(--danger); }
+  .metric-num.orange { color: var(--warning); }
+  .metric-label {
+    font-size: 10px; color: var(--text-muted);
+    margin-top: 3px; display: block; letter-spacing: 0.03em;
+  }
+
+  .card-next {
+    margin-top: 12px; padding: 8px 10px;
+    background: var(--surface2); border-radius: 8px;
+    font-size: 12px; color: var(--text-dim); line-height: 1.5;
+    display: none;
+  }
+  .card-next.show { display: block; }
+  .card-next strong { color: var(--purple); font-weight: 500; }
+
+  /* Toast */
+  .toast {
+    position: fixed; bottom: 28px; left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--surface); border: 1.5px solid var(--danger);
+    border-radius: 12px; padding: 13px 24px;
+    font-size: 14px; color: var(--danger);
+    transition: transform 0.3s ease; z-index: 100;
+    white-space: nowrap; box-shadow: 0 6px 24px rgba(100,85,65,0.15);
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  @keyframes fadeDown { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  @media (max-width: 560px) {
+    .client-grid { grid-template-columns: 1fr; }
+    h1 { font-size: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrapper">
+
+  <div class="header">
+    <div class="header-left">
+      <div class="header-tag">業績推進系統 · CRM</div>
+      <h1>客戶<span>列表</span></h1>
+    </div>
+    <a href="crm-input.html" class="btn-new">＋ 新增客戶</a>
+  </div>
+
+  <!-- Stats / Filter bar -->
+  <div class="stats-bar" id="statsBar">
+    <div class="stat-chip active" data-filter="all" onclick="setFilter('all', this)">
+      <span class="num" id="count-all">—</span> 全部
+    </div>
+    <div class="stat-chip urgent" data-filter="urgent" onclick="setFilter('urgent', this)">
+      <span class="num" id="count-urgent">—</span> 🔴 逾期
+    </div>
+    <div class="stat-chip warn" data-filter="warn" onclick="setFilter('warn', this)">
+      <span class="num" id="count-warn">—</span> 🟡 待聯繫
+    </div>
+    <div class="stat-chip" data-filter="潛在" onclick="setFilter('潛在', this)">潛在</div>
+    <div class="stat-chip" data-filter="預約" onclick="setFilter('預約', this)">預約</div>
+    <div class="stat-chip" data-filter="簡報" onclick="setFilter('簡報', this)">簡報</div>
+    <div class="stat-chip" data-filter="跟進" onclick="setFilter('跟進', this)">跟進</div>
+    <div class="stat-chip" data-filter="成交" onclick="setFilter('成交', this)">成交</div>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-state" id="loadingState">
+    <div class="spinner"></div>
+    載入客戶資料中...
+  </div>
+
+  <!-- Empty -->
+  <div class="empty-state" id="emptyState">目前沒有符合條件的客戶</div>
+
+  <!-- Grid -->
+  <div class="client-grid" id="clientGrid"></div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const WEBHOOK_B = 'https://ydj.zeabur.app/webhook/90e38165-cd18-4dd0-85a4-c64a707aaf72';
+
+  let allClients = [];
+  let currentFilter = 'all';
+
+  // ── 載入資料 ─────────────────────────────────────
+  async function loadClients() {
+    try {
+      const res = await fetch(WEBHOOK_B, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'list' })
+      });
+      const data = await res.json();
+      if (data.success && data.clients) {
+        allClients = data.clients;
+        updateStats();
+        renderCards(allClients);
+      } else {
+        showToast('載入失敗');
+      }
+    } catch(e) {
+      showToast('連線錯誤：' + e.message);
+    } finally {
+      document.getElementById('loadingState').style.display = 'none';
+    }
+  }
+
+  // ── 計算天數（Sheets 欄位空時自己算）────────────
+  function calcDays(client) {
+    const today = new Date(); today.setHours(0,0,0,0);
+
+    let 距上次 = parseInt(client['距上次聯繫天數']) || 0;
+    if (!距上次 && client['最後聯繫日']) {
+      const d = new Date(client['最後聯繫日']);
+      if (!isNaN(d)) 距上次 = Math.floor((today - d) / 86400000);
+    }
+
+    let 逾期 = parseInt(client['跟進逾期天數']) || 0;
+    if (!逾期 && client['下次跟進日']) {
+      const d = new Date(client['下次跟進日']);
+      if (!isNaN(d)) { const diff = Math.floor((today - d) / 86400000); 逾期 = diff > 0 ? diff : 0; }
+    }
+
+    let 停留 = parseInt(client['階段停留天數']) || 0;
+    if (!停留 && client['階段開始日']) {
+      const d = new Date(client['階段開始日']);
+      if (!isNaN(d)) 停留 = Math.floor((today - d) / 86400000);
+    }
+
+    return { 距上次, 逾期, 停留 };
+  }
+
+  // ── 緊急程度 ─────────────────────────────────────
+  function urgencyClass(client) {
+    const { 逾期, 距上次 } = calcDays(client);
+    if (client['階段'] === '成交') return 'ok';
+    if (逾期 > 0) return 'urgent';
+    if (距上次 > 14) return 'warning';
+    return '';
+  }
+
+  // ── 更新統計數字 ─────────────────────────────────
+  function updateStats() {
+    const urgent = allClients.filter(c => urgencyClass(c) === 'urgent').length;
+    const warn = allClients.filter(c => urgencyClass(c) === 'warning').length;
+    document.getElementById('count-all').textContent = allClients.length;
+    document.getElementById('count-urgent').textContent = urgent;
+    document.getElementById('count-warn').textContent = warn;
+  }
+
+  // ── 篩選 ─────────────────────────────────────────
+  function setFilter(filter, el) {
+    currentFilter = filter;
+    document.querySelectorAll('.stat-chip').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+
+    let filtered;
+    if (filter === 'all') filtered = allClients;
+    else if (filter === 'urgent') filtered = allClients.filter(c => urgencyClass(c) === 'urgent');
+    else if (filter === 'warn') filtered = allClients.filter(c => urgencyClass(c) === 'warning');
+    else filtered = allClients.filter(c => c['階段'] === filter);
+
+    renderCards(filtered);
+  }
+
+  // ── 渲染卡片 ─────────────────────────────────────
+  function renderCards(clients) {
+    const grid = document.getElementById('clientGrid');
+    const empty = document.getElementById('emptyState');
+    grid.innerHTML = '';
+
+    if (!clients.length) {
+      empty.style.display = 'block';
+      return;
+    }
+    empty.style.display = 'none';
+
+    // 排序：逾期 → 待聯繫 → 其他，成交排最後
+    const sorted = [...clients].sort((a, b) => {
+      const ua = urgencyClass(a), ub = urgencyClass(b);
+      const order = { urgent: 0, warning: 1, '': 2, ok: 3 };
+      return (order[ua] ?? 2) - (order[ub] ?? 2);
+    });
+
+    sorted.forEach((c, i) => {
+      const { 距上次, 逾期, 停留 } = calcDays(c);
+      const urgency = urgencyClass(c);
+      const prob = c['成交機率'] || '未知';
+      const stage = c['階段'] || '未知';
+      const name = c['姓名/代稱'] || '未命名';
+      const job = c['職業'] || '';
+      const nextAction = c['下一步行動'] || '';
+
+      const 逾期色 = 逾期 > 3 ? 'red' : 逾期 > 0 ? 'orange' : '';
+      const 距上次色 = 距上次 > 14 ? 'orange' : '';
+
+      const card = document.createElement('a');
+      card.href = `crm-edit.html?name=${encodeURIComponent(name)}`;
+      card.className = `client-card ${urgency}`;
+      card.style.animationDelay = `${i * 0.04}s`;
+
+      card.innerHTML = `
+        <div class="card-top">
+          <div>
+            <div class="card-name">${name}</div>
+            ${job ? `<div class="card-job">${job}</div>` : ''}
+          </div>
+          <span class="prob-badge prob-${prob}">${prob}</span>
+        </div>
+        <div class="card-tags">
+          <span class="tag stage-${stage}">${stage}</span>
+          ${c['熟識程度'] ? `<span class="tag">${c['熟識程度']}</span>` : ''}
+          ${c['決策風格'] ? `<span class="tag">${c['決策風格']}</span>` : ''}
+        </div>
+        <div class="card-metrics">
+          <div class="metric">
+            <span class="metric-num ${逾期色}">${逾期 > 0 ? '+' + 逾期 : '—'}</span>
+            <span class="metric-label">逾期天數</span>
+          </div>
+          <div class="metric">
+            <span class="metric-num ${距上次色}">${距上次 || '—'}</span>
+            <span class="metric-label">距上次聯繫</span>
+          </div>
+          <div class="metric">
+            <span class="metric-num">${停留 || '—'}</span>
+            <span class="metric-label">階段停留</span>
+          </div>
+        </div>
+        ${nextAction ? `<div class="card-next show"><strong>下一步</strong> ${nextAction}</div>` : ''}
+      `;
+
+      grid.appendChild(card);
+    });
+  }
+
+  // ── Toast ─────────────────────────────────────────
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3500);
+  }
+
+  loadClients();
+</script>
+</body>
+</html>
