@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>業績推進 CRM</title>
+<title>業績推進 CRM · 建檔</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap');
 
@@ -32,62 +32,30 @@
     font-family: 'Noto Sans TC', sans-serif;
     min-height: 100vh;
     padding: 48px 24px 100px;
-    /* subtle linen texture */
-    background-image: 
+    background-image:
       radial-gradient(ellipse at 20% 0%, rgba(180,160,120,0.10) 0%, transparent 60%),
       radial-gradient(ellipse at 80% 100%, rgba(90,138,128,0.07) 0%, transparent 60%);
   }
 
-  .wrapper {
-    max-width: 740px;
-    margin: 0 auto;
-    position: relative;
-  }
+  .wrapper { max-width: 740px; margin: 0 auto; position: relative; }
 
   /* Header */
-  .header {
-    margin-bottom: 52px;
-    animation: fadeDown 0.5s ease;
-  }
+  .header { margin-bottom: 52px; animation: fadeDown 0.5s ease; }
 
   .header-tag {
     font-family: 'DM Mono', monospace;
-    font-size: 12px;
-    letter-spacing: 0.18em;
-    color: var(--accent2);
-    text-transform: uppercase;
-    margin-bottom: 14px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
+    font-size: 12px; letter-spacing: 0.18em;
+    color: var(--accent2); text-transform: uppercase;
+    margin-bottom: 14px; display: flex; align-items: center; gap: 10px;
   }
-
   .header-tag::before {
-    content: '';
-    display: inline-block;
-    width: 24px;
-    height: 1.5px;
-    background: var(--accent2);
+    content: ''; display: inline-block;
+    width: 24px; height: 1.5px; background: var(--accent2);
   }
 
-  h1 {
-    font-size: 34px;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    line-height: 1.2;
-    color: var(--text);
-  }
-
-  h1 span {
-    color: var(--accent-bright);
-  }
-
-  .header-sub {
-    font-size: 14px;
-    color: var(--text-dim);
-    margin-top: 10px;
-    font-weight: 300;
-  }
+  h1 { font-size: 34px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.2; color: var(--text); }
+  h1 span { color: var(--accent-bright); }
+  .header-sub { font-size: 14px; color: var(--text-dim); margin-top: 10px; font-weight: 300; }
 
   /* Section */
   .section {
@@ -99,7 +67,6 @@
     box-shadow: 0 2px 12px var(--shadow);
     animation: fadeUp 0.5s ease both;
   }
-
   .section:nth-child(2) { animation-delay: 0.05s; }
   .section:nth-child(3) { animation-delay: 0.10s; }
   .section:nth-child(4) { animation-delay: 0.15s; }
@@ -109,301 +76,140 @@
 
   .section-label {
     font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: var(--text-muted);
-    margin-bottom: 20px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
+    font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--text-muted); margin-bottom: 20px;
+    display: flex; align-items: center; gap: 10px;
   }
-
-  .section-label::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: var(--border);
-  }
-
-  .section-num {
-    color: var(--accent-bright);
-    font-size: 11px;
-    font-weight: 500;
-  }
+  .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+  .section-num { color: var(--accent-bright); font-size: 11px; font-weight: 500; }
 
   /* Grid */
   .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
   .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
 
   /* Field */
-  .field {
-    display: flex;
-    flex-direction: column;
-    gap: 7px;
-  }
-
+  .field { display: flex; flex-direction: column; gap: 7px; }
   .field.full { grid-column: 1 / -1; }
 
-  label {
-    font-size: 13px;
-    color: var(--text-dim);
-    font-weight: 500;
-    letter-spacing: 0.02em;
-  }
-
-  label .req {
-    color: var(--accent-bright);
-    margin-left: 3px;
-  }
+  label { font-size: 13px; color: var(--text-dim); font-weight: 500; letter-spacing: 0.02em; }
+  label .req { color: var(--accent-bright); margin-left: 3px; }
 
   input, select, textarea {
     background: var(--surface2);
     border: 1.5px solid var(--border);
-    border-radius: 10px;
-    color: var(--text);
+    border-radius: 10px; color: var(--text);
     font-family: 'Noto Sans TC', sans-serif;
-    font-size: 15px;
-    padding: 13px 16px;
+    font-size: 15px; padding: 13px 16px;
     transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
-    width: 100%;
-    outline: none;
-    -webkit-appearance: none;
+    width: 100%; outline: none; -webkit-appearance: none;
   }
-
   input:focus, select:focus, textarea:focus {
-    border-color: var(--border-focus);
-    background: #fff;
+    border-color: var(--border-focus); background: #fff;
     box-shadow: 0 0 0 3px rgba(124, 106, 82, 0.10);
   }
-
-  input::placeholder, textarea::placeholder {
-    color: var(--text-muted);
-    font-size: 14px;
-  }
+  input::placeholder, textarea::placeholder { color: var(--text-muted); font-size: 14px; }
 
   select {
     cursor: pointer;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23b5ad9f' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 14px center;
-    padding-right: 36px;
+    background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px;
   }
-
   select option { background: var(--surface); color: var(--text); }
-
-  textarea {
-    resize: vertical;
-    min-height: 88px;
-    line-height: 1.7;
-  }
+  textarea { resize: vertical; min-height: 88px; line-height: 1.7; }
 
   /* Stage selector */
-  .stage-group {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-
+  .stage-group { display: flex; gap: 8px; flex-wrap: wrap; }
   .stage-btn {
-    flex: 1;
-    min-width: 72px;
-    padding: 12px 8px;
-    border: 1.5px solid var(--border);
-    border-radius: 10px;
-    background: var(--surface2);
-    color: var(--text-dim);
-    font-size: 14px;
-    font-family: 'Noto Sans TC', sans-serif;
-    cursor: pointer;
-    text-align: center;
-    transition: all 0.2s;
+    flex: 1; min-width: 72px; padding: 12px 8px;
+    border: 1.5px solid var(--border); border-radius: 10px;
+    background: var(--surface2); color: var(--text-dim);
+    font-size: 14px; font-family: 'Noto Sans TC', sans-serif;
+    cursor: pointer; text-align: center; transition: all 0.2s;
   }
-
-  .stage-btn:hover {
-    border-color: var(--accent);
-    color: var(--text);
-    background: #fff;
-  }
-
+  .stage-btn:hover { border-color: var(--accent); color: var(--text); background: #fff; }
   .stage-btn.active {
     border-color: var(--accent-bright);
     background: rgba(181, 147, 74, 0.10);
-    color: var(--accent-bright);
-    font-weight: 600;
+    color: var(--accent-bright); font-weight: 600;
   }
-
   .stage-btn .dot {
-    display: block;
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: var(--border);
-    margin: 0 auto 7px;
-    transition: background 0.2s;
+    display: block; width: 7px; height: 7px; border-radius: 50%;
+    background: var(--border); margin: 0 auto 7px; transition: background 0.2s;
   }
-
   .stage-btn.active .dot { background: var(--accent-bright); }
 
   /* Radio group */
-  .radio-group {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-
+  .radio-group { display: flex; gap: 8px; flex-wrap: wrap; }
   .radio-btn {
-    flex: 1;
-    min-width: 64px;
-    padding: 11px 8px;
-    border: 1.5px solid var(--border);
-    border-radius: 10px;
-    background: var(--surface2);
-    color: var(--text-dim);
-    font-size: 14px;
-    font-family: 'Noto Sans TC', sans-serif;
-    cursor: pointer;
-    text-align: center;
-    transition: all 0.2s;
+    flex: 1; min-width: 64px; padding: 11px 8px;
+    border: 1.5px solid var(--border); border-radius: 10px;
+    background: var(--surface2); color: var(--text-dim);
+    font-size: 14px; font-family: 'Noto Sans TC', sans-serif;
+    cursor: pointer; text-align: center; transition: all 0.2s;
   }
-
-  .radio-btn:hover {
-    border-color: var(--accent2);
-    color: var(--text);
-    background: #fff;
-  }
-
+  .radio-btn:hover { border-color: var(--accent2); color: var(--text); background: #fff; }
   .radio-btn.active {
     border-color: var(--accent2);
     background: rgba(90, 138, 128, 0.10);
-    color: var(--accent2);
-    font-weight: 600;
+    color: var(--accent2); font-weight: 600;
   }
 
-  /* Date fields */
-  input[type="date"]::-webkit-calendar-picker-indicator {
-    opacity: 0.4;
-    cursor: pointer;
-  }
+  input[type="date"]::-webkit-calendar-picker-indicator { opacity: 0.4; cursor: pointer; }
 
-  /* Hint */
-  .hint {
-    font-size: 12px;
-    color: var(--text-muted);
-    margin-top: 2px;
-    font-weight: 300;
-  }
+  .hint { font-size: 12px; color: var(--text-muted); margin-top: 2px; font-weight: 300; }
 
   /* Submit */
-  .submit-area {
-    margin-top: 12px;
-    display: flex;
-    gap: 12px;
-    align-items: center;
-  }
+  .submit-area { margin-top: 12px; display: flex; gap: 12px; align-items: center; }
 
   .btn-submit {
-    flex: 1;
-    padding: 18px;
-    background: var(--accent);
-    color: #fff;
-    border: none;
-    border-radius: 12px;
-    font-size: 16px;
-    font-weight: 700;
-    font-family: 'Noto Sans TC', sans-serif;
-    cursor: pointer;
-    transition: all 0.2s;
-    letter-spacing: 0.04em;
+    flex: 1; padding: 18px;
+    background: var(--accent); color: #fff; border: none;
+    border-radius: 12px; font-size: 16px; font-weight: 700;
+    font-family: 'Noto Sans TC', sans-serif; cursor: pointer;
+    transition: all 0.2s; letter-spacing: 0.04em;
     box-shadow: 0 4px 16px rgba(124,106,82,0.20);
   }
-
-  .btn-submit:hover {
-    background: var(--accent-bright);
-    transform: translateY(-1px);
-    box-shadow: 0 8px 24px rgba(181,147,74,0.28);
-  }
-
+  .btn-submit:hover { background: var(--accent-bright); transform: translateY(-1px); box-shadow: 0 8px 24px rgba(181,147,74,0.28); }
   .btn-submit:active { transform: translateY(0); }
-
-  .btn-submit.loading {
-    pointer-events: none;
-    opacity: 0.65;
-  }
+  .btn-submit.loading { pointer-events: none; opacity: 0.65; }
 
   .btn-reset {
-    padding: 18px 22px;
-    background: transparent;
-    color: var(--text-dim);
-    border: 1.5px solid var(--border);
-    border-radius: 12px;
-    font-size: 15px;
-    font-family: 'Noto Sans TC', sans-serif;
-    cursor: pointer;
-    transition: all 0.2s;
+    padding: 18px 22px; background: transparent;
+    color: var(--text-dim); border: 1.5px solid var(--border);
+    border-radius: 12px; font-size: 15px;
+    font-family: 'Noto Sans TC', sans-serif; cursor: pointer; transition: all 0.2s;
   }
-
   .btn-reset:hover { border-color: var(--danger); color: var(--danger); }
 
   /* Toast */
   .toast {
-    position: fixed;
-    bottom: 32px;
-    left: 50%;
+    position: fixed; bottom: 32px; left: 50%;
     transform: translateX(-50%) translateY(80px);
-    background: var(--surface);
-    border: 1.5px solid var(--success);
-    border-radius: 14px;
-    padding: 15px 28px;
-    font-size: 15px;
-    color: var(--success);
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    transition: transform 0.3s ease;
-    z-index: 100;
-    white-space: nowrap;
-    box-shadow: 0 8px 32px rgba(100,85,65,0.15);
+    background: var(--surface); border: 1.5px solid var(--success);
+    border-radius: 14px; padding: 15px 28px;
+    font-size: 15px; color: var(--success);
+    display: flex; align-items: center; gap: 10px;
+    transition: transform 0.3s ease; z-index: 100;
+    white-space: nowrap; box-shadow: 0 8px 32px rgba(100,85,65,0.15);
   }
-
   .toast.show { transform: translateX(-50%) translateY(0); }
   .toast.error { border-color: var(--danger); color: var(--danger); }
 
   /* Status bar */
   .webhook-status {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-family: 'DM Mono', monospace;
-    font-size: 12px;
-    color: var(--text-muted);
-    margin-bottom: 36px;
-    padding: 10px 16px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    box-shadow: 0 1px 4px var(--shadow);
+    display: flex; align-items: center; justify-content: space-between;
+    font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text-muted);
+    margin-bottom: 36px; padding: 10px 16px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; box-shadow: 0 1px 4px var(--shadow);
   }
-
-  .status-dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-  }
-
+  .status-dot { width: 7px; height: 7px; border-radius: 50%; }
   .status-dot.ready { background: var(--success); box-shadow: 0 0 6px var(--success); }
 
   input[type="hidden"] { display: none; }
 
-  @keyframes fadeDown {
-    from { opacity: 0; transform: translateY(-16px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(14px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
+  @keyframes fadeDown { from { opacity: 0; transform: translateY(-16px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
 
   @media (max-width: 560px) {
     .grid-2, .grid-3 { grid-template-columns: 1fr; }
@@ -424,12 +230,13 @@
     <p class="header-sub">填寫後自動同步至 Google Sheets，AI 分析結果將於送出後更新</p>
   </div>
 
+  <!-- 模式切換 -->
   <div class="webhook-status">
     <div style="display:flex;align-items:center;gap:8px;">
-      <div class="status-dot" style="background:var(--accent2);box-shadow:0 0 6px var(--accent2);" id="statusDot"></div>
-      <span id="statusText">測試模式</span>
+      <div class="status-dot" id="statusDot"></div>
+      <span id="statusText"></span>
     </div>
-    <button id="modeBtn" onclick="toggleMode()" style="background:none;border:1.5px solid var(--border);border-radius:7px;padding:5px 14px;font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;color:var(--accent2);letter-spacing:0.05em;">🧪 測試模式</button>
+    <button id="modeBtn" onclick="toggleMode()" style="background:none;border:1.5px solid var(--border);border-radius:7px;padding:5px 14px;font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;letter-spacing:0.05em;"></button>
   </div>
 
   <!-- 1. 基本識別 -->
@@ -466,11 +273,20 @@
     <div class="grid-2">
       <div class="field">
         <label>收入預估（萬/年）</label>
-        <input type="number" id="income" placeholder=" ">
+        <input type="number" id="income" placeholder="150">
+      </div>
+      <div class="field">
+        <label>預計投入金額（萬）</label>
+        <input type="number" id="budget" placeholder="50">
+        <span class="hint">AI 配置建議的核心依據</span>
       </div>
       <div class="field">
         <label>投資工具</label>
         <input type="text" id="tools" placeholder="美股 / 幣 / 保單 / 期貨">
+      </div>
+      <div class="field">
+        <label>房狀態</label>
+        <input type="text" id="house" placeholder="有房貸 / 租屋 / 家人房 / 無">
       </div>
       <div class="field">
         <label>資金屬性</label>
@@ -482,10 +298,6 @@
         <input type="hidden" id="fundType" value="流量">
       </div>
       <div class="field">
-        <label>房狀態</label>
-        <input type="text" id="house" placeholder="有房貸 / 租屋 / 家人房 / 無">
-      </div>
-      <div class="field full">
         <label>決策風格</label>
         <div class="radio-group">
           <button type="button" class="radio-btn" data-field="decisionStyle" data-val="自決">自決</button>
@@ -506,21 +318,11 @@
     <div class="field">
       <label>目前階段 <span class="req">*</span></label>
       <div class="stage-group">
-        <button type="button" class="stage-btn" data-stage="潛在">
-          <span class="dot"></span>潛在
-        </button>
-        <button type="button" class="stage-btn active" data-stage="預約">
-          <span class="dot"></span>預約
-        </button>
-        <button type="button" class="stage-btn" data-stage="簡報">
-          <span class="dot"></span>簡報
-        </button>
-        <button type="button" class="stage-btn" data-stage="跟進">
-          <span class="dot"></span>跟進
-        </button>
-        <button type="button" class="stage-btn" data-stage="成交">
-          <span class="dot"></span>成交
-        </button>
+        <button type="button" class="stage-btn" data-stage="潛在"><span class="dot"></span>潛在</button>
+        <button type="button" class="stage-btn active" data-stage="預約"><span class="dot"></span>預約</button>
+        <button type="button" class="stage-btn" data-stage="簡報"><span class="dot"></span>簡報</button>
+        <button type="button" class="stage-btn" data-stage="跟進"><span class="dot"></span>跟進</button>
+        <button type="button" class="stage-btn" data-stage="成交"><span class="dot"></span>成交</button>
       </div>
       <input type="hidden" id="stage" value="預約">
     </div>
@@ -592,31 +394,50 @@
 
 </div>
 
-<!-- Toast -->
 <div class="toast" id="toast"></div>
 
 <script>
   const WEBHOOK_TEST = 'https://ydj.zeabur.app/webhook-test/fcd07b9e-05b4-4ade-b773-dc20b0a7498c';
   const WEBHOOK_PROD = 'https://ydj.zeabur.app/webhook/fcd07b9e-05b4-4ade-b773-dc20b0a7498c';
-  let useTest = true;
 
-  function toggleMode() {
-    useTest = !useTest;
+  // ── 記住模式（localStorage）──────────────────────
+  let useTest = localStorage.getItem('crm_mode') !== 'prod';
+
+  function applyModeUI() {
     const btn = document.getElementById('modeBtn');
     const dot = document.getElementById('statusDot');
     const txt = document.getElementById('statusText');
-    btn.textContent = useTest ? '🧪 測試模式' : '🚀 正式模式';
-    btn.style.color = useTest ? 'var(--accent2)' : 'var(--success)';
-    dot.style.background = useTest ? 'var(--accent2)' : 'var(--success)';
-    txt.textContent = useTest ? '測試模式' : '正式模式';
+    if (useTest) {
+      btn.textContent = '🧪 測試模式';
+      btn.style.color = 'var(--accent2)';
+      dot.style.background = 'var(--accent2)';
+      dot.style.boxShadow = '0 0 6px var(--accent2)';
+      txt.textContent = '測試模式';
+    } else {
+      btn.textContent = '🚀 正式模式';
+      btn.style.color = 'var(--success)';
+      dot.style.background = 'var(--success)';
+      dot.style.boxShadow = '0 0 6px var(--success)';
+      txt.textContent = '正式模式';
+    }
   }
+
+  function toggleMode() {
+    useTest = !useTest;
+    localStorage.setItem('crm_mode', useTest ? 'test' : 'prod');
+    applyModeUI();
+  }
+
+  applyModeUI();
 
   function getWebhookUrl() { return useTest ? WEBHOOK_TEST : WEBHOOK_PROD; }
 
+  // ── 初始日期 ─────────────────────────────────────
   const today = new Date().toISOString().split('T')[0];
   document.getElementById('lastContact').value = today;
   document.getElementById('stageStart').value = today;
 
+  // ── Radio / Stage 互動 ───────────────────────────
   document.querySelectorAll('.radio-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const field = btn.dataset.field;
@@ -634,6 +455,7 @@
     });
   });
 
+  // ── 收集資料 ─────────────────────────────────────
   function collectData() {
     return {
       姓名代稱: document.getElementById('name').value.trim(),
@@ -641,9 +463,11 @@
       居住地: document.getElementById('location').value.trim(),
       熟識程度: document.getElementById('familiarity').value,
       收入預估萬: document.getElementById('income').value,
+      預計投入金額萬: document.getElementById('budget').value,
       投資工具: document.getElementById('tools').value.trim(),
       資金屬性: document.getElementById('fundType').value,
       房狀態: document.getElementById('house').value.trim(),
+      決策風格: document.getElementById('decisionStyle').value,
       階段: document.getElementById('stage').value,
       階段開始日: document.getElementById('stageStart').value,
       最後聯繫日: document.getElementById('lastContact').value,
@@ -651,7 +475,6 @@
       預計成交日: document.getElementById('targetClose').value,
       痛點備註: document.getElementById('painpoint').value.trim(),
       我收集的配置需求: document.getElementById('myConfig').value.trim(),
-      決策風格: document.getElementById('decisionStyle').value,
       商品金額: document.getElementById('product').value.trim(),
       保單日期: document.getElementById('policyDate').value,
       送出時間: new Date().toISOString(),
@@ -664,6 +487,7 @@
     return null;
   }
 
+  // ── 送出 ─────────────────────────────────────────
   async function submitForm() {
     const data = collectData();
     const err = validate(data);
@@ -704,8 +528,9 @@
     }
   }
 
+  // ── 清除 ─────────────────────────────────────────
   function resetForm() {
-    ['name','job','location','income','tools','house',
+    ['name','job','location','income','budget','tools','house',
      'painpoint','myConfig','product'].forEach(id => {
       document.getElementById(id).value = '';
     });
@@ -727,6 +552,7 @@
     document.querySelector('.stage-btn[data-stage="預約"]').classList.add('active');
   }
 
+  // ── Toast ─────────────────────────────────────────
   function showToast(msg, isError = false) {
     const t = document.getElementById('toast');
     t.textContent = msg;
@@ -735,6 +561,5 @@
     setTimeout(() => t.classList.remove('show'), 3000);
   }
 </script>
-
 </body>
 </html>
