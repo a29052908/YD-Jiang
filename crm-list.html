@@ -363,15 +363,17 @@
     document.querySelectorAll('.stat-chip').forEach(c => c.classList.remove('active'));
     el.classList.add('active');
 
-    let filtered;
+     let filtered;
     if (filter === 'all') filtered = allClients;
     else if (filter === 'urgent') filtered = allClients.filter(c => urgencyClass(c) === 'urgent');
     else if (filter === 'warn') filtered = allClients.filter(c => urgencyClass(c) === 'warning');
+    else if (filter === 'A' || filter === 'B' || filter === 'C') {
+      filtered = allClients.filter(c => c['熟識程度'] === filter);
+    }
     else filtered = allClients.filter(c => c['階段'] === filter);
 
     renderCards(filtered);
   }
-
   // ── 渲染卡片 ─────────────────────────────────────
   function renderCards(clients) {
     const grid = document.getElementById('clientGrid');
