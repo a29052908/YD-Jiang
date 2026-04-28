@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>業績推進 CRM · 登入</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg: #f0ece4;
+    --surface: #faf8f4;
+    --border: #ddd8ce;
+    --accent-yd: #b5934a;
+    --accent-tracy: #5a8a80;
+    --text: #2c2620;
+    --text-dim: #7a6f63;
+    --text-muted: #b5ad9f;
+    --shadow: rgba(100, 85, 65, 0.12);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Sans TC', sans-serif;
+    min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+    background-image:
+      radial-gradient(ellipse at 20% 10%, rgba(181,147,74,0.12) 0%, transparent 55%),
+      radial-gradient(ellipse at 80% 90%, rgba(90,138,128,0.10) 0%, transparent 55%);
+  }
+
+  .container {
+    width: 100%; max-width: 400px;
+    animation: fadeUp 0.6s ease;
+  }
+
+  .logo {
+    text-align: center; margin-bottom: 48px;
+  }
+  .logo-tag {
+    font-family: 'DM Mono', monospace; font-size: 11px;
+    letter-spacing: 0.2em; color: var(--text-muted);
+    text-transform: uppercase; margin-bottom: 12px;
+  }
+  .logo h1 {
+    font-size: 28px; font-weight: 700; letter-spacing: -0.02em;
+    color: var(--text);
+  }
+  .logo h1 span { color: var(--accent-yd); }
+  .logo p { font-size: 13px; color: var(--text-muted); margin-top: 8px; font-weight: 300; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px; padding: 32px;
+    box-shadow: 0 4px 24px var(--shadow);
+  }
+
+  .card-title {
+    font-size: 14px; color: var(--text-dim);
+    text-align: center; margin-bottom: 24px;
+    font-weight: 400;
+  }
+
+  .identity-group {
+    display: flex; flex-direction: column; gap: 12px;
+    margin-bottom: 28px;
+  }
+
+  .identity-btn {
+    width: 100%; padding: 20px 24px;
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    background: transparent;
+    cursor: pointer; text-align: left;
+    transition: all 0.2s;
+    display: flex; align-items: center; gap: 16px;
+    font-family: 'Noto Sans TC', sans-serif;
+  }
+
+  .identity-btn:hover { transform: translateY(-1px); }
+
+  .identity-btn.yd {
+    border-color: rgba(181,147,74,0.3);
+    background: rgba(181,147,74,0.04);
+  }
+  .identity-btn.yd:hover {
+    border-color: var(--accent-yd);
+    background: rgba(181,147,74,0.08);
+    box-shadow: 0 4px 16px rgba(181,147,74,0.15);
+  }
+
+  .identity-btn.tracy {
+    border-color: rgba(90,138,128,0.3);
+    background: rgba(90,138,128,0.04);
+  }
+  .identity-btn.tracy:hover {
+    border-color: var(--accent-tracy);
+    background: rgba(90,138,128,0.08);
+    box-shadow: 0 4px 16px rgba(90,138,128,0.15);
+  }
+
+  .identity-avatar {
+    width: 44px; height: 44px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; flex-shrink: 0;
+  }
+  .yd .identity-avatar { background: rgba(181,147,74,0.15); }
+  .tracy .identity-avatar { background: rgba(90,138,128,0.15); }
+
+  .identity-info {}
+  .identity-name {
+    font-size: 17px; font-weight: 700;
+    margin-bottom: 2px;
+  }
+  .yd .identity-name { color: var(--accent-yd); }
+  .tracy .identity-name { color: var(--accent-tracy); }
+  .identity-desc { font-size: 12px; color: var(--text-muted); font-weight: 300; }
+
+  .identity-arrow {
+    margin-left: auto; font-size: 16px; color: var(--text-muted);
+    transition: transform 0.2s;
+  }
+  .identity-btn:hover .identity-arrow { transform: translateX(4px); }
+
+  .footer-note {
+    text-align: center; font-size: 11px;
+    color: var(--text-muted); font-family: 'DM Mono', monospace;
+    letter-spacing: 0.05em;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="logo">
+    <div class="logo-tag">業績推進系統 · CRM</div>
+    <h1>你<span>好</span></h1>
+    <p>請選擇你的身份繼續</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">我是⋯</div>
+    <div class="identity-group">
+      <button class="identity-btn yd" onclick="login('YD')">
+        <div class="identity-avatar">👔</div>
+        <div class="identity-info">
+          <div class="identity-name">YD</div>
+          <div class="identity-desc">業務 + 財務顧問</div>
+        </div>
+        <div class="identity-arrow">→</div>
+      </button>
+
+      <button class="identity-btn tracy" onclick="login('Tracy')">
+        <div class="identity-avatar">💼</div>
+        <div class="identity-info">
+          <div class="identity-name">Tracy</div>
+          <div class="identity-desc">業務夥伴</div>
+        </div>
+        <div class="identity-arrow">→</div>
+      </button>
+    </div>
+
+    <div class="footer-note">選擇後將自動同步你的客戶資料</div>
+  </div>
+</div>
+
+<script>
+  // 如果已經登入，直接跳轉
+  const savedOwner = localStorage.getItem('crm_owner');
+  if (savedOwner) {
+    window.location.href = 'crm-list.html';
+  }
+
+  function login(owner) {
+    localStorage.setItem('crm_owner', owner);
+    window.location.href = 'crm-list.html';
+  }
+</script>
+</body>
+</html>
