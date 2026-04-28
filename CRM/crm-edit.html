@@ -3,295 +3,101 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>客戶檔案</title>
+<title>客戶檔案 · CRM</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap');
-
-  :root {
-    --bg: #f0ece4;
-    --surface: #faf8f4;
-    --surface2: #f5f1ea;
-    --border: #ddd8ce;
-    --border-focus: #9b8f7e;
-    --accent: #b5934a;
-    --accent2: #5a8a80;
-    --success: #4a8a6a;
-    --danger: #b85c5c;
-    --purple: #7c6fa0;
-    --text: #2c2620;
-    --text-dim: #7a6f63;
-    --text-muted: #b5ad9f;
-    --shadow: rgba(100, 85, 65, 0.10);
-  }
-
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Noto Sans TC', sans-serif;
-    min-height: 100vh;
-    padding: 40px 24px 100px;
-    background-image:
-      radial-gradient(ellipse at 20% 0%, rgba(180,160,120,0.10) 0%, transparent 60%),
-      radial-gradient(ellipse at 80% 100%, rgba(90,138,128,0.07) 0%, transparent 60%);
-  }
-
-  .wrapper { max-width: 720px; margin: 0 auto; }
-
-  /* Header */
-  .header { margin-bottom: 32px; animation: fadeDown 0.5s ease; }
-
-  .back-btn {
-    display: inline-flex; align-items: center; gap: 6px;
-    font-family: 'DM Mono', monospace; font-size: 12px;
-    color: var(--text-dim); text-decoration: none;
-    margin-bottom: 16px; transition: color 0.2s;
-  }
-  .back-btn:hover { color: var(--accent); }
-
-  .client-name { font-size: 30px; font-weight: 700; letter-spacing: -0.02em; color: var(--text); }
-  .client-name span { color: var(--accent); }
-
-  .client-meta { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
-  .tag {
-    font-family: 'DM Mono', monospace; font-size: 12px;
-    padding: 4px 12px; border-radius: 20px;
-    border: 1px solid var(--border); color: var(--text-dim);
-  }
-  .tag.stage { border-color: var(--accent); color: var(--accent); }
-  .tag.prob-高 { border-color: var(--success); color: var(--success); }
-  .tag.prob-中 { border-color: var(--accent); color: var(--accent); }
-  .tag.prob-低 { border-color: var(--danger); color: var(--danger); }
-
-  /* Loading */
-  .loading {
-    text-align: center; padding: 80px 20px;
-    font-family: 'DM Mono', monospace; font-size: 14px; color: var(--text-dim);
-  }
-  .spinner {
-    width: 32px; height: 32px; border: 2px solid var(--border);
-    border-top-color: var(--accent); border-radius: 50%;
-    animation: spin 0.8s linear infinite; margin: 0 auto 16px;
-  }
-
-  /* Section */
-  .section {
-    margin-bottom: 24px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 22px 24px;
-    box-shadow: 0 2px 10px var(--shadow);
-    animation: fadeUp 0.4s ease both;
-  }
-  .section:nth-child(2) { animation-delay: 0.05s; }
-  .section:nth-child(3) { animation-delay: 0.1s; }
-  .section:nth-child(4) { animation-delay: 0.15s; }
-
-  .section-label {
-    font-family: 'DM Mono', monospace; font-size: 11px;
-    letter-spacing: 0.16em; text-transform: uppercase;
-    color: var(--text-muted); margin-bottom: 16px;
-    display: flex; align-items: center; gap: 10px;
-  }
-  .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
-  .section-num { color: var(--accent); font-size: 11px; font-weight: 500; }
-
-  /* 客戶卡 唯讀 */
-  .info-card {
-    background: var(--surface2); border: 1px solid var(--border);
-    border-radius: 10px; padding: 18px;
-  }
-  .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-  .info-item.full { grid-column: 1 / -1; }
-  .info-label { font-size: 12px; color: var(--text-muted); margin-bottom: 4px; font-weight: 500; }
-  .info-value { font-size: 15px; color: var(--text); min-height: 22px; line-height: 1.5; }
-  .info-value.empty { color: var(--text-muted); font-style: italic; font-size: 13px; }
-
-  /* 時間指標 */
-  .time-badges {
-    display: flex; gap: 10px; flex-wrap: wrap;
-    margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border);
-  }
-  .time-badge {
-    flex: 1; min-width: 110px;
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 10px; padding: 12px 14px; text-align: center;
-  }
-  .time-badge .num {
-    font-family: 'DM Mono', monospace; font-size: 24px;
-    font-weight: 500; color: var(--accent);
-  }
-  .time-badge .num.warn { color: var(--danger); }
-  .time-badge .label { font-size: 12px; color: var(--text-dim); margin-top: 3px; }
-
-  /* AI 分析區 */
-  .ai-context-tabs { display: flex; gap: 8px; margin-bottom: 14px; }
-  .ctx-tab {
-    flex: 1; padding: 10px; border: 1.5px solid var(--border);
-    border-radius: 10px; background: var(--surface2);
-    color: var(--text-dim); font-size: 14px;
-    font-family: 'Noto Sans TC', sans-serif;
-    cursor: pointer; text-align: center; transition: all 0.2s;
-  }
-  .ctx-tab.active {
-    border-color: var(--purple);
-    background: rgba(124,111,160,0.10);
-    color: var(--purple); font-weight: 500;
-  }
-
-  .btn-ai {
-    width: 100%; padding: 14px;
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
-    color: white; border: none; border-radius: 10px;
-    font-size: 15px; font-weight: 600;
-    font-family: 'Noto Sans TC', sans-serif;
-    cursor: pointer; transition: all 0.2s; margin-bottom: 14px;
-  }
-  .btn-ai:hover { filter: brightness(1.1); transform: translateY(-1px); }
-  .btn-ai:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-
-  .ai-result { display: none; }
-  .ai-result.show { display: block; }
-
-  .ai-row {
-    display: flex; gap: 10px; margin-bottom: 10px;
-    padding: 13px 15px; background: var(--surface2);
-    border-radius: 10px; border-left: 3px solid var(--purple);
-    align-items: flex-start;
-  }
-  .ai-row-label {
-    font-family: 'DM Mono', monospace; font-size: 11px;
-    color: var(--purple); min-width: 72px; padding-top: 2px; letter-spacing: 0.04em;
-  }
-  .ai-row-value { font-size: 15px; color: var(--text); line-height: 1.6; flex: 1; }
-
-  /* 複製按鈕 */
-  .ai-row-copy {
-    background: none; border: 1px solid var(--border);
-    border-radius: 6px; padding: 3px 8px;
-    font-size: 12px; color: var(--text-muted);
-    cursor: pointer; transition: all 0.2s;
-    white-space: nowrap; margin-left: 8px; flex-shrink: 0;
-  }
-  .ai-row-copy:hover { border-color: var(--accent2); color: var(--accent2); }
-  .ai-row-copy.copied { border-color: var(--success); color: var(--success); }
-
-  .prob-badge {
-    display: inline-block; padding: 3px 12px; border-radius: 20px;
-    font-size: 13px; font-weight: 600;
-  }
-  .prob-高 { background: rgba(74,138,106,0.12); color: var(--success); }
-  .prob-中 { background: rgba(181,147,74,0.12); color: var(--accent); }
-  .prob-低 { background: rgba(184,92,92,0.12); color: var(--danger); }
-
-  .ai-save-btn {
-    width: 100%; padding: 12px;
-    background: transparent; border: 1.5px solid var(--purple);
-    color: var(--purple); border-radius: 10px; font-size: 14px;
-    font-family: 'Noto Sans TC', sans-serif;
-    cursor: pointer; transition: all 0.2s; margin-top: 10px;
-  }
-  .ai-save-btn:hover { background: rgba(124,111,160,0.10); }
-
-  /* 快速更新區 */
-  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-  .field { display: flex; flex-direction: column; gap: 7px; }
-  .field.full { grid-column: 1 / -1; }
-
-  label { font-size: 13px; color: var(--text-dim); font-weight: 500; }
-
-  input, select, textarea {
-    background: var(--surface2); border: 1.5px solid var(--border);
-    border-radius: 10px; color: var(--text);
-    font-family: 'Noto Sans TC', sans-serif; font-size: 15px;
-    padding: 12px 14px; outline: none;
-    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
-    width: 100%; -webkit-appearance: none;
-  }
-  input:focus, select:focus, textarea:focus {
-    border-color: var(--border-focus); background: #fff;
-    box-shadow: 0 0 0 3px rgba(124, 106, 82, 0.10);
-  }
-  input::placeholder, textarea::placeholder { color: var(--text-muted); font-size: 14px; }
-  select {
-    cursor: pointer;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23b5ad9f' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
-    background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px;
-  }
-  select option { background: var(--surface); color: var(--text); }
-  textarea { resize: vertical; min-height: 76px; line-height: 1.6; }
-
-  input[type="date"]::-webkit-calendar-picker-indicator { opacity: 0.4; cursor: pointer; }
-
-  .stage-group { display: flex; gap: 6px; flex-wrap: wrap; }
-  .stage-btn {
-    flex: 1; min-width: 66px; padding: 10px 4px;
-    border: 1.5px solid var(--border); border-radius: 10px;
-    background: var(--surface2); color: var(--text-dim);
-    font-size: 14px; font-family: 'Noto Sans TC', sans-serif;
-    cursor: pointer; text-align: center; transition: all 0.2s;
-  }
-  .stage-btn:hover { border-color: var(--accent); color: var(--text); background: #fff; }
-  .stage-btn.active {
-    border-color: var(--accent); background: rgba(181,147,74,0.10);
-    color: var(--accent); font-weight: 600;
-  }
-
-  .btn-update {
-    width: 100%; padding: 15px;
-    background: var(--accent); color: #fff;
-    border: none; border-radius: 10px;
-    font-size: 15px; font-weight: 700;
-    font-family: 'Noto Sans TC', sans-serif;
-    cursor: pointer; transition: all 0.2s; margin-top: 16px;
-    box-shadow: 0 4px 14px rgba(181,147,74,0.22);
-  }
-  .btn-update:hover { background: #c9a45a; transform: translateY(-1px); }
-  .btn-update:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-
-  /* Toast */
-  .toast {
-    position: fixed; bottom: 30px; left: 50%;
-    transform: translateX(-50%) translateY(80px);
-    background: var(--surface); border: 1.5px solid var(--success);
-    border-radius: 14px; padding: 14px 26px;
-    font-size: 15px; color: var(--success);
-    transition: transform 0.3s ease; z-index: 100;
-    white-space: nowrap; box-shadow: 0 8px 32px rgba(100,85,65,0.15);
-  }
-  .toast.show { transform: translateX(-50%) translateY(0); }
-  .toast.error { border-color: var(--danger); color: var(--danger); }
-
-  /* Animations */
-  @keyframes fadeDown { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: translateY(0); } }
-  @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  @media (max-width: 560px) {
-    .grid-2, .info-grid { grid-template-columns: 1fr; }
-    .time-badges { flex-direction: column; }
-    .section { padding: 18px 16px; }
-  }
+  :root{--bg:#f0ece4;--surface:#faf8f4;--surface2:#f5f1ea;--border:#ddd8ce;--border-focus:#9b8f7e;--accent:#b5934a;--accent2:#5a8a80;--success:#4a8a6a;--danger:#b85c5c;--purple:#7c6fa0;--text:#2c2620;--text-dim:#7a6f63;--text-muted:#b5ad9f;--shadow:rgba(100,85,65,0.10);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-serif;min-height:100vh;padding:40px 24px 100px;background-image:radial-gradient(ellipse at 20% 0%,rgba(180,160,120,0.10) 0%,transparent 60%),radial-gradient(ellipse at 80% 100%,rgba(90,138,128,0.07) 0%,transparent 60%);}
+  .wrapper{max-width:720px;margin:0 auto;}
+  .header{margin-bottom:32px;animation:fadeDown 0.5s ease;}
+  .header-nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+  .back-btn{display:inline-flex;align-items:center;gap:6px;font-family:'DM Mono',monospace;font-size:12px;color:var(--text-dim);text-decoration:none;transition:color 0.2s;}
+  .back-btn:hover{color:var(--accent);}
+  .owner-badge{font-family:'DM Mono',monospace;font-size:11px;padding:4px 12px;border-radius:20px;border:1px solid var(--border);color:var(--text-muted);}
+  .owner-badge.yd{border-color:var(--accent);color:var(--accent);background:rgba(181,147,74,0.08);}
+  .owner-badge.tracy{border-color:var(--accent2);color:var(--accent2);background:rgba(90,138,128,0.08);}
+  .client-name{font-size:30px;font-weight:700;letter-spacing:-0.02em;color:var(--text);}
+  .client-meta{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;}
+  .tag{font-family:'DM Mono',monospace;font-size:12px;padding:4px 12px;border-radius:20px;border:1px solid var(--border);color:var(--text-dim);}
+  .tag.stage{border-color:var(--accent);color:var(--accent);}
+  .tag.prob-高{border-color:var(--success);color:var(--success);}
+  .tag.prob-中{border-color:var(--accent);color:var(--accent);}
+  .tag.prob-低{border-color:var(--danger);color:var(--danger);}
+  .loading{text-align:center;padding:80px 20px;font-family:'DM Mono',monospace;font-size:14px;color:var(--text-dim);}
+  .spinner{width:32px;height:32px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 16px;}
+  .section{margin-bottom:24px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px 24px;box-shadow:0 2px 10px var(--shadow);animation:fadeUp 0.4s ease both;}
+  .section:nth-child(2){animation-delay:0.05s;}.section:nth-child(3){animation-delay:0.1s;}.section:nth-child(4){animation-delay:0.15s;}
+  .section-label{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:var(--text-muted);margin-bottom:16px;display:flex;align-items:center;gap:10px;}
+  .section-label::after{content:'';flex:1;height:1px;background:var(--border);}
+  .section-num{color:var(--accent);font-size:11px;font-weight:500;}
+  .info-card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:18px;}
+  .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .info-item.full{grid-column:1/-1;}
+  .info-label{font-size:12px;color:var(--text-muted);margin-bottom:4px;font-weight:500;}
+  .info-value{font-size:15px;color:var(--text);min-height:22px;line-height:1.5;}
+  .info-value.empty{color:var(--text-muted);font-style:italic;font-size:13px;}
+  .time-badges{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;padding-top:16px;border-top:1px solid var(--border);}
+  .time-badge{flex:1;min-width:110px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;text-align:center;}
+  .time-badge .num{font-family:'DM Mono',monospace;font-size:24px;font-weight:500;color:var(--accent);}
+  .time-badge .num.warn{color:var(--danger);}
+  .time-badge .label{font-size:12px;color:var(--text-dim);margin-top:3px;}
+  .ai-context-tabs{display:flex;gap:8px;margin-bottom:14px;}
+  .ctx-tab{flex:1;padding:10px;border:1.5px solid var(--border);border-radius:10px;background:var(--surface2);color:var(--text-dim);font-size:14px;font-family:'Noto Sans TC',sans-serif;cursor:pointer;text-align:center;transition:all 0.2s;}
+  .ctx-tab.active{border-color:var(--purple);background:rgba(124,111,160,0.10);color:var(--purple);font-weight:500;}
+  .btn-ai{width:100%;padding:14px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:white;border:none;border-radius:10px;font-size:15px;font-weight:600;font-family:'Noto Sans TC',sans-serif;cursor:pointer;transition:all 0.2s;margin-bottom:14px;}
+  .btn-ai:hover{filter:brightness(1.1);transform:translateY(-1px);}
+  .btn-ai:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
+  .ai-result{display:none;}
+  .ai-result.show{display:block;}
+  .ai-row{display:flex;gap:10px;margin-bottom:10px;padding:13px 15px;background:var(--surface2);border-radius:10px;border-left:3px solid var(--purple);align-items:flex-start;}
+  .ai-row-label{font-family:'DM Mono',monospace;font-size:11px;color:var(--purple);min-width:72px;padding-top:2px;}
+  .ai-row-value{font-size:15px;color:var(--text);line-height:1.6;flex:1;}
+  .ai-row-copy{background:none;border:1px solid var(--border);border-radius:6px;padding:3px 8px;font-size:12px;color:var(--text-muted);cursor:pointer;transition:all 0.2s;white-space:nowrap;margin-left:8px;flex-shrink:0;}
+  .ai-row-copy:hover{border-color:var(--accent2);color:var(--accent2);}
+  .ai-row-copy.copied{border-color:var(--success);color:var(--success);}
+  .prob-badge{display:inline-block;padding:3px 12px;border-radius:20px;font-size:13px;font-weight:600;}
+  .prob-高{background:rgba(74,138,106,0.12);color:var(--success);}
+  .prob-中{background:rgba(181,147,74,0.12);color:var(--accent);}
+  .prob-低{background:rgba(184,92,92,0.12);color:var(--danger);}
+  .ai-save-btn{width:100%;padding:12px;background:transparent;border:1.5px solid var(--purple);color:var(--purple);border-radius:10px;font-size:14px;font-family:'Noto Sans TC',sans-serif;cursor:pointer;transition:all 0.2s;margin-top:10px;}
+  .ai-save-btn:hover{background:rgba(124,111,160,0.10);}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .field{display:flex;flex-direction:column;gap:7px;}
+  .field.full{grid-column:1/-1;}
+  label{font-size:13px;color:var(--text-dim);font-weight:500;}
+  input,select,textarea{background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-family:'Noto Sans TC',sans-serif;font-size:15px;padding:12px 14px;outline:none;transition:border-color 0.2s,box-shadow 0.2s,background 0.2s;width:100%;-webkit-appearance:none;}
+  input:focus,select:focus,textarea:focus{border-color:var(--border-focus);background:#fff;box-shadow:0 0 0 3px rgba(124,106,82,0.10);}
+  input::placeholder,textarea::placeholder{color:var(--text-muted);font-size:14px;}
+  select{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23b5ad9f' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px;}
+  select option{background:var(--surface);color:var(--text);}
+  textarea{resize:vertical;min-height:76px;line-height:1.6;}
+  input[type="date"]::-webkit-calendar-picker-indicator{opacity:0.4;cursor:pointer;}
+  .stage-group{display:flex;gap:6px;flex-wrap:wrap;}
+  .stage-btn{flex:1;min-width:66px;padding:10px 4px;border:1.5px solid var(--border);border-radius:10px;background:var(--surface2);color:var(--text-dim);font-size:14px;font-family:'Noto Sans TC',sans-serif;cursor:pointer;text-align:center;transition:all 0.2s;}
+  .stage-btn:hover{border-color:var(--accent);color:var(--text);background:#fff;}
+  .stage-btn.active{border-color:var(--accent);background:rgba(181,147,74,0.10);color:var(--accent);font-weight:600;}
+  .btn-update{width:100%;padding:15px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;font-family:'Noto Sans TC',sans-serif;cursor:pointer;transition:all 0.2s;margin-top:16px;box-shadow:0 4px 14px rgba(181,147,74,0.22);}
+  .btn-update:hover{background:#c9a45a;transform:translateY(-1px);}
+  .btn-update:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
+  .toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface);border:1.5px solid var(--success);border-radius:14px;padding:14px 26px;font-size:15px;color:var(--success);transition:transform 0.3s ease;z-index:100;white-space:nowrap;box-shadow:0 8px 32px rgba(100,85,65,0.15);}
+  .toast.show{transform:translateX(-50%) translateY(0);}
+  .toast.error{border-color:var(--danger);color:var(--danger);}
+  @keyframes fadeDown{from{opacity:0;transform:translateY(-12px);}to{opacity:1;transform:translateY(0);}}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  @media(max-width:560px){.grid-2,.info-grid{grid-template-columns:1fr;}.time-badges{flex-direction:column;}.section{padding:18px 16px;}}
 </style>
 </head>
 <body>
-
 <div class="wrapper">
-
-  <!-- Loading -->
-  <div class="loading" id="loadingState">
-    <div class="spinner"></div>
-    載入客戶資料中...
-  </div>
-
-  <!-- 主內容 -->
+  <div class="loading" id="loadingState"><div class="spinner"></div>載入客戶資料中...</div>
   <div id="mainContent" style="display:none;">
-
-    <!-- Header -->
     <div class="header">
-      <a href="crm-list.html" class="back-btn">← 返回列表</a>
+      <div class="header-nav">
+        <a href="crm-list.html" class="back-btn">← 返回列表</a>
+        <span class="owner-badge" id="ownerBadge"></span>
+      </div>
       <div class="client-name" id="headerName">客戶名稱</div>
       <div class="client-meta" id="headerMeta"></div>
     </div>
@@ -301,70 +107,23 @@
       <div class="section-label"><span class="section-num">01</span> 客戶資料</div>
       <div class="info-card">
         <div class="info-grid">
-          <div class="info-item">
-            <div class="info-label">職業</div>
-            <div class="info-value" id="v-job">—</div>
-          </div>
-          <div class="info-item">
-            <div class="info-label">居住地</div>
-            <div class="info-value" id="v-location">—</div>
-          </div>
-          <div class="info-item">
-            <div class="info-label">熟識程度</div>
-            <div class="info-value" id="v-familiarity">—</div>
-          </div>
-          <div class="info-item">
-            <div class="info-label">決策風格</div>
-            <div class="info-value" id="v-decision">—</div>
-          </div>
-          <div class="info-item">
-            <div class="info-label">收入預估</div>
-            <div class="info-value" id="v-income">—</div>
-          </div>
-          <div class="info-item">
-            <div class="info-label">預計投入金額</div>
-            <div class="info-value" id="v-budget">—</div>
-          </div>
-          <div class="info-item">
-            <div class="info-label">投資工具</div>
-            <div class="info-value" id="v-tools">—</div>
-          </div>
-          <div class="info-item">
-            <div class="info-label">資金屬性</div>
-            <div class="info-value" id="v-fund">—</div>
-          </div>
-          <div class="info-item">
-            <div class="info-label">房狀態</div>
-            <div class="info-value" id="v-house">—</div>
-          </div>
-          <div class="info-item full">
-            <div class="info-label">痛點 / 備註</div>
-            <div class="info-value" id="v-pain">—</div>
-          </div>
-          <div class="info-item full">
-            <div class="info-label">我收集的配置需求</div>
-            <div class="info-value" id="v-config">—</div>
-          </div>
-          <div class="info-item full">
-            <div class="info-label">上次互動氛圍 / 卡住原因</div>
-            <div class="info-value" id="v-vibe">—</div>
-          </div>
+          <div class="info-item"><div class="info-label">職業</div><div class="info-value" id="v-job">—</div></div>
+          <div class="info-item"><div class="info-label">居住地</div><div class="info-value" id="v-location">—</div></div>
+          <div class="info-item"><div class="info-label">熟識程度</div><div class="info-value" id="v-familiarity">—</div></div>
+          <div class="info-item"><div class="info-label">決策風格</div><div class="info-value" id="v-decision">—</div></div>
+          <div class="info-item"><div class="info-label">收入預估</div><div class="info-value" id="v-income">—</div></div>
+          <div class="info-item"><div class="info-label">預計投入金額</div><div class="info-value" id="v-budget">—</div></div>
+          <div class="info-item"><div class="info-label">投資工具</div><div class="info-value" id="v-tools">—</div></div>
+          <div class="info-item"><div class="info-label">資金屬性</div><div class="info-value" id="v-fund">—</div></div>
+          <div class="info-item"><div class="info-label">房狀態</div><div class="info-value" id="v-house">—</div></div>
+          <div class="info-item full"><div class="info-label">痛點 / 備註</div><div class="info-value" id="v-pain">—</div></div>
+          <div class="info-item full"><div class="info-label">我收集的配置需求</div><div class="info-value" id="v-config">—</div></div>
+          <div class="info-item full"><div class="info-label">上次互動氛圍 / 卡住原因</div><div class="info-value" id="v-vibe">—</div></div>
         </div>
-
-        <!-- 時間指標 -->
         <div class="time-badges">
-          <div class="time-badge">
-            <div class="num" id="t-since">—</div>
-            <div class="label">距上次聯繫（天）</div>
-          </div>
-          <div class="time-badge">
-            <div class="num" id="t-stage">—</div>
-            <div class="label">階段停留（天）</div>
-          </div>
-          <div class="time-badge">
-            <div class="num" id="t-overdue">—</div>
-            <div class="label">跟進逾期（天）</div>
-          </div>
+          <div class="time-badge"><div class="num" id="t-since">—</div><div class="label">距上次聯繫（天）</div></div>
+          <div class="time-badge"><div class="num" id="t-stage">—</div><div class="label">階段停留（天）</div></div>
+          <div class="time-badge"><div class="num" id="t-overdue">—</div><div class="label">跟進逾期（天）</div></div>
         </div>
       </div>
     </div>
@@ -386,7 +145,7 @@
       <div class="grid-2">
         <div class="field full">
           <label>目前階段</label>
-          <div class="stage-group" id="stageGroup">
+          <div class="stage-group">
             <button class="stage-btn" data-stage="潛在" onclick="setStage(this)">潛在</button>
             <button class="stage-btn" data-stage="預約" onclick="setStage(this)">預約</button>
             <button class="stage-btn" data-stage="簡報" onclick="setStage(this)">簡報</button>
@@ -395,14 +154,8 @@
           </div>
           <input type="hidden" id="u-stage">
         </div>
-        <div class="field">
-          <label>最後聯繫日</label>
-          <input type="date" id="u-lastContact">
-        </div>
-        <div class="field">
-          <label>下次跟進日</label>
-          <input type="date" id="u-nextFollow">
-        </div>
+        <div class="field"><label>最後聯繫日</label><input type="date" id="u-lastContact"></div>
+        <div class="field"><label>下次跟進日</label><input type="date" id="u-nextFollow"></div>
         <div class="field">
           <label>上次互動氛圍</label>
           <select id="u-vibe">
@@ -414,315 +167,185 @@
             <option value="主動詢問">主動詢問</option>
           </select>
         </div>
-        <div class="field">
-          <label>預計成交日</label>
-          <input type="date" id="u-targetClose">
-        </div>
-        <div class="field full">
-          <label>上次卡住的原因</label>
-          <input type="text" id="u-stuck" placeholder="說要問老婆 / 覺得金額太大 / 還在考慮...">
-        </div>
-        <div class="field full">
-          <label>痛點補充</label>
-          <textarea id="u-pain" placeholder="這次接觸新發現的痛點或需求、情緒變化..."></textarea>
-        </div>
-        <div class="field full">
-          <label>配置需求補充</label>
-          <textarea id="u-config" placeholder="更新的配置意向、金額調整、新提到的目標..."></textarea>
-        </div>
+        <div class="field"><label>預計成交日</label><input type="date" id="u-targetClose"></div>
+        <div class="field full"><label>上次卡住的原因</label><input type="text" id="u-stuck" placeholder="說要問老婆 / 覺得金額太大 / 還在考慮..."></div>
+        <div class="field full"><label>痛點補充</label><textarea id="u-pain" placeholder="這次接觸新發現的痛點或需求、情緒變化..."></textarea></div>
+        <div class="field full"><label>配置需求補充</label><textarea id="u-config" placeholder="更新的配置意向、金額調整、新提到的目標..."></textarea></div>
       </div>
       <button class="btn-update" id="updateBtn" onclick="submitUpdate()">更新客戶資料 →</button>
     </div>
-
   </div>
 </div>
-
 <div class="toast" id="toast"></div>
-
 <script>
-  const WEBHOOK_B = 'https://ydj.zeabur.app/webhook/90e38165-cd18-4dd0-85a4-c64a707aaf72';
+  const WEBHOOK_B='https://ydj.zeabur.app/webhook/90e38165-cd18-4dd0-85a4-c64a707aaf72';
 
-  let clientData = {};
-  let currentContext = '行動前';
-  let aiResultData = null;
+  // 身份確認
+  const owner=localStorage.getItem('crm_owner');
+  if(!owner){window.location.href='index.html';}
 
-  // ── URL 取客戶名 ──────────────────────────────────
-  function getNameFromURL() {
-    return new URLSearchParams(window.location.search).get('name') || '';
-  }
+  // 顯示身份
+  const badge=document.getElementById('ownerBadge');
+  badge.textContent=`👤 ${owner}`;
+  badge.className=`owner-badge ${owner.toLowerCase()}`;
 
-  // ── 載入客戶 ─────────────────────────────────────
-  async function loadClient(name) {
-    try {
-      const res = await fetch(WEBHOOK_B, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'load', 姓名代稱: name })
-      });
-      const data = await res.json();
-      if (data.success && data.data) {
-        clientData = data.data;
+  let clientData={};
+  let currentContext='行動前';
+  let aiResultData=null;
+
+  function getNameFromURL(){return new URLSearchParams(window.location.search).get('name')||'';}
+
+  async function loadClient(name){
+    try{
+      const res=await fetch(WEBHOOK_B,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'load',姓名代稱:name,owner})});
+      const data=await res.json();
+      if(data.success&&data.data){
+        clientData=data.data;
         renderClient(clientData);
-        document.getElementById('loadingState').style.display = 'none';
-        document.getElementById('mainContent').style.display = 'block';
-      } else {
-        document.getElementById('loadingState').innerHTML = '<p style="color:var(--danger)">找不到此客戶資料</p>';
+        document.getElementById('loadingState').style.display='none';
+        document.getElementById('mainContent').style.display='block';
+      }else{
+        document.getElementById('loadingState').innerHTML='<p style="color:var(--danger)">找不到此客戶資料</p>';
       }
-    } catch(e) {
-      document.getElementById('loadingState').innerHTML = '<p style="color:var(--danger)">載入失敗：' + e.message + '</p>';
+    }catch(e){
+      document.getElementById('loadingState').innerHTML='<p style="color:var(--danger)">載入失敗：'+e.message+'</p>';
     }
   }
 
-  // ── 渲染客戶資料 ─────────────────────────────────
-  function renderClient(d) {
-    const val = (v) => v ? `<span>${v}</span>` : '<span class="empty">未填寫</span>';
-
-    document.getElementById('headerName').innerHTML = d['姓名/代稱'] || '未知客戶';
-
-    const stage = d['階段'] || '';
-    const prob = d['成交機率'] || '';
-    document.getElementById('headerMeta').innerHTML = `
-      ${stage ? `<span class="tag stage">${stage}</span>` : ''}
-      ${d['職業'] ? `<span class="tag">${d['職業']}</span>` : ''}
-      ${d['熟識程度'] ? `<span class="tag">熟識 ${d['熟識程度']}</span>` : ''}
-      ${prob ? `<span class="tag prob-${prob === '高' ? '高' : prob === '中' ? '中' : '低'}">${prob} 成交機率</span>` : ''}
+  function renderClient(d){
+    const val=(v)=>v?`<span>${v}</span>`:'<span class="empty">未填寫</span>';
+    document.getElementById('headerName').innerHTML=d['姓名/代稱']||'未知客戶';
+    const stage=d['階段']||'';
+    const prob=d['成交機率']||'';
+    document.getElementById('headerMeta').innerHTML=`
+      ${stage?`<span class="tag stage">${stage}</span>`:''}
+      ${d['職業']?`<span class="tag">${d['職業']}</span>`:''}
+      ${d['熟識程度']?`<span class="tag">熟識 ${d['熟識程度']}</span>`:''}
+      ${prob?`<span class="tag prob-${prob}">${prob} 成交機率</span>`:''}
     `;
-
-    document.getElementById('v-job').innerHTML = val(d['職業']);
-    document.getElementById('v-location').innerHTML = val(d['居住地']);
-    document.getElementById('v-familiarity').innerHTML = val(d['熟識程度']);
-    document.getElementById('v-decision').innerHTML = val(d['決策風格']);
-    document.getElementById('v-income').innerHTML = d['收入預估'] ? d['收入預估'] + ' 萬/年' : '<span class="empty">未填寫</span>';
-    document.getElementById('v-budget').innerHTML = d['預計投入金額'] ? d['預計投入金額'] + ' 萬' : '<span class="empty">未填寫</span>';
-    document.getElementById('v-tools').innerHTML = val(d['投資工具']);
-    document.getElementById('v-fund').innerHTML = val(d['流量/存量']);
-    document.getElementById('v-house').innerHTML = val(d['房狀態']);
-    document.getElementById('v-pain').innerHTML = val(d['痛點/備註']);
-    document.getElementById('v-config').innerHTML = val(d['我收集的配置需求']);
-
-    const vibe = [d['上次互動氛圍'], d['上次卡住的原因']].filter(Boolean).join(' ／ ');
-    document.getElementById('v-vibe').innerHTML = val(vibe);
-
-    // 時間指標
-    const since = d['距上次聯繫天數'];
-    const stageDay = d['階段停留天數'];
-    const overdue = d['跟進逾期天數'];
-
-    const sinceEl = document.getElementById('t-since');
-    sinceEl.textContent = (since !== undefined && since !== '') ? since : '—';
-    if (since > 14) sinceEl.classList.add('warn');
-
-    document.getElementById('t-stage').textContent = (stageDay !== undefined && stageDay !== '') ? stageDay : '—';
-
-    const overdueEl = document.getElementById('t-overdue');
-    overdueEl.textContent = (overdue !== undefined && overdue !== '') ? overdue : '—';
-    if (overdue > 0) overdueEl.classList.add('warn');
-
-    // 預填更新區
-    document.getElementById('u-lastContact').value = d['最後聯繫日'] || '';
-    document.getElementById('u-nextFollow').value = d['下次跟進日'] || '';
-    document.getElementById('u-targetClose').value = d['預計成交日'] || '';
-    document.getElementById('u-vibe').value = d['上次互動氛圍'] || '';
-    document.getElementById('u-stuck').value = d['上次卡住的原因'] || '';
-
-    // 預選階段
-    if (stage) {
-      document.querySelectorAll('.stage-btn').forEach(btn => {
-        if (btn.dataset.stage === stage) {
-          btn.classList.add('active');
-          document.getElementById('u-stage').value = stage;
-        }
-      });
-    }
-
-    // 如有已存 AI 結果就顯示
-    if (d['AI推薦配置'] || d['下一步行動']) {
-      renderAIResult({
-        成交機率: d['成交機率'],
-        AI推薦配置: d['AI推薦配置'],
-        下一步行動: d['下一步行動']
-      });
-    }
+    document.getElementById('v-job').innerHTML=val(d['職業']);
+    document.getElementById('v-location').innerHTML=val(d['居住地']);
+    document.getElementById('v-familiarity').innerHTML=val(d['熟識程度']);
+    document.getElementById('v-decision').innerHTML=val(d['決策風格']);
+    document.getElementById('v-income').innerHTML=d['收入預估']?d['收入預估']+'萬/年':'<span class="empty">未填寫</span>';
+    document.getElementById('v-budget').innerHTML=d['預計投入金額']?d['預計投入金額']+'萬':'<span class="empty">未填寫</span>';
+    document.getElementById('v-tools').innerHTML=val(d['投資工具']);
+    document.getElementById('v-fund').innerHTML=val(d['流量/存量']);
+    document.getElementById('v-house').innerHTML=val(d['房狀態']);
+    document.getElementById('v-pain').innerHTML=val(d['痛點/備註']);
+    document.getElementById('v-config').innerHTML=val(d['我收集的配置需求']);
+    const vibe=[d['上次互動氛圍'],d['上次卡住的原因']].filter(Boolean).join('／');
+    document.getElementById('v-vibe').innerHTML=val(vibe);
+    const since=d['距上次聯繫天數'];
+    const stageDay=d['階段停留天數'];
+    const overdue=d['跟進逾期天數'];
+    const sinceEl=document.getElementById('t-since');
+    sinceEl.textContent=(since!==undefined&&since!=='')?since:'—';
+    if(since>14)sinceEl.classList.add('warn');
+    document.getElementById('t-stage').textContent=(stageDay!==undefined&&stageDay!=='')?stageDay:'—';
+    const overdueEl=document.getElementById('t-overdue');
+    overdueEl.textContent=(overdue!==undefined&&overdue!=='')?overdue:'—';
+    if(overdue>0)overdueEl.classList.add('warn');
+    document.getElementById('u-lastContact').value=d['最後聯繫日']||'';
+    document.getElementById('u-nextFollow').value=d['下次跟進日']||'';
+    document.getElementById('u-targetClose').value=d['預計成交日']||'';
+    document.getElementById('u-vibe').value=d['上次互動氛圍']||'';
+    document.getElementById('u-stuck').value=d['上次卡住的原因']||'';
+    if(stage){document.querySelectorAll('.stage-btn').forEach(btn=>{if(btn.dataset.stage===stage){btn.classList.add('active');document.getElementById('u-stage').value=stage;}});}
+    if(d['AI推薦配置']||d['下一步行動']){renderAIResult({成交機率:d['成交機率'],AI推薦配置:d['AI推薦配置'],下一步行動:d['下一步行動']});}
   }
 
-  // ── AI 情境切換 ──────────────────────────────────
-  function setContext(el) {
-    document.querySelectorAll('.ctx-tab').forEach(t => t.classList.remove('active'));
-    el.classList.add('active');
-    currentContext = el.dataset.ctx;
+  function setContext(el){
+    document.querySelectorAll('.ctx-tab').forEach(t=>t.classList.remove('active'));
+    el.classList.add('active');currentContext=el.dataset.ctx;
   }
 
-  // ── 執行 AI 分析 ─────────────────────────────────
-  async function runAI() {
-    const btn = document.getElementById('aiBtn');
-    btn.disabled = true;
-    btn.textContent = '分析中...';
-    document.getElementById('aiResult').className = 'ai-result';
-
-    try {
-      const res = await fetch(WEBHOOK_B, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'ai',
-          姓名代稱: clientData['姓名/代稱'],
-          情境: currentContext,
-          客戶資料: clientData
-        })
-      });
-      const data = await res.json();
-      if (data.success && data.result) {
-        aiResultData = data.result;
-        renderAIResult(data.result);
-      } else {
-        showToast('AI 分析失敗', true);
-      }
-    } catch(e) {
-      showToast('錯誤：' + e.message, true);
-    } finally {
-      btn.disabled = false;
-      btn.textContent = '✨ 重新分析';
-    }
+  async function runAI(){
+    const btn=document.getElementById('aiBtn');
+    btn.disabled=true;btn.textContent='分析中...';
+    document.getElementById('aiResult').className='ai-result';
+    try{
+      const res=await fetch(WEBHOOK_B,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'ai',姓名代稱:clientData['姓名/代稱'],情境:currentContext,客戶資料:clientData,owner})});
+      const data=await res.json();
+      if(data.success&&data.result){aiResultData=data.result;renderAIResult(data.result);}
+      else showToast('AI 分析失敗',true);
+    }catch(e){showToast('錯誤：'+e.message,true);}
+    finally{btn.disabled=false;btn.textContent='✨ 重新分析';}
   }
 
-  // ── 渲染 AI 結果（含複製按鈕）────────────────────
-  function renderAIResult(result) {
-    if (!result) return;
-    const el = document.getElementById('aiResult');
-    const probClass = result['成交機率'] ? `prob-${result['成交機率']}` : '';
-
-    const copyBtn = (text) =>
-      `<button class="ai-row-copy" onclick="copyText(this, \`${text.replace(/`/g,'\\`')}\`)">複製</button>`;
-
-    let html = '';
-    if (result['成交機率']) {
-      html += `<div class="ai-row"><div class="ai-row-label">成交機率</div><div class="ai-row-value"><span class="prob-badge ${probClass}">${result['成交機率']}</span></div></div>`;
-    }
-    if (result['AI推薦配置']) {
-      html += `<div class="ai-row"><div class="ai-row-label">推薦配置</div><div class="ai-row-value">${result['AI推薦配置']}</div>${copyBtn(result['AI推薦配置'])}</div>`;
-    }
-    if (result['下一步行動']) {
-      html += `<div class="ai-row"><div class="ai-row-label">下一步</div><div class="ai-row-value">${result['下一步行動']}</div>${copyBtn(result['下一步行動'])}</div>`;
-    }
-    if (result['開場建議']) {
-      html += `<div class="ai-row"><div class="ai-row-label">開場建議</div><div class="ai-row-value">${result['開場建議']}</div>${copyBtn(result['開場建議'])}</div>`;
-    }
-    if (result['注意事項']) {
-      html += `<div class="ai-row"><div class="ai-row-label">注意事項</div><div class="ai-row-value">${result['注意事項']}</div></div>`;
-    }
-    if (result['評估變化']) {
-      html += `<div class="ai-row"><div class="ai-row-label">評估變化</div><div class="ai-row-value">${result['評估變化']}</div></div>`;
-    }
-    if (result['風險提醒']) {
-      html += `<div class="ai-row"><div class="ai-row-label">風險提醒</div><div class="ai-row-value">${result['風險提醒']}</div></div>`;
-    }
-    if (result['error']) {
-      html += `<div class="ai-row"><div class="ai-row-label">錯誤</div><div class="ai-row-value" style="color:var(--danger)">${result['error']}</div></div>`;
-    }
-
-    html += `<button class="ai-save-btn" onclick="saveAIResult()">💾 寫入 Sheets</button>`;
-    el.innerHTML = html;
-    el.className = 'ai-result show';
+  function renderAIResult(result){
+    if(!result)return;
+    const el=document.getElementById('aiResult');
+    const probClass=result['成交機率']?`prob-${result['成交機率']}`:'';
+    const copyBtn=(text)=>`<button class="ai-row-copy" onclick="copyText(this,\`${text.replace(/`/g,'\\`')}\`)">複製</button>`;
+    let html='';
+    if(result['成交機率'])html+=`<div class="ai-row"><div class="ai-row-label">成交機率</div><div class="ai-row-value"><span class="prob-badge ${probClass}">${result['成交機率']}</span></div></div>`;
+    if(result['AI推薦配置'])html+=`<div class="ai-row"><div class="ai-row-label">推薦配置</div><div class="ai-row-value">${result['AI推薦配置']}</div>${copyBtn(result['AI推薦配置'])}</div>`;
+    if(result['下一步行動'])html+=`<div class="ai-row"><div class="ai-row-label">下一步</div><div class="ai-row-value">${result['下一步行動']}</div>${copyBtn(result['下一步行動'])}</div>`;
+    if(result['開場建議'])html+=`<div class="ai-row"><div class="ai-row-label">開場建議</div><div class="ai-row-value">${result['開場建議']}</div>${copyBtn(result['開場建議'])}</div>`;
+    if(result['注意事項'])html+=`<div class="ai-row"><div class="ai-row-label">注意事項</div><div class="ai-row-value">${result['注意事項']}</div></div>`;
+    if(result['評估變化'])html+=`<div class="ai-row"><div class="ai-row-label">評估變化</div><div class="ai-row-value">${result['評估變化']}</div></div>`;
+    if(result['風險提醒'])html+=`<div class="ai-row"><div class="ai-row-label">風險提醒</div><div class="ai-row-value">${result['風險提醒']}</div></div>`;
+    if(result['error'])html+=`<div class="ai-row"><div class="ai-row-label">錯誤</div><div class="ai-row-value" style="color:var(--danger)">${result['error']}</div></div>`;
+    html+=`<button class="ai-save-btn" onclick="saveAIResult()">💾 寫入 Sheets</button>`;
+    el.innerHTML=html;el.className='ai-result show';
   }
 
-  // ── 複製文字 ─────────────────────────────────────
-  function copyText(btn, text) {
-    navigator.clipboard.writeText(text).then(() => {
-      btn.textContent = '✓ 已複製';
-      btn.classList.add('copied');
-      setTimeout(() => {
-        btn.textContent = '複製';
-        btn.classList.remove('copied');
-      }, 2000);
+  function copyText(btn,text){
+    navigator.clipboard.writeText(text).then(()=>{
+      btn.textContent='✓ 已複製';btn.classList.add('copied');
+      setTimeout(()=>{btn.textContent='複製';btn.classList.remove('copied');},2000);
     });
   }
 
-  // ── 儲存 AI 結果 ─────────────────────────────────
-  async function saveAIResult() {
-    if (!aiResultData) return;
-    try {
-      const res = await fetch(WEBHOOK_B, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'update',
-          姓名代稱: clientData['姓名/代稱'],
-          AI推薦配置: aiResultData['AI推薦配置'] || '',
-          下一步行動: aiResultData['下一步行動'] || '',
-          成交機率: aiResultData['成交機率'] || ''
-        })
-      });
-      const data = await res.json();
-      if (data.success) showToast('✓ AI 結果已寫入 Sheets');
-      else showToast('寫入失敗', true);
-    } catch(e) {
-      showToast('錯誤：' + e.message, true);
-    }
+  async function saveAIResult(){
+    if(!aiResultData)return;
+    try{
+      const res=await fetch(WEBHOOK_B,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'update',姓名代稱:clientData['姓名/代稱'],AI推薦配置:aiResultData['AI推薦配置']||'',下一步行動:aiResultData['下一步行動']||'',成交機率:aiResultData['成交機率']||'',owner})});
+      const data=await res.json();
+      if(data.success)showToast('✓ AI 結果已寫入 Sheets');
+      else showToast('寫入失敗',true);
+    }catch(e){showToast('錯誤：'+e.message,true);}
   }
 
-  // ── 階段選擇 ─────────────────────────────────────
-  function setStage(el) {
-    document.querySelectorAll('.stage-btn').forEach(b => b.classList.remove('active'));
-    el.classList.add('active');
-    document.getElementById('u-stage').value = el.dataset.stage;
+  function setStage(el){
+    document.querySelectorAll('.stage-btn').forEach(b=>b.classList.remove('active'));
+    el.classList.add('active');document.getElementById('u-stage').value=el.dataset.stage;
   }
 
-  // ── 送出更新 ─────────────────────────────────────
-  async function submitUpdate() {
-    const btn = document.getElementById('updateBtn');
-    btn.disabled = true;
-    btn.textContent = '更新中...';
-
-    const body = {
-      action: 'update',
-      姓名代稱: clientData['姓名/代稱'],
-      階段: document.getElementById('u-stage').value || clientData['階段'],
-      最後聯繫日: document.getElementById('u-lastContact').value,
-      下次跟進日: document.getElementById('u-nextFollow').value,
-      預計成交日: document.getElementById('u-targetClose').value,
-      上次互動氛圍: document.getElementById('u-vibe').value,
-      上次卡住的原因: document.getElementById('u-stuck').value,
-      痛點備註: document.getElementById('u-pain').value || clientData['痛點/備註'],
-      我收集的配置需求: document.getElementById('u-config').value || clientData['我收集的配置需求']
+  async function submitUpdate(){
+    const btn=document.getElementById('updateBtn');
+    btn.disabled=true;btn.textContent='更新中...';
+    const body={
+      action:'update',owner,
+      姓名代稱:clientData['姓名/代稱'],
+      階段:document.getElementById('u-stage').value||clientData['階段'],
+      最後聯繫日:document.getElementById('u-lastContact').value,
+      下次跟進日:document.getElementById('u-nextFollow').value,
+      預計成交日:document.getElementById('u-targetClose').value,
+      上次互動氛圍:document.getElementById('u-vibe').value,
+      上次卡住的原因:document.getElementById('u-stuck').value,
+      痛點備註:document.getElementById('u-pain').value||clientData['痛點/備註'],
+      我收集的配置需求:document.getElementById('u-config').value||clientData['我收集的配置需求']
     };
-
-    try {
-      const res = await fetch(WEBHOOK_B, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-      });
-      const data = await res.json();
-      if (data.success) {
-        showToast('✓ 資料已更新');
-        setTimeout(() => location.reload(), 1500);
-      } else {
-        showToast('更新失敗', true);
-      }
-    } catch(e) {
-      showToast('錯誤：' + e.message, true);
-    } finally {
-      btn.disabled = false;
-      btn.textContent = '更新客戶資料 →';
-    }
+    try{
+      const res=await fetch(WEBHOOK_B,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+      const data=await res.json();
+      if(data.success){showToast('✓ 資料已更新');setTimeout(()=>location.reload(),1500);}
+      else showToast('更新失敗',true);
+    }catch(e){showToast('錯誤：'+e.message,true);}
+    finally{btn.disabled=false;btn.textContent='更新客戶資料 →';}
   }
 
-  // ── Toast ─────────────────────────────────────────
-  function showToast(msg, isError = false) {
-    const t = document.getElementById('toast');
-    t.textContent = msg;
-    t.className = 'toast' + (isError ? ' error' : '');
-    t.classList.add('show');
-    setTimeout(() => t.classList.remove('show'), 3000);
+  function showToast(msg,isError=false){
+    const t=document.getElementById('toast');
+    t.textContent=msg;t.className='toast'+(isError?' error':'');
+    t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);
   }
 
-  // ── 初始化 ───────────────────────────────────────
-  const clientName = getNameFromURL();
-  if (clientName) {
-    loadClient(clientName);
-  } else {
-    document.getElementById('loadingState').innerHTML = '<p style="color:var(--danger)">未指定客戶，請從列表進入</p>';
-  }
+  const clientName=getNameFromURL();
+  if(clientName){loadClient(clientName);}
+  else{document.getElementById('loadingState').innerHTML='<p style="color:var(--danger)">未指定客戶，請從列表進入</p>';}
 </script>
 </body>
 </html>
