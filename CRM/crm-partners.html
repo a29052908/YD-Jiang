@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>夥伴管理 · CRM</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap');
+  :root {
+    --bg:#f0ece4;--surface:#faf8f4;--surface2:#f5f1ea;--border:#ddd8ce;
+    --border-focus:#9b8f7e;--accent:#b5934a;--accent2:#5a8a80;
+    --danger:#b85c5c;--success:#4a8a6a;--purple:#7c6fa0;
+    --text:#2c2620;--text-dim:#7a6f63;--text-muted:#b5ad9f;
+    --shadow:rgba(100,85,65,0.10);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-serif;min-height:100vh;padding:40px 24px 100px;background-image:radial-gradient(ellipse at 20% 0%,rgba(180,160,120,0.10) 0%,transparent 60%),radial-gradient(ellipse at 80% 100%,rgba(90,138,128,0.07) 0%,transparent 60%);}
+  .wrapper{max-width:760px;margin:0 auto;}
+  .back-btn{display:inline-flex;align-items:center;gap:6px;font-family:'DM Mono',monospace;font-size:12px;color:var(--text-dim);text-decoration:none;margin-bottom:20px;transition:color 0.2s;}
+  .back-btn:hover{color:var(--accent);}
+  .header{margin-bottom:40px;animation:fadeDown 0.5s ease;}
+  .header-tag{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.18em;color:var(--accent2);text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+  .header-tag::before{content:'';display:inline-block;width:20px;height:1.5px;background:var(--accent2);}
+  h1{font-size:30px;font-weight:700;letter-spacing:-0.02em;}
+  h1 span{color:var(--accent);}
+  .header-sub{font-size:13px;color:var(--text-muted);margin-top:8px;font-weight:300;}
+
+  /* Config section */
+  .section{margin-bottom:24px;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:26px;box-shadow:0 2px 12px var(--shadow);animation:fadeUp 0.5s ease both;}
+  .section:nth-child(2){animation-delay:0.05s;}.section:nth-child(3){animation-delay:0.1s;}.section:nth-child(4){animation-delay:0.15s;}
+  .section-label{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:var(--text-muted);margin-bottom:18px;display:flex;align-items:center;gap:10px;}
+  .section-label::after{content:'';flex:1;height:1px;background:var(--border);}
+  .section-num{color:var(--accent);font-size:11px;font-weight:500;}
+
+  /* Partner list */
+  .partner-list{display:flex;flex-direction:column;gap:10px;margin-bottom:16px;}
+  .partner-card{background:var(--surface2);border:1.5px solid var(--border);border-radius:12px;padding:16px 18px;display:flex;align-items:center;gap:14px;transition:border-color 0.2s;}
+  .partner-card:hover{border-color:var(--accent);}
+  .partner-avatar{width:40px;height:40px;border-radius:10px;background:rgba(181,147,74,0.15);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+  .partner-info{flex:1;}
+  .partner-name{font-size:16px;font-weight:600;color:var(--text);}
+  .partner-meta{font-family:'DM Mono',monospace;font-size:11px;color:var(--text-muted);margin-top:3px;}
+  .partner-actions{display:flex;gap:8px;}
+  .btn-sm{padding:6px 14px;border-radius:8px;font-size:13px;font-family:'Noto Sans TC',sans-serif;cursor:pointer;transition:all 0.2s;border:1.5px solid var(--border);background:transparent;color:var(--text-dim);}
+  .btn-sm:hover{border-color:var(--accent);color:var(--accent);}
+  .btn-sm.danger:hover{border-color:var(--danger);color:var(--danger);}
+
+  .btn-add{width:100%;padding:14px;border:1.5px dashed var(--border);border-radius:12px;background:transparent;color:var(--text-muted);font-size:14px;font-family:'Noto Sans TC',sans-serif;cursor:pointer;transition:all 0.2s;}
+  .btn-add:hover{border-color:var(--accent);color:var(--accent);background:rgba(181,147,74,0.04);}
+
+  /* Form */
+  .partner-form{display:none;background:var(--surface2);border:1.5px solid var(--accent);border-radius:12px;padding:20px;margin-bottom:12px;}
+  .partner-form.show{display:block;}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .field{display:flex;flex-direction:column;gap:6px;}
+  .field.full{grid-column:1/-1;}
+  label{font-size:13px;color:var(--text-dim);font-weight:500;}
+  label .req{color:var(--accent);margin-left:3px;}
+  input,select{background:#fff;border:1.5px solid var(--border);border-radius:9px;color:var(--text);font-family:'Noto Sans TC',sans-serif;font-size:14px;padding:11px 14px;transition:border-color 0.2s,box-shadow 0.2s;width:100%;outline:none;-webkit-appearance:none;}
+  input:focus,select:focus{border-color:var(--border-focus);box-shadow:0 0 0 3px rgba(124,106,82,0.10);}
+  input::placeholder{color:var(--text-muted);font-size:13px;}
+  .hint{font-size:11px;color:var(--text-muted);margin-top:2px;}
+  .form-actions{display:flex;gap:10px;margin-top:16px;}
+  .btn-save{flex:1;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;font-family:'Noto Sans TC',sans-serif;cursor:pointer;transition:all 0.2s;}
+  .btn-save:hover{background:#c9a45a;}
+  .btn-cancel{padding:12px 20px;background:transparent;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:'Noto Sans TC',sans-serif;cursor:pointer;color:var(--text-dim);transition:all 0.2s;}
+  .btn-cancel:hover{border-color:var(--danger);color:var(--danger);}
+
+  /* Config inputs */
+  .config-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .config-field{display:flex;flex-direction:column;gap:6px;}
+  .config-field.full{grid-column:1/-1;}
+
+  /* Output */
+  .output-section{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:26px;box-shadow:0 2px 12px var(--shadow);animation:fadeUp 0.5s ease both 0.2s;}
+  .output-tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
+  .output-tab{padding:8px 16px;border:1.5px solid var(--border);border-radius:8px;background:var(--surface2);color:var(--text-dim);font-size:13px;font-family:'DM Mono',monospace;cursor:pointer;transition:all 0.2s;}
+  .output-tab.active{border-color:var(--purple);background:rgba(124,111,160,0.10);color:var(--purple);}
+  .code-block{background:#1e1a16;border-radius:10px;padding:16px;font-family:'DM Mono',monospace;font-size:12px;color:#d4c9b0;line-height:1.6;max-height:300px;overflow-y:auto;white-space:pre;word-break:break-all;margin-bottom:12px;}
+  .download-row{display:flex;gap:10px;flex-wrap:wrap;}
+  .btn-download{display:inline-flex;align-items:center;gap:8px;padding:12px 20px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;font-family:'Noto Sans TC',sans-serif;cursor:pointer;transition:all 0.2s;box-shadow:0 3px 12px rgba(181,147,74,0.22);}
+  .btn-download:hover{background:#c9a45a;transform:translateY(-1px);}
+  .btn-download.secondary{background:var(--accent2);box-shadow:0 3px 12px rgba(90,138,128,0.22);}
+  .btn-download.secondary:hover{background:#4a7a70;}
+  .btn-download.purple{background:var(--purple);box-shadow:0 3px 12px rgba(124,111,160,0.22);}
+  .btn-download.purple:hover{background:#6b5f90;}
+
+  .empty-output{text-align:center;padding:40px;color:var(--text-muted);font-size:14px;}
+
+  /* Toast */
+  .toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface);border:1.5px solid var(--success);border-radius:12px;padding:13px 24px;font-size:14px;color:var(--success);transition:transform 0.3s ease;z-index:100;white-space:nowrap;box-shadow:0 6px 24px rgba(100,85,65,0.15);}
+  .toast.show{transform:translateX(-50%) translateY(0);}
+
+  @keyframes fadeDown{from{opacity:0;transform:translateY(-12px);}to{opacity:1;transform:translateY(0);}}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+  @media(max-width:560px){.grid-2,.config-grid{grid-template-columns:1fr;}.partner-actions{flex-direction:column;}}
+</style>
+</head>
+<body>
+<div class="wrapper">
+  <a href="index.html" class="back-btn">← 返回首頁</a>
+
+  <div class="header">
+    <div class="header-tag">業績推進系統 · CRM</div>
+    <h1>夥伴<span>管理</span></h1>
+    <p class="header-sub">新增夥伴後自動產出對應的 n8n workflow JSON 和登入頁，直接下載 import 即可</p>
+  </div>
+
+  <!-- 01 系統設定 -->
+  <div class="section">
+    <div class="section-label"><span class="section-num">01</span> 系統設定</div>
+    <div class="config-grid">
+      <div class="config-field full">
+        <label>Google Sheets 文件 ID <span class="req">*</span></label>
+        <input type="text" id="sheetId" placeholder="1mwAXra2BlOA7rbGHTeaaid5-rbxOe0u8Nx3bRJmwMOM" value="1mwAXra2BlOA7rbGHTeaaid5-rbxOe0u8Nx3bRJmwMOM">
+        <span class="hint">網址中 /d/ 後面那段</span>
+      </div>
+      <div class="config-field full">
+        <label>Google Sheets 憑證 ID <span class="req">*</span></label>
+        <input type="text" id="credId" placeholder="nQG7fnHZYkgZdpJM" value="nQG7fnHZYkgZdpJM">
+        <span class="hint">n8n Credentials 裡的 Google Sheets account ID</span>
+      </div>
+      <div class="config-field">
+        <label>Webhook A 路徑（建檔）</label>
+        <input type="text" id="webhookA" placeholder="fcd07b9e-05b4-4ade-b773-dc20b0a7498c" value="fcd07b9e-05b4-4ade-b773-dc20b0a7498c">
+      </div>
+      <div class="config-field">
+        <label>Webhook B 路徑（讀寫）</label>
+        <input type="text" id="webhookB" placeholder="90e38165-cd18-4dd0-85a4-c64a707aaf72" value="90e38165-cd18-4dd0-85a4-c64a707aaf72">
+      </div>
+      <div class="config-field full">
+        <label>n8n 部署網址</label>
+        <input type="text" id="n8nHost" placeholder="https://ydj.zeabur.app" value="https://ydj.zeabur.app">
+      </div>
+      <div class="config-field full">
+        <label>LINE Bot Token</label>
+        <input type="text" id="lineToken" placeholder="Bearer HdzCX..." value="HdzCXsNym/eQcSUDXz8mFS3vKa7zLC5DbYEACYZB7dpawINwem/sMUvMVa7PxURVrvxj0Ivl3h1krV6L7rkR+rGIGB0L5JVupdREtJPr3QZqUsam8Hyzhr8m9ntIUEQEcDBR0/CQC3U5EUCBSArHqwdB04t89/1O/w1cDnyilFU=">
+        <span class="hint">不需要加 Bearer，程式會自動加</span>
+      </div>
+      <div class="config-field full">
+        <label>OpenAI API 憑證 ID</label>
+        <input type="text" id="openaiCredId" placeholder="mGoE2G8KVHEO9u4G" value="mGoE2G8KVHEO9u4G">
+      </div>
+    </div>
+  </div>
+
+  <!-- 02 夥伴列表 -->
+  <div class="section">
+    <div class="section-label"><span class="section-num">02</span> 夥伴列表</div>
+    <div class="partner-list" id="partnerList"></div>
+
+    <!-- 新增表單 -->
+    <div class="partner-form" id="partnerForm">
+      <div class="grid-2">
+        <div class="field">
+          <label>姓名 <span class="req">*</span></label>
+          <input type="text" id="f-name" placeholder="Tracy / 小明">
+        </div>
+        <div class="field">
+          <label>Emoji / 圖示</label>
+          <input type="text" id="f-emoji" placeholder="💼" maxlength="2" value="💼">
+        </div>
+        <div class="field">
+          <label>描述</label>
+          <input type="text" id="f-desc" placeholder="業務夥伴 / 資深顧問">
+        </div>
+        <div class="field">
+          <label>Sheets Tab 名稱 <span class="req">*</span></label>
+          <input type="text" id="f-sheet" placeholder="Tracy">
+          <span class="hint">Google Sheets 裡對應的分頁名稱</span>
+        </div>
+        <div class="field full">
+          <label>LINE User ID <span class="req">*</span></label>
+          <input type="text" id="f-lineId" placeholder="U2db7d9469b80716885b16a204a231261">
+          <span class="hint">讓夥伴傳訊息給 Bot 後從 n8n output 撈</span>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn-cancel" onclick="hideForm()">取消</button>
+        <button class="btn-save" onclick="savePartner()">儲存夥伴</button>
+      </div>
+    </div>
+
+    <button class="btn-add" id="addBtn" onclick="showForm()">＋ 新增夥伴</button>
+  </div>
+
+  <!-- 03 產出 -->
+  <div class="output-section">
+    <div class="section-label"><span class="section-num">03</span> 產出檔案</div>
+
+    <div id="emptyOutput" class="empty-output">請先在上方新增至少一位夥伴，再產出檔案</div>
+
+    <div id="outputArea" style="display:none;">
+      <div class="output-tabs">
+        <div class="output-tab active" onclick="showTab('wa',this)">Workflow A（建檔）</div>
+        <div class="output-tab" onclick="showTab('wb',this)">Workflow B（讀寫）</div>
+        <div class="output-tab" onclick="showTab('reminder',this)">提醒 Workflow</div>
+        <div class="output-tab" onclick="showTab('login',this)">登入頁 HTML</div>
+      </div>
+      <div class="code-block" id="codeBlock">// 點擊上方 tab 預覽內容</div>
+      <div class="download-row">
+        <button class="btn-download" onclick="downloadFile('wa')">⬇ Workflow A JSON</button>
+        <button class="btn-download secondary" onclick="downloadFile('wb')">⬇ Workflow B JSON</button>
+        <button class="btn-download secondary" onclick="downloadFile('reminder')">⬇ 提醒 JSON</button>
+        <button class="btn-download purple" onclick="downloadFile('login')">⬇ index.html</button>
+        <button class="btn-download purple" onclick="downloadAll()">⬇ 全部下載</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── 夥伴資料 ─────────────────────────────────────────────
+let partners = JSON.parse(localStorage.getItem('crm_partners') || '[]');
+
+// 預設加入 YD（不可刪除）
+const YD_DEFAULT = { id: 'YD', name: 'YD', emoji: '👔', desc: '業務 + 財務顧問', sheet: 'YD', lineId: 'Ub05df69187a439ad9f1ab93a6ae0190e', isDefault: true };
+
+function getPartners() {
+  const saved = JSON.parse(localStorage.getItem('crm_partners') || '[]');
+  // 確保 YD 永遠在第一個
+  if (!saved.find(p => p.id === 'YD')) saved.unshift(YD_DEFAULT);
+  return saved;
+}
+
+function savePartners(list) {
+  localStorage.setItem('crm_partners', JSON.stringify(list));
+}
+
+// ── 渲染夥伴列表 ──────────────────────────────────────────
+function renderPartners() {
+  const list = getPartners();
+  const el = document.getElementById('partnerList');
+  el.innerHTML = '';
+
+  list.forEach(p => {
+    const card = document.createElement('div');
+    card.className = 'partner-card';
+    card.innerHTML = `
+      <div class="partner-avatar">${p.emoji || '👤'}</div>
+      <div class="partner-info">
+        <div class="partner-name">${p.name}</div>
+        <div class="partner-meta">Sheet: ${p.sheet} ／ LINE: ${p.lineId ? p.lineId.substring(0,12)+'...' : '未設定'}</div>
+      </div>
+      <div class="partner-actions">
+        ${!p.isDefault ? `<button class="btn-sm danger" onclick="deletePartner('${p.id}')">刪除</button>` : '<span style="font-size:11px;color:var(--text-muted);font-family:\'DM Mono\',monospace;">預設</span>'}
+      </div>
+    `;
+    el.appendChild(card);
+  });
+
+  // 有夥伴就顯示產出區
+  document.getElementById('emptyOutput').style.display = list.length <= 1 ? 'block' : 'none';
+  document.getElementById('outputArea').style.display = list.length > 1 ? 'block' : 'none';
+}
+
+function deletePartner(id) {
+  if (!confirm('確定刪除這位夥伴？')) return;
+  const list = getPartners().filter(p => p.id !== id);
+  savePartners(list);
+  renderPartners();
+  showToast('已刪除');
+}
+
+// ── 表單 ──────────────────────────────────────────────────
+function showForm() {
+  document.getElementById('partnerForm').classList.add('show');
+  document.getElementById('addBtn').style.display = 'none';
+  document.getElementById('f-name').focus();
+}
+
+function hideForm() {
+  document.getElementById('partnerForm').classList.remove('show');
+  document.getElementById('addBtn').style.display = '';
+  ['f-name','f-emoji','f-desc','f-sheet','f-lineId'].forEach(id => {
+    document.getElementById(id).value = id === 'f-emoji' ? '💼' : '';
+  });
+}
+
+function savePartner() {
+  const name = document.getElementById('f-name').value.trim();
+  const sheet = document.getElementById('f-sheet').value.trim();
+  const lineId = document.getElementById('f-lineId').value.trim();
+  if (!name) { showToast('請填寫姓名'); return; }
+  if (!sheet) { showToast('請填寫 Sheet 名稱'); return; }
+  if (!lineId) { showToast('請填寫 LINE ID'); return; }
+
+  const newPartner = {
+    id: name,
+    name,
+    emoji: document.getElementById('f-emoji').value || '💼',
+    desc: document.getElementById('f-desc').value.trim() || '業務夥伴',
+    sheet,
+    lineId
+  };
+
+  const list = getPartners();
+  if (list.find(p => p.id === name)) { showToast('此姓名已存在', true); return; }
+  list.push(newPartner);
+  savePartners(list);
+  hideForm();
+  renderPartners();
+  showToast(`✓ ${name} 已新增`);
+}
+
+// ── 取得設定 ─────────────────────────────────────────────
+function getConfig() {
+  return {
+    sheetId: document.getElementById('sheetId').value.trim(),
+    credId: document.getElementById('credId').value.trim(),
+    webhookA: document.getElementById('webhookA').value.trim(),
+    webhookB: document.getElementById('webhookB').value.trim(),
+    n8nHost: document.getElementById('n8nHost').value.trim().replace(/\/$/, ''),
+    lineToken: document.getElementById('lineToken').value.trim(),
+    openaiCredId: document.getElementById('openaiCredId').value.trim(),
+  };
+}
+
+// ── 產生 Workflow A（建檔）───────────────────────────────
+function genWorkflowA() {
+  const cfg = getConfig();
+  const partners = getPartners();
+
+  const switchRules = partners.slice(1).map(p => ({
+    conditions: {
+      options: { caseSensitive: true, leftValue: '', typeValidation: 'strict', version: 2 },
+      conditions: [{ leftValue: '={{ $json.body.owner }}', rightValue: p.name, operator: { type: 'string', operation: 'equals' } }],
+      combinator: 'and'
+    },
+    renameOutput: true,
+    outputKey: p.name
+  }));
+
+  const nodes = [
+    {
+      parameters: { httpMethod: 'POST', path: cfg.webhookA, responseMode: 'responseNode', options: {} },
+      type: 'n8n-nodes-base.webhook', typeVersion: 2.1, position: [-1400, 0],
+      id: 'webhook-a', name: 'Webhook A', webhookId: cfg.webhookA
+    },
+    {
+      parameters: { rules: { values: switchRules }, fallbackOutput: 'extra', options: {} },
+      type: 'n8n-nodes-base.switch', typeVersion: 3.2, position: [-1160, 0],
+      id: 'switch-owner', name: '判斷負責人'
+    }
+  ];
+
+  const connections = {
+    'Webhook A': { main: [[{ node: '判斷負責人', type: 'main', index: 0 }]] },
+    '判斷負責人': { main: [] }
+  };
+
+  const respondNodes = [];
+
+  partners.forEach((p, idx) => {
+    const yPos = (idx - Math.floor(partners.length / 2)) * 200;
+    const checkId = `check-${p.name}`;
+    const codeId = `code-${p.name}`;
+    const ifId = `if-${p.name}`;
+    const appendId = `append-${p.name}`;
+    const respondNewId = `respond-new-${p.name}`;
+    const respondExistId = `respond-exist-${p.name}`;
+
+    nodes.push(
+      {
+        parameters: {
+          documentId: { __rl: true, value: cfg.sheetId, mode: 'list', cachedResultName: '理財規劃crm' },
+          sheetName: { __rl: true, value: p.sheet, mode: 'name' },
+          filtersUI: { values: [{ lookupColumn: '姓名/代稱', lookupValue: '={{ $json.body.姓名代稱 }}' }] },
+          options: {}
+        },
+        type: 'n8n-nodes-base.googleSheets', typeVersion: 4.7, position: [-880, yPos],
+        id: checkId, name: `檢查已存在 ${p.name}`,
+        credentials: { googleSheetsOAuth2Api: { id: cfg.credId, name: 'Google Sheets account' } }
+      },
+      {
+        parameters: { jsCode: `const body = $('Webhook A').first().json.body;\nconst existing = $input.all();\nif (existing.length > 0 && existing[0].json['姓名/代稱']) {\n  return [{ json: { exists: true, name: existing[0].json['姓名/代稱'], owner: body.owner } }];\n}\nreturn [{ json: { exists: false, body, owner: body.owner } }];` },
+        type: 'n8n-nodes-base.code', typeVersion: 2, position: [-640, yPos],
+        id: codeId, name: `判斷重複 ${p.name}`
+      },
+      {
+        parameters: {
+          conditions: { options: { caseSensitive: true, leftValue: '', typeValidation: 'strict' }, conditions: [{ leftValue: '={{ $json.exists }}', rightValue: true, operator: { type: 'boolean', operation: 'equals' } }], combinator: 'and' },
+          options: {}
+        },
+        type: 'n8n-nodes-base.if', typeVersion: 2.2, position: [-400, yPos],
+        id: ifId, name: `已存在？${p.name}`
+      },
+      {
+        parameters: {
+          operation: 'append',
+          documentId: { __rl: true, value: cfg.sheetId, mode: 'list', cachedResultName: '理財規劃crm' },
+          sheetName: { __rl: true, value: p.sheet, mode: 'name' },
+          columns: {
+            mappingMode: 'defineBelow',
+            value: {
+              '姓名/代稱': '={{ $json.body.姓名代稱 }}', '職業': '={{ $json.body.職業 }}',
+              '居住地': '={{ $json.body.居住地 }}', '熟識程度': '={{ $json.body.熟識程度 }}',
+              '收入預估': '={{ $json.body.收入預估萬 }}', '預計投入金額': '={{ $json.body.預計投入金額萬 }}',
+              '投資工具': '={{ $json.body.投資工具 }}', '流量/存量': '={{ $json.body.資金屬性 }}',
+              '房狀態': '={{ $json.body.房狀態 }}', '決策風格': '={{ $json.body.決策風格 }}',
+              '階段': '={{ $json.body.階段 }}', '階段開始日': '={{ $json.body.階段開始日 }}',
+              '最後聯繫日': '={{ $json.body.最後聯繫日 }}', '下次跟進日': '={{ $json.body.下次跟進日 }}',
+              '預計成交日': '={{ $json.body.預計成交日 }}', '痛點/備註': '={{ $json.body.痛點備註 }}',
+              '我收集的配置需求': '={{ $json.body.我收集的配置需求 }}',
+              '商品/金額': '={{ $json.body.商品金額 }}', '保單日期': '={{ $json.body.保單日期 }}',
+              '最後更新時間': "={{ new Date().toLocaleString('zh-TW', {timeZone: 'Asia/Taipei'}) }}"
+            },
+            matchingColumns: [], schema: [], attemptToConvertTypes: false, convertFieldsToString: true
+          },
+          options: {}
+        },
+        type: 'n8n-nodes-base.googleSheets', typeVersion: 4.7, position: [-160, yPos - 60],
+        id: appendId, name: `新增客戶 ${p.name}`,
+        credentials: { googleSheetsOAuth2Api: { id: cfg.credId, name: 'Google Sheets account' } }
+      },
+      {
+        parameters: {
+          respondWith: 'json',
+          responseBody: `={{ JSON.stringify({ success: true, action: 'new', owner: $json.owner }) }}`,
+          options: { responseHeaders: { entries: [{ name: 'Access-Control-Allow-Origin', value: '*' }] } }
+        },
+        type: 'n8n-nodes-base.respondToWebhook', typeVersion: 1.1, position: [80, yPos - 60],
+        id: respondNewId, name: `回應 新增 ${p.name}`
+      },
+      {
+        parameters: {
+          respondWith: 'json',
+          responseBody: `={{ JSON.stringify({ success: false, action: 'existing', name: $json.name, owner: $json.owner }) }}`,
+          options: { responseHeaders: { entries: [{ name: 'Access-Control-Allow-Origin', value: '*' }] } }
+        },
+        type: 'n8n-nodes-base.respondToWebhook', typeVersion: 1.1, position: [80, yPos + 60],
+        id: respondExistId, name: `回應 已存在 ${p.name}`
+      }
+    );
+
+    // Switch output: Tracy → index 0, YD → fallback (extra)
+    const switchIdx = idx === 0 ? partners.length - 1 : idx - 1; // YD 是 fallback
+    if (!connections['判斷負責人'].main[switchIdx]) connections['判斷負責人'].main[switchIdx] = [];
+    connections['判斷負責人'].main[idx === 0 ? partners.length - 1 : idx - 1] = [{ node: `檢查已存在 ${p.name}`, type: 'main', index: 0 }];
+
+    connections[`檢查已存在 ${p.name}`] = { main: [[{ node: `判斷重複 ${p.name}`, type: 'main', index: 0 }]] };
+    connections[`判斷重複 ${p.name}`] = { main: [[{ node: `已存在？${p.name}`, type: 'main', index: 0 }]] };
+    connections[`已存在？${p.name}`] = { main: [[{ node: `回應 已存在 ${p.name}`, type: 'main', index: 0 }], [{ node: `新增客戶 ${p.name}`, type: 'main', index: 0 }]] };
+    connections[`新增客戶 ${p.name}`] = { main: [[{ node: `回應 新增 ${p.name}`, type: 'main', index: 0 }]] };
+  });
+
+  // Fix switch connections - YD is fallback (last output), others are in order
+  connections['判斷負責人'].main = [];
+  partners.slice(1).forEach((p, idx) => {
+    connections['判斷負責人'].main[idx] = [{ node: `檢查已存在 ${p.name}`, type: 'main', index: 0 }];
+  });
+  // YD is fallback (extra output = last index)
+  connections['判斷負責人'].main[partners.slice(1).length] = [{ node: `檢查已存在 YD`, type: 'main', index: 0 }];
+
+  return JSON.stringify({ nodes, connections, pinData: {}, meta: { templateCredsSetupCompleted: true } }, null, 2);
+}
+
+// ── 產生 Workflow B（讀寫）───────────────────────────────
+function genWorkflowB() {
+  const cfg = getConfig();
+  const partners = getPartners();
+
+  const makeOwnerSwitch = (id, name, position) => ({
+    parameters: {
+      rules: {
+        values: partners.slice(1).map(p => ({
+          conditions: { options: { caseSensitive: true, leftValue: '', typeValidation: 'strict', version: 2 }, conditions: [{ leftValue: '={{ $json.body.owner }}', rightValue: p.name, operator: { type: 'string', operation: 'equals' } }], combinator: 'and' },
+          renameOutput: true, outputKey: p.name
+        }))
+      },
+      fallbackOutput: 'extra', options: {}
+    },
+    type: 'n8n-nodes-base.switch', typeVersion: 3.2, position, id, name
+  });
+
+  const sheetNode = (id, name, op, sheetName, position, extra = {}) => ({
+    parameters: {
+      operation: op === 'get' ? undefined : op,
+      documentId: { __rl: true, value: cfg.sheetId, mode: 'list', cachedResultName: '理財規劃crm' },
+      sheetName: { __rl: true, value: sheetName, mode: 'name' },
+      ...(extra.filter ? { filtersUI: { values: [{ lookupColumn: '姓名/代稱', lookupValue: '={{ $json.body.姓名代稱 }}' }] } } : {}),
+      ...(extra.update ? {
+        columns: {
+          mappingMode: 'defineBelow',
+          value: extra.update,
+          matchingColumns: ['姓名/代稱'],
+          schema: [{ id: '姓名/代稱', displayName: '姓名/代稱', required: false, defaultMatch: false, display: true, type: 'string', canBeUsedToMatch: true }, { id: 'row_number', displayName: 'row_number', required: false, defaultMatch: false, display: true, type: 'number', canBeUsedToMatch: true, readOnly: true }],
+          attemptToConvertTypes: false, convertFieldsToString: false
+        }
+      } : {}),
+      options: {}
+    },
+    type: 'n8n-nodes-base.googleSheets', typeVersion: 4.7, position, id, name,
+    credentials: { googleSheetsOAuth2Api: { id: cfg.credId, name: 'Google Sheets account' } }
+  });
+
+  const updateFields = {
+    '姓名/代稱': '={{ $json.body.姓名代稱 }}', '階段': '={{ $json.body.階段 }}',
+    '最後聯繫日': '={{ $json.body.最後聯繫日 }}', '下次跟進日': '={{ $json.body.下次跟進日 }}',
+    '預計成交日': '={{ $json.body.預計成交日 }}', '上次互動氛圍': '={{ $json.body.上次互動氛圍 }}',
+    '上次卡住的原因': '={{ $json.body.上次卡住的原因 }}', '痛點/備註': '={{ $json.body.痛點備註 }}',
+    '我收集的配置需求': '={{ $json.body.我收集的配置需求 }}', 'AI推薦配置': '={{ $json.body.AI推薦配置 }}',
+    '下一步行動': '={{ $json.body.下一步行動 }}', '成交機率': '={{ $json.body.成交機率 }}',
+    '最後更新時間': "={{ new Date().toLocaleString('zh-TW', {timeZone: 'Asia/Taipei'}) }}", row_number: 0
+  };
+
+  const nodes = [
+    { parameters: { httpMethod: 'POST', path: cfg.webhookB, responseMode: 'responseNode', options: {} }, type: 'n8n-nodes-base.webhook', typeVersion: 2.1, position: [-1600, 0], id: 'wb-main', name: 'Webhook B', webhookId: cfg.webhookB },
+    {
+      parameters: { rules: { values: [
+        { conditions: { options: { caseSensitive: true, leftValue: '', typeValidation: 'strict', version: 2 }, conditions: [{ leftValue: '={{ $json.body.action }}', rightValue: 'load', operator: { type: 'string', operation: 'equals' } }], combinator: 'and' }, renameOutput: true, outputKey: 'load' },
+        { conditions: { options: { caseSensitive: true, leftValue: '', typeValidation: 'strict', version: 2 }, conditions: [{ leftValue: '={{ $json.body.action }}', rightValue: 'update', operator: { type: 'string', operation: 'equals' } }], combinator: 'and' }, renameOutput: true, outputKey: 'update' },
+        { conditions: { options: { caseSensitive: true, leftValue: '', typeValidation: 'strict', version: 2 }, conditions: [{ leftValue: '={{ $json.body.action }}', rightValue: 'ai', operator: { type: 'string', operation: 'equals' } }], combinator: 'and' }, renameOutput: true, outputKey: 'ai' },
+        { conditions: { options: { caseSensitive: true, leftValue: '', typeValidation: 'strict', version: 2 }, conditions: [{ leftValue: '={{ $json.body.action }}', rightValue: 'list', operator: { type: 'string', operation: 'equals' } }], combinator: 'and' }, renameOutput: true, outputKey: 'list' },
+      ]}, options: {} },
+      type: 'n8n-nodes-base.switch', typeVersion: 3.2, position: [-1360, 0], id: 'wb-switch-action', name: 'Switch Action'
+    },
+    makeOwnerSwitch('sw-load', 'Load: 判斷 owner', [-1100, -320]),
+    makeOwnerSwitch('sw-update', 'Update: 判斷 owner', [-1100, -80]),
+    makeOwnerSwitch('sw-list', 'List: 判斷 owner', [-1100, 320]),
+    { parameters: { jsCode: "const rows = $input.all().map(item => item.json);\nreturn [{ json: { clients: rows, total: rows.length } }];" }, type: 'n8n-nodes-base.code', typeVersion: 2, position: [-640, 320], id: 'list-code', name: '整理客戶列表' },
+    {
+      parameters: { jsCode: `const body = $input.first().json.body;\nconst 情境 = body.情境 || '行動前';\nconst 客戶 = body.客戶資料 || {};\nconst 基本資料 = \`姓名：\${客戶['姓名/代稱']||'未知'}\\n職業：\${客戶['職業']||'未知'}\\n收入：\${客戶['收入預估']?客戶['收入預估']+'萬/年':'未知'}\\n預計投入金額：\${客戶['預計投入金額']?客戶['預計投入金額']+'萬':'未知'}\\n熟識程度：\${客戶['熟識程度']||'未知'}\\n決策風格：\${客戶['決策風格']||'未知'}\\n投資工具：\${客戶['投資工具']||'無'}\\n資金屬性：\${客戶['流量/存量']||'未知'}\\n房狀態：\${客戶['房狀態']||'未知'}\\n目前階段：\${客戶['階段']||'未知'}\\n階段停留天數：\${客戶['階段停留天數']||'未知'}天\\n距上次聯繫：\${客戶['距上次聯繫天數']||'未知'}天\\n跟進逾期天數：\${客戶['跟進逾期天數']||'0'}天\\n痛點備註：\${客戶['痛點/備註']||'無'}\\n配置需求：\${客戶['我收集的配置需求']||'無'}\\n上次互動氛圍：\${客戶['上次互動氛圍']||'未知'}\\n上次卡住原因：\${客戶['上次卡住的原因']||'無'}\`.trim();\nconst 系統背景 = '你是業績推進AI，服務對象是一位同時擔任醫療業務（骨板/進刀房）和財務顧問的業務員。\\n主力產品：香港保單（資產配置/傳承）、房貸套利（低利借款→投資）、穩定幣放貸。\\n客戶族群：醫師、護理師為主。\\n說話風格要求：開場白要自然、像朋友、不能有業務感，避免「我想跟您分享」這類話術。\\n如果某欄位是「未知」，請根據其他資訊合理推斷，不要輸出「未知」到建議裡。\\n只輸出純JSON，不加任何說明、換行符號或markdown符號。';\nconst prompt = 情境 === '行動前' ? \`\${系統背景}\\n\\n客戶資料：\\n\${基本資料}\\n\\n【情境：行動前，今天要去聯繫這個客戶】\\n輸出格式（純JSON）：\\n{"成交機率":"低|中|高","AI推薦配置":"針對此客戶金額和需求的具體產品建議","下一步行動":"今天這一步要做什麼，要具體可執行","開場建議":"今天聯繫的自然開場白，像朋友說話，不超過2句","注意事項":"這個客戶最容易踩的一個雷"}\` : \`\${系統背景}\\n\\n客戶資料：\\n\${基本資料}\\n新補充資料：\${body.新補充||'無'}\\n\\n【情境：行動後，剛跟客戶接觸完，重新評估狀況】\\n輸出格式（純JSON）：\\n{"成交機率":"低|中|高","AI推薦配置":"根據最新資料調整後的具體產品建議","下一步行動":"接下來最重要的一步，要具體可執行","評估變化":"跟上次相比，客戶狀況往好還是往壞，原因是什麼","風險提醒":"現在最大的卡點是什麼，怎麼解"}\`;\nreturn [{ json: { prompt, 姓名: 客戶['姓名/代稱']||'', 情境, owner: body.owner||'YD' } }];` },
+      type: 'n8n-nodes-base.code', typeVersion: 2, position: [-880, 560], id: 'ai-prompt', name: '準備 AI Prompt'
+    },
+    { parameters: { model: { __rl: true, mode: 'list', value: 'gpt-4o-mini' }, builtInTools: {}, options: {} }, type: '@n8n/n8n-nodes-langchain.lmChatOpenAi', typeVersion: 1.3, position: [-640, 720], id: 'gpt-model', name: 'GPT Model', credentials: { openAiApi: { id: cfg.openaiCredId, name: 'OpenAi account' } } },
+    { parameters: { promptType: 'define', text: "={{ $('準備 AI Prompt').first().json.prompt }}" }, type: '@n8n/n8n-nodes-langchain.chainLlm', typeVersion: 1.4, position: [-640, 560], id: 'llm-chain', name: 'LLM Chain' },
+    { parameters: { jsCode: "const text = $input.first().json.text || '';\nlet parsed;\ntry { const clean = text.replace(/```json|```/g,'').trim(); parsed = JSON.parse(clean); } catch(e) { parsed = { error: '解析失敗', raw: text }; }\nconst pn = $('準備 AI Prompt').first().json;\nreturn [{ json: { ai結果: parsed, 姓名: pn.姓名, 情境: pn.情境, owner: pn.owner } }];" }, type: 'n8n-nodes-base.code', typeVersion: 2, position: [-400, 560], id: 'parse-ai', name: '解析 AI 回應' },
+    makeOwnerSwitch('sw-ai-write', 'AI 寫回: 判斷 owner', [-160, 560]),
+    { parameters: { respondWith: 'json', responseBody: '={{ JSON.stringify({ success: true, action: \'load\', data: $json }) }}', options: { responseHeaders: { entries: [{ name: 'Access-Control-Allow-Origin', value: '*' }] } } }, type: 'n8n-nodes-base.respondToWebhook', typeVersion: 1.1, position: [-640, -320], id: 'respond-load', name: '回應 Load' },
+    { parameters: { respondWith: 'json', responseBody: '{ "success": true, "action": "update" }', options: { responseHeaders: { entries: [{ name: 'Access-Control-Allow-Origin', value: '*' }] } } }, type: 'n8n-nodes-base.respondToWebhook', typeVersion: 1.1, position: [-640, -80], id: 'respond-update', name: '回應 Update' },
+    { parameters: { respondWith: 'json', responseBody: '={{ JSON.stringify({ success: true, action: \'list\', clients: $json.clients, total: $json.total }) }}', options: { responseHeaders: { entries: [{ name: 'Access-Control-Allow-Origin', value: '*' }] } } }, type: 'n8n-nodes-base.respondToWebhook', typeVersion: 1.1, position: [-400, 320], id: 'respond-list', name: '回應 List' },
+    { parameters: { respondWith: 'json', responseBody: '={{ JSON.stringify({ success: true, action: \'ai\', result: $json.ai結果 }) }}', options: { responseHeaders: { entries: [{ name: 'Access-Control-Allow-Origin', value: '*' }] } } }, type: 'n8n-nodes-base.respondToWebhook', typeVersion: 1.1, position: [320, 560], id: 'respond-ai', name: '回應 AI' },
+  ];
+
+  const connections = {
+    'Webhook B': { main: [[{ node: 'Switch Action', type: 'main', index: 0 }]] },
+    'Switch Action': { main: [[{ node: 'Load: 判斷 owner', type: 'main', index: 0 }],[{ node: 'Update: 判斷 owner', type: 'main', index: 0 }],[{ node: '準備 AI Prompt', type: 'main', index: 0 }],[{ node: 'List: 判斷 owner', type: 'main', index: 0 }]] },
+    '整理客戶列表': { main: [[{ node: '回應 List', type: 'main', index: 0 }]] },
+    '準備 AI Prompt': { main: [[{ node: 'LLM Chain', type: 'main', index: 0 }]] },
+    'GPT Model': { ai_languageModel: [[{ node: 'LLM Chain', type: 'ai_languageModel', index: 0 }]] },
+    'LLM Chain': { main: [[{ node: '解析 AI 回應', type: 'main', index: 0 }]] },
+    '解析 AI 回應': { main: [[{ node: 'AI 寫回: 判斷 owner', type: 'main', index: 0 }]] },
+    'Load: 判斷 owner': { main: [] },
+    'Update: 判斷 owner': { main: [] },
+    'List: 判斷 owner': { main: [] },
+    'AI 寫回: 判斷 owner': { main: [] },
+  };
+
+  partners.forEach((p, idx) => {
+    const yPos = (idx - Math.floor(partners.length / 2)) * 200;
+    const loadId = `load-${p.name}`;
+    const updateId = `update-${p.name}`;
+    const listId = `list-${p.name}`;
+    const aiWriteId = `ai-write-${p.name}`;
+
+    nodes.push(
+      sheetNode(loadId, `Load ${p.name}`, 'get', p.sheet, [-880, yPos - 320], { filter: true }),
+      sheetNode(updateId, `Update ${p.name}`, 'update', p.sheet, [-880, yPos - 80], { update: updateFields }),
+      sheetNode(listId, `List ${p.name}`, 'get', p.sheet, [-880, yPos + 320], {}),
+      sheetNode(aiWriteId, `AI 寫回 ${p.name}`, 'update', p.sheet, [80, yPos + 560], { update: { '姓名/代稱': '={{ $json.姓名 }}', 'AI推薦配置': "={{ $json.ai結果['AI推薦配置'] || '' }}", '下一步行動': "={{ $json.ai結果['下一步行動'] || '' }}", '成交機率': "={{ $json.ai結果['成交機率'] || '' }}", '最後更新時間': "={{ new Date().toLocaleString('zh-TW', {timeZone: 'Asia/Taipei'}) }}", row_number: 0 } })
+    );
+
+    const switchOut = idx === 0 ? partners.slice(1).length : idx - 1;
+    if (idx === 0) {
+      // YD is fallback
+      connections['Load: 判斷 owner'].main[partners.slice(1).length] = [{ node: `Load ${p.name}`, type: 'main', index: 0 }];
+      connections['Update: 判斷 owner'].main[partners.slice(1).length] = [{ node: `Update ${p.name}`, type: 'main', index: 0 }];
+      connections['List: 判斷 owner'].main[partners.slice(1).length] = [{ node: `List ${p.name}`, type: 'main', index: 0 }];
+      connections['AI 寫回: 判斷 owner'].main[partners.slice(1).length] = [{ node: `AI 寫回 ${p.name}`, type: 'main', index: 0 }];
+    } else {
+      connections['Load: 判斷 owner'].main[idx - 1] = [{ node: `Load ${p.name}`, type: 'main', index: 0 }];
+      connections['Update: 判斷 owner'].main[idx - 1] = [{ node: `Update ${p.name}`, type: 'main', index: 0 }];
+      connections['List: 判斷 owner'].main[idx - 1] = [{ node: `List ${p.name}`, type: 'main', index: 0 }];
+      connections['AI 寫回: 判斷 owner'].main[idx - 1] = [{ node: `AI 寫回 ${p.name}`, type: 'main', index: 0 }];
+    }
+
+    connections[`Load ${p.name}`] = { main: [[{ node: '回應 Load', type: 'main', index: 0 }]] };
+    connections[`Update ${p.name}`] = { main: [[{ node: '回應 Update', type: 'main', index: 0 }]] };
+    connections[`List ${p.name}`] = { main: [[{ node: '整理客戶列表', type: 'main', index: 0 }]] };
+    connections[`AI 寫回 ${p.name}`] = { main: [[{ node: '回應 AI', type: 'main', index: 0 }]] };
+  });
+
+  return JSON.stringify({ nodes, connections, pinData: {}, meta: { templateCredsSetupCompleted: true } }, null, 2);
+}
+
+// ── 產生提醒 Workflow ─────────────────────────────────────
+function genReminderWorkflow() {
+  const cfg = getConfig();
+  const partners = getPartners();
+
+  const tagNodes = partners.map((p, idx) => ({
+    parameters: { jsCode: `return $input.all().map(i => ({ json: { ...i.json, _owner: '${p.name}', _lineId: '${p.lineId}' } }));` },
+    type: 'n8n-nodes-base.code', typeVersion: 2,
+    position: [-880, (idx - Math.floor(partners.length / 2)) * 200],
+    id: `tag-${p.name}`, name: `標記 ${p.name}`
+  }));
+
+  const readNodes = partners.map((p, idx) => ({
+    parameters: {
+      documentId: { __rl: true, value: cfg.sheetId, mode: 'list', cachedResultName: '理財規劃crm' },
+      sheetName: { __rl: true, value: p.sheet, mode: 'name' }, options: {}
+    },
+    type: 'n8n-nodes-base.googleSheets', typeVersion: 4.7,
+    position: [-1120, (idx - Math.floor(partners.length / 2)) * 200],
+    id: `read-${p.name}`, name: `讀取 ${p.name} 客戶`,
+    credentials: { googleSheetsOAuth2Api: { id: cfg.credId, name: 'Google Sheets account' } }
+  }));
+
+  const triggerConnections = {};
+  const readConnections = {};
+  const tagConnections = {};
+
+  const triggerOutputs = partners.map((p) => ([{ node: `讀取 ${p.name} 客戶`, type: 'main', index: 0 }]));
+
+  partners.forEach(p => {
+    readConnections[`讀取 ${p.name} 客戶`] = { main: [[{ node: `標記 ${p.name}`, type: 'main', index: 0 }]] };
+    tagConnections[`標記 ${p.name}`] = { main: [[{ node: '合併所有客戶', type: 'main', index: partners.indexOf(p) }]] };
+  });
+
+  const lineToken = cfg.lineToken.startsWith('Bearer ') ? cfg.lineToken : `Bearer ${cfg.lineToken}`;
+
+  const wf = {
+    nodes: [
+      { parameters: {}, type: 'n8n-nodes-base.manualTrigger', typeVersion: 1, position: [-1400, -200], id: 'manual-trigger', name: 'When clicking \'Execute workflow\'' },
+      { parameters: { rule: { interval: [{ field: 'cronExpression', expression: '0 8 * * 1-5' }] } }, type: 'n8n-nodes-base.scheduleTrigger', typeVersion: 1.2, position: [-1400, 0], id: 'schedule-trigger', name: '每日早上8點觸發' },
+      ...readNodes,
+      ...tagNodes,
+      { parameters: {}, type: 'n8n-nodes-base.merge', typeVersion: 3, position: [-640, 0], id: 'merge-all', name: '合併所有客戶' },
+      {
+        parameters: { jsCode: `const rows = $input.all().map(i => i.json);\nconst today = new Date();\ntoday.setHours(0,0,0,0);\nconst overdue = rows.filter(r => {\n  if ((r['階段']||'') === '成交') return false;\n  let 距上次 = parseInt(r['距上次聯繫天數'])||0;\n  if (!距上次 && r['最後聯繫日']) { const d = new Date(r['最後聯繫日']); if (!isNaN(d)) 距上次 = Math.floor((today-d)/86400000); }\n  let 逾期 = parseInt(r['跟進逾期天數'])||0;\n  if (!逾期 && r['下次跟進日']) { const d = new Date(r['下次跟進日']); if (!isNaN(d)) { const diff = Math.floor((today-d)/86400000); 逾期 = diff>0?diff:0; } }\n  r._距上次 = 距上次; r._逾期 = 逾期;\n  return 逾期 > 0 || 距上次 > 14;\n});\nif (!overdue.length) return [{ json: { skip: true } }];\nconst groups = {};\noverdue.forEach(r => {\n  const id = r._lineId;\n  if (!groups[id]) groups[id] = { lineId: id, owner: r._owner, clients: [] };\n  groups[id].clients.push(r);\n});\nconst results = [];\nfor (const group of Object.values(groups)) {\n  const clients = group.clients;\n  clients.sort((a,b) => (b._逾期-a._逾期)||(b._距上次-a._距上次));\n  const lines = clients.map(r => {\n    const emoji = r._逾期>3?'🔴':r._逾期>0?'🟠':'🟡';\n    const 機率 = r['成交機率']?'｜機率'+r['成交機率']:'';\n    return \`\${emoji} \${r['姓名/代稱']}（\${r['階段']||'未知'}）\${機率}\\n　距上次：\${r._距上次}天｜逾期：\${r._逾期}天\`;\n  }).join('\\n\\n');\n  const message = \`📋 CRM 每日提醒｜\${today.toLocaleDateString('zh-TW')}\\n\${group.owner} 共 \${clients.length} 位需跟進\\n\${'─'.repeat(18)}\\n\${lines}\`;\n  results.push({ json: { to: group.lineId, message, owner: group.owner } });\n}\nreturn results;` },
+        type: 'n8n-nodes-base.code', typeVersion: 2, position: [-400, 0], id: 'filter-code', name: '過濾逾期客戶'
+      },
+      { parameters: { conditions: { options: { caseSensitive: true, leftValue: '', typeValidation: 'strict' }, conditions: [{ leftValue: '={{ $json.skip }}', rightValue: true, operator: { type: 'boolean', operation: 'notEquals' } }], combinator: 'and' }, options: {} }, type: 'n8n-nodes-base.if', typeVersion: 2.2, position: [-160, 0], id: 'check-overdue', name: '有逾期客戶？' },
+      { parameters: { method: 'POST', url: 'https://api.line.me/v2/bot/message/push', sendHeaders: true, headerParameters: { parameters: [{ name: 'Authorization', value: lineToken }, { name: 'Content-Type', value: 'application/json' }] }, sendBody: true, specifyBody: 'json', jsonBody: '={\n  "to": "{{ $json.to }}",\n  "messages": [\n    {\n      "type": "text",\n      "text": {{ JSON.stringify($json.message) }}\n    }\n  ]\n}', options: {} }, type: 'n8n-nodes-base.httpRequest', typeVersion: 4.2, position: [80, -40], id: 'send-line', name: '傳送 LINE 訊息' },
+    ],
+    connections: {
+      'When clicking \'Execute workflow\'': { main: [triggerOutputs] },
+      '每日早上8點觸發': { main: [triggerOutputs] },
+      ...readConnections,
+      ...tagConnections,
+      '合併所有客戶': { main: [[{ node: '過濾逾期客戶', type: 'main', index: 0 }]] },
+      '過濾逾期客戶': { main: [[{ node: '有逾期客戶？', type: 'main', index: 0 }]] },
+      '有逾期客戶？': { main: [[{ node: '傳送 LINE 訊息', type: 'main', index: 0 }], []] },
+    },
+    pinData: {},
+    meta: { templateCredsSetupCompleted: true }
+  };
+
+  return JSON.stringify(wf, null, 2);
+}
+
+// ── 產生登入頁 HTML ───────────────────────────────────────
+function genLoginHTML() {
+  const cfg = getConfig();
+  const partners = getPartners();
+  const webhookBUrl = `${cfg.n8nHost}/webhook/${cfg.webhookB}`;
+
+  const btns = partners.map(p => `
+      <button class="identity-btn" data-owner="${p.name}" onclick="login('${p.name}')">
+        <div class="identity-avatar">${p.emoji || '👤'}</div>
+        <div class="identity-info">
+          <div class="identity-name">${p.name}</div>
+          <div class="identity-desc">${p.desc || '業務夥伴'}</div>
+        </div>
+        <div class="identity-arrow">→</div>
+      </button>`).join('\n');
+
+  return `<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>業績推進 CRM</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap');
+  :root{--bg:#f0ece4;--surface:#faf8f4;--border:#ddd8ce;--accent:#b5934a;--accent2:#5a8a80;--text:#2c2620;--text-dim:#7a6f63;--text-muted:#b5ad9f;--shadow:rgba(100,85,65,0.12);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background-image:radial-gradient(ellipse at 20% 10%,rgba(181,147,74,0.12) 0%,transparent 55%),radial-gradient(ellipse at 80% 90%,rgba(90,138,128,0.10) 0%,transparent 55%);}
+  .container{width:100%;max-width:400px;animation:fadeUp 0.6s ease;}
+  .logo{text-align:center;margin-bottom:48px;}
+  .logo-tag{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.2em;color:var(--text-muted);text-transform:uppercase;margin-bottom:12px;}
+  .logo h1{font-size:28px;font-weight:700;letter-spacing:-0.02em;}
+  .logo h1 span{color:var(--accent);}
+  .logo p{font-size:13px;color:var(--text-muted);margin-top:8px;font-weight:300;}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:32px;box-shadow:0 4px 24px var(--shadow);}
+  .card-title{font-size:14px;color:var(--text-dim);text-align:center;margin-bottom:24px;}
+  .identity-group{display:flex;flex-direction:column;gap:12px;margin-bottom:28px;}
+  .identity-btn{width:100%;padding:20px 24px;border:2px solid var(--border);border-radius:14px;background:rgba(181,147,74,0.04);cursor:pointer;text-align:left;transition:all 0.2s;display:flex;align-items:center;gap:16px;font-family:'Noto Sans TC',sans-serif;}
+  .identity-btn:hover{border-color:var(--accent);background:rgba(181,147,74,0.08);box-shadow:0 4px 16px rgba(181,147,74,0.15);transform:translateY(-1px);}
+  .identity-avatar{width:44px;height:44px;border-radius:12px;background:rgba(181,147,74,0.15);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+  .identity-name{font-size:17px;font-weight:700;color:var(--accent);margin-bottom:2px;}
+  .identity-desc{font-size:12px;color:var(--text-muted);font-weight:300;}
+  .identity-arrow{margin-left:auto;font-size:16px;color:var(--text-muted);transition:transform 0.2s;}
+  .identity-btn:hover .identity-arrow{transform:translateX(4px);}
+  .footer-note{text-align:center;font-size:11px;color:var(--text-muted);font-family:'DM Mono',monospace;letter-spacing:0.05em;}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="logo">
+    <div class="logo-tag">業績推進系統 · CRM</div>
+    <h1>你<span>好</span></h1>
+    <p>請選擇你的身份繼續</p>
+  </div>
+  <div class="card">
+    <div class="card-title">我是⋯</div>
+    <div class="identity-group">
+${btns}
+    </div>
+    <div class="footer-note">選擇後將自動同步你的客戶資料</div>
+  </div>
+</div>
+<script>
+  const savedOwner = localStorage.getItem('crm_owner');
+  if (savedOwner) window.location.href = 'crm-list.html';
+  function login(owner) {
+    localStorage.setItem('crm_owner', owner);
+    localStorage.setItem('crm_webhook_b', '${webhookBUrl}');
+    window.location.href = 'crm-list.html';
+  }
+<\/script>
+</body>
+</html>`;
+}
+
+// ── Tab 切換 ──────────────────────────────────────────────
+let currentTab = 'wa';
+const generated = {};
+
+function generateAll() {
+  generated.wa = genWorkflowA();
+  generated.wb = genWorkflowB();
+  generated.reminder = genReminderWorkflow();
+  generated.login = genLoginHTML();
+}
+
+function showTab(tab, el) {
+  currentTab = tab;
+  document.querySelectorAll('.output-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  generateAll();
+  document.getElementById('codeBlock').textContent = generated[tab];
+}
+
+// ── 下載 ─────────────────────────────────────────────────
+function downloadFile(type) {
+  generateAll();
+  const map = {
+    wa: { content: generated.wa, filename: 'workflow-a.json', mime: 'application/json' },
+    wb: { content: generated.wb, filename: 'workflow-b.json', mime: 'application/json' },
+    reminder: { content: generated.reminder, filename: 'workflow-reminder.json', mime: 'application/json' },
+    login: { content: generated.login, filename: 'index.html', mime: 'text/html' },
+  };
+  const { content, filename, mime } = map[type];
+  const blob = new Blob([content], { type: mime });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  showToast(`✓ ${filename} 已下載`);
+}
+
+function downloadAll() {
+  ['wa','wb','reminder','login'].forEach((t, i) => {
+    setTimeout(() => downloadFile(t), i * 300);
+  });
+}
+
+// ── Toast ─────────────────────────────────────────────────
+function showToast(msg, isError = false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.borderColor = isError ? 'var(--danger)' : 'var(--success)';
+  t.style.color = isError ? 'var(--danger)' : 'var(--success)';
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ── 初始化 ────────────────────────────────────────────────
+renderPartners();
+</script>
+</body>
+</html>
