@@ -602,6 +602,8 @@ async function confirmSubmit(){
     const prevOverflow=previewEl.style.overflow;
     previewEl.style.maxHeight='none';
     previewEl.style.overflow='visible';
+    previewEl.style.width='780px'; // 固定寬度確保完整截到
+    await new Promise(r=>setTimeout(r,100)); // 等 reflow
     const canvas=await html2canvas(previewEl,{
       scale:2,
       useCORS:true,
@@ -609,12 +611,15 @@ async function confirmSubmit(){
       logging:false,
       scrollX:0,
       scrollY:0,
-      windowWidth:previewEl.scrollWidth,
+      windowWidth:800,
       windowHeight:previewEl.scrollHeight,
+      width:previewEl.scrollWidth,
+      height:previewEl.scrollHeight,
     });
     // 還原
     previewEl.style.maxHeight=prevMaxHeight;
     previewEl.style.overflow=prevOverflow;
+    previewEl.style.width='';
     const jpgDataUrl=canvas.toDataURL('image/jpeg',0.92);
     const base64=jpgDataUrl.split(',')[1];
     const filename=`報刀單_${serial}_${data.醫院||''}_${data.病人||''}.jpg`;
