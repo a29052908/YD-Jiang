@@ -141,7 +141,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', s
 <div class="topbar-logo">Tandry</div>
 <h1>報刀單</h1>
 </div>
-<button onclick="window.location.href='手動報刀_v10.html'" style="background:rgba(255,255,255,0.15);border:none;color:white;padding:6px 12px;border-radius:8px;font-size:13px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;">← 返回</button>
+<button onclick="goBack()" style="background:rgba(255,255,255,0.15);border:none;color:white;padding:6px 12px;border-radius:8px;font-size:13px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;">← 返回</button>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -250,8 +250,22 @@ const baseData = JSON.parse(localStorage.getItem('tandry_phase2_data') || 'null'
 
 window.onload = () => {
   renderInfoGrid();
+  // 若有返回狀態則還原
+  const returnRaw = localStorage.getItem('tandry_baodao_return');
+  if(returnRaw){
+    try{
+      const rs = JSON.parse(returnRaw);
+      if(rs.screwState) screwState = rs.screwState;
+      if(rs.activeScrewBoards) activeScrewBoards = rs.activeScrewBoards;
+      if(rs.selectedType) selectType(rs.selectedType);
+      if(rs.component) document.getElementById('componentInput').value = rs.component;
+      if(rs.tool) document.getElementById('toolInput').value = rs.tool;
+      if(rs.remark) document.getElementById('remarkInput').value = rs.remark;
+      localStorage.removeItem('tandry_baodao_return');
+    }catch(e){ console.error('還原返回狀態失敗',e); }
+  }
   renderAllScrewBoards();
-  renderBuwei(); // 初始化選品
+  renderBuwei();
 };
 
 function renderInfoGrid() {
@@ -592,6 +606,20 @@ function showSuccessOverlay(serial){
   overlay.onclick=()=>document.body.removeChild(overlay);
   document.body.appendChild(overlay);
   setTimeout(()=>{if(document.body.contains(overlay))document.body.removeChild(overlay);},4000);
+}
+
+function goBack(){
+  // 把釘盤、組件、工具、備註、單據類型存回
+  const returnState={
+    screwState,
+    activeScrewBoards,
+    selectedType,
+    component:document.getElementById('componentInput').value,
+    tool:document.getElementById('toolInput').value,
+    remark:document.getElementById('remarkInput').value,
+  };
+  localStorage.setItem('tandry_baodao_return',JSON.stringify(returnState));
+  window.location.href='手動報刀_v10.html';
 }
 
 function showToast(msg,type=''){const t=document.getElementById('toast');t.textContent=msg;t.className=`toast show ${type}`;setTimeout(()=>t.className='toast',3000);}
