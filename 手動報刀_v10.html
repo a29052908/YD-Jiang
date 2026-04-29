@@ -1397,6 +1397,7 @@ function goToReport(){
     院內碼:productItems.map(i=>i.另洽?i.innerCode+'（另洽）':i.innerCode).join('、'),
   };
   localStorage.setItem('tandry_phase2_data',JSON.stringify(data));
+  localStorage.removeItem('tandry_baodao_return'); // 全新進入，清掉舊的返回狀態
   window.location.href='Baodao.html';
 }
 
