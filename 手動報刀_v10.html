@@ -325,8 +325,7 @@ let selectedHospital = '', innerCode = '';
     const btn = document.getElementById('dashboardBtn');
     if (btn) btn.style.display = 'inline-flex';
     // admin/manager 清除舊的業務殘留
-    localStorage.removeItem('tandry_sales_current');
-    localStorage.removeItem('tandry_warehouse_current');
+    localStorage.setItem('tandry_sales_current', user.displayName || user.username);
   }
 })();
 let currentSales = (() => {
