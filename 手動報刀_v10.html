@@ -204,7 +204,8 @@ function tandryLogout() {
     <div class="sales-badge" onclick="openSalesModal()">
       🏭 <span id="warehouseBadge">選庫別</span>
     </div>
-    <button onclick="tandryLogout()" style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.25);color:white;padding:6px 11px;border-radius:8px;font-size:12px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;">登出</button>
+    <a href="dashboard.html" id="dashboardBtn" style="display:none;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.25);color:white;padding:6px 11px;border-radius:8px;font-size:12px;text-decoration:none;font-family:'Noto Sans TC',sans-serif;">📋 總表</a>
+<button onclick="tandryLogout()" style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.25);color:white;padding:6px 11px;border-radius:8px;font-size:12px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;">登出</button>
   </div>
 </div>
 
@@ -317,6 +318,14 @@ function tandryLogout() {
 const WEEKDAYS = ['日','一','二','三','四','五','六'];
 let currentDate = new Date();
 let selectedHospital = '', innerCode = '';
+// 根據角色顯示總表按鈕
+(function() {
+  const user = window.TANDRY_USER || {};
+  if (user.role === 'admin' || user.role === 'manager') {
+    const btn = document.getElementById('dashboardBtn');
+    if (btn) btn.style.display = 'inline-flex';
+  }
+})();
 let currentSales = (() => {
   const user = window.TANDRY_USER || {};
   if (user.role === 'sales' && user.displayName) {
