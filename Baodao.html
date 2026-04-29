@@ -556,13 +556,43 @@ async function confirmSubmit(){
   const serial=incrementSerial();
   const data={...buildPayload(),流水號:serial};
 
-  // 1. 送報刀資料
-  try{
-    const ctrl=new AbortController();
-    const t=setTimeout(()=>ctrl.abort(),8000);
-    await fetch(WEBHOOK_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data),signal:ctrl.signal});
-    clearTimeout(t);
-  }catch(e){console.error('報刀資料送出失敗',e);}
+ // 1. 送報刀資料：每個 productItem 各送一列
+  const items = baseData.productItems && baseData.productItems.length > 0
+    ? baseData.productItems
+    : [{buwei: baseData.部位, spec: baseData.規格, 品號: baseData.品號, qty: baseData.數量, innerCode: baseData.院內碼, payNote: baseData.費用類型, 另洽: false, dhsNote: '', 負責業務: baseData.負責業務, 大區: baseData.大區}];
+  for(const item of items){
+    const codeOut = item.另洽 ? (item.innerCode||'')+'（另洽）' : (item.innerCode||'');
+    const row = {
+      流水號: serial,
+      日期: baseData.日期,
+      業務: baseData.業務,
+      庫別: baseData.庫別,
+      大區: item.大區 || baseData.大區 || '',
+      負責業務: item.負責業務 || baseData.負責業務 || '',
+      醫院: baseData.醫院,
+      醫師: baseData.醫師,
+      部位: item.buwei || '',
+      規格: item.spec || '',
+      品號: item.品號 || '',
+      數量: item.qty || 1,
+      病人: baseData.病人,
+      病歷號: baseData.病歷號,
+      院內碼: codeOut,
+      費用類型: item.payNote || '',
+      另洽: item.另洽 ? '是' : '',
+      DHS組件: item.dhsNote || '',
+      組件: document.getElementById('componentInput').value,
+      工具: document.getElementById('toolInput').value,
+      備註: document.getElementById('remarkInput').value,
+      單據類型: selectedType,
+    };
+    try{
+      const ctrl=new AbortController();
+      const t=setTimeout(()=>ctrl.abort(),8000);
+      await fetch(WEBHOOK_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(row),signal:ctrl.signal});
+      clearTimeout(t);
+    }catch(e){console.error('報刀資料送出失敗',e);}
+  }
 
   // 2. 截圖 → 下載 + 上傳 Drive
   try{
