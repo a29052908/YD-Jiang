@@ -334,6 +334,7 @@ function renderTable() {
     const pickupBadge = IS_ADMIN
       ? `<td><span class="pickup-badge ${pickup === '已處理' ? 'pickup-done' : 'pickup-pending'}">${pickup}</span></td>`
       : '';
+    const parts = (row['品項'] || []).map(p => p['部位']).filter(Boolean).join('、');
 
     if (IS_ADMIN) {
       return `<tr onclick="openDrawer(${i})">
@@ -343,7 +344,7 @@ function renderTable() {
         <td>${row['醫院'] || ''}</td>
         <td>${row['醫師'] || ''}</td>
         <td>${row['病人'] || ''}</td>
-        <td>${row['部位'] || ''}</td>
+        <td>${parts || '-'}</td>
         ${pickupBadge}
         <td><button class="detail-btn" onclick="event.stopPropagation();openDrawer(${i})">詳細</button></td>
       </tr>`;
@@ -354,7 +355,7 @@ function renderTable() {
         <td>${row['醫院'] || ''}</td>
         <td>${row['醫師'] || ''}</td>
         <td>${row['病人'] || ''}</td>
-        <td>${row['部位'] || ''}</td>
+        <td>${parts || '-'}</td>
         <td><button class="detail-btn" onclick="event.stopPropagation();openDrawer(${i})">詳細</button></td>
       </tr>`;
     }
@@ -391,16 +392,22 @@ function openDrawer(index) {
       </div>
     </div>
 
-    <div class="drawer-section">
-      <div class="drawer-section-title">產品資料</div>
-      <div class="info-grid">
-        <div class="info-item"><div class="key">部位</div><div class="val">${row['部位'] || '-'}</div></div>
-        <div class="info-item"><div class="key">規格</div><div class="val">${row['規格'] || '-'}</div></div>
-        <div class="info-item"><div class="key">品號</div><div class="val" style="font-family:'JetBrains Mono',monospace;font-size:13px;">${row['品號'] || '-'}</div></div>
-        <div class="info-item"><div class="key">數量</div><div class="val">${row['數量'] || '-'}</div></div>
-        <div class="info-item"><div class="key">院內碼</div><div class="val" style="font-family:'JetBrains Mono',monospace;font-size:12px;">${row['院內碼'] || '-'}</div></div>
-        <div class="info-item"><div class="key">另洽</div><div class="val">${row['另洽'] || '-'}</div></div>
-        ${row['DHS組件'] ? `<div class="info-item full"><div class="key">DHS組件</div><div class="val">${row['DHS組件']}</div></div>` : ''}
+   <div class="drawer-section">
+      <div class="drawer-section-title">產品明細（${(row['品項'] || []).length} 項）</div>
+      <div class="items-list">
+        ${(row['品項'] || []).map((item, idx) => `
+          <div class="item-row-drawer">
+            <div style="font-size:13px;font-weight:600;margin-bottom:6px;">品項 ${idx + 1}　<span style="background:var(--accent2);color:white;padding:2px 8px;border-radius:5px;font-size:11px;">${item['部位'] || ''}</span></div>
+            <div class="item-tags">
+              ${item['規格'] ? `<span class="tag tag-spec">${item['規格']}</span>` : ''}
+              ${item['品號'] ? `<span class="tag tag-code">${item['品號']}</span>` : ''}
+              ${item['數量'] ? `<span class="tag tag-qty">×${item['數量']}</span>` : ''}
+              ${item['院內碼'] ? `<span class="tag tag-code">${item['院內碼']}${item['另洽'] === '是' ? '（另洽）' : ''}</span>` : ''}
+              ${item['費用類型'] ? `<span class="tag" style="background:#f0f0f0;color:var(--muted);">${item['費用類型']}</span>` : ''}
+              ${item['DHS組件'] ? `<span class="tag" style="background:#fff0e0;color:#b05000;">${item['DHS組件']}</span>` : ''}
+            </div>
+          </div>
+        `).join('')}
       </div>
     </div>
 
