@@ -567,7 +567,24 @@ async function confirmSubmit(){
   // 2. 截圖 → 下載 + 上傳 Drive
   try{
     const previewEl=document.getElementById('previewContent');
-    const canvas=await html2canvas(previewEl,{scale:2,useCORS:true,backgroundColor:'#ffffff',logging:false});
+    // 暫時展開讓 html2canvas 能截到完整內容
+    const prevMaxHeight=previewEl.style.maxHeight;
+    const prevOverflow=previewEl.style.overflow;
+    previewEl.style.maxHeight='none';
+    previewEl.style.overflow='visible';
+    const canvas=await html2canvas(previewEl,{
+      scale:2,
+      useCORS:true,
+      backgroundColor:'#ffffff',
+      logging:false,
+      scrollX:0,
+      scrollY:0,
+      windowWidth:previewEl.scrollWidth,
+      windowHeight:previewEl.scrollHeight,
+    });
+    // 還原
+    previewEl.style.maxHeight=prevMaxHeight;
+    previewEl.style.overflow=prevOverflow;
     const jpgDataUrl=canvas.toDataURL('image/jpeg',0.92);
     const base64=jpgDataUrl.split(',')[1];
     const filename=`報刀單_${serial}_${data.醫院||''}_${data.病人||''}.jpg`;
