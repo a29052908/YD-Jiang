@@ -360,6 +360,24 @@ function bulkAdd(name) {
   showToast(`✅ 已新增 ${name}`);
 }
 
+function editPassword(index) {
+  document.getElementById(`pwrow_${index}`).style.display = 'table-row';
+  document.getElementById(`pwinput_${index}`).focus();
+}
+
+function cancelPassword(index) {
+  document.getElementById(`pwrow_${index}`).style.display = 'none';
+  document.getElementById(`pwinput_${index}`).value = '';
+}
+
+function savePassword(index) {
+  const newPw = document.getElementById(`pwinput_${index}`).value.trim();
+  if (!newPw) { showToast('❌ 請輸入新密碼'); return; }
+  users[index].password = newPw;
+  renderTable();
+  showToast(`✅ ${users[index]?.displayName || ''} 密碼已更新`);
+}
+
 function removeUser(index) {
   const name = users[index].displayName;
   users.splice(index, 1);
@@ -382,12 +400,28 @@ function renderTable() {
   empty.style.display = 'none';
 
   tbody.innerHTML = users.map((u, i) => `
-    <tr>
+    <tr id="row_${i}">
       <td><span style="font-family:'JetBrains Mono',monospace;font-size:13px;">${u.username}</span></td>
       <td>${u.displayName}</td>
-      <td><span style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--muted);">${'•'.repeat(u.password.length)}</span> <span style="font-size:11px;color:var(--muted);">(${u.password})</span></td>
+      <td id="pwcell_${i}">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--muted);">${'•'.repeat(u.password.length)}</span>
+        <span style="font-size:11px;color:var(--muted);">(${u.password})</span>
+      </td>
       <td><span class="role-badge role-${u.role}">${u.role}</span></td>
-      <td><button class="btn btn-danger" onclick="removeUser(${i})">刪除</button></td>
+      <td style="display:flex;gap:6px;">
+        <button class="btn" style="background:rgba(58,134,255,0.15);color:var(--accent2);padding:6px 12px;font-size:12px;" onclick="editPassword(${i})">改密碼</button>
+        <button class="btn btn-danger" onclick="removeUser(${i})">刪除</button>
+      </td>
+    </tr>
+    <tr id="pwrow_${i}" style="display:none;">
+      <td colspan="5" style="padding:8px 12px;background:var(--surface2);">
+        <div style="display:flex;gap:8px;align-items:center;">
+          <span style="font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace;white-space:nowrap;">${u.username} 新密碼：</span>
+          <input type="text" id="pwinput_${i}" placeholder="輸入新密碼" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:7px 12px;color:var(--text);font-size:13px;outline:none;flex:1;font-family:'JetBrains Mono',monospace;">
+          <button class="btn btn-green" style="padding:7px 14px;font-size:12px;" onclick="savePassword(${i})">確認</button>
+          <button class="btn" style="background:var(--dim);color:var(--text);padding:7px 12px;font-size:12px;" onclick="cancelPassword(${i})">取消</button>
+        </div>
+      </td>
     </tr>
   `).join('');
 }
