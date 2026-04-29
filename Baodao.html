@@ -265,9 +265,7 @@ window.onload = () => {
     }catch(e){ console.error('還原返回狀態失敗',e); }
   }
   renderAllScrewBoards();
-  renderBuwei();
 };
-
 function renderInfoGrid() {
   const fields = [
     {label:'日期', val:baseData.日期},{label:'業務', val:baseData.業務},
@@ -428,7 +426,6 @@ function incrementSerial(){let s=getSerial();s++;localStorage.setItem(SERIAL_KEY
 
 function buildPayload(){
   return{...baseData,
-    productItems,
     流水號:getSerial(),單據類型:selectedType,
     釘子明細:buildScrewText(),
     組件:document.getElementById('componentInput').value,
