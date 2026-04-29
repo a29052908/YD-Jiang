@@ -562,6 +562,7 @@ async function confirmSubmit(){
     : [{buwei: baseData.部位, spec: baseData.規格, 品號: baseData.品號, qty: baseData.數量, innerCode: baseData.院內碼, payNote: baseData.費用類型, 另洽: false, dhsNote: '', 負責業務: baseData.負責業務, 大區: baseData.大區}];
   for(const item of items){
     const codeOut = item.另洽 ? (item.innerCode||'')+'（另洽）' : (item.innerCode||'');
+    const isFirst = items.indexOf(item) === 0;
     const row = {
       流水號: serial,
       日期: baseData.日期,
@@ -581,10 +582,10 @@ async function confirmSubmit(){
       費用類型: item.payNote || '',
       另洽: item.另洽 ? '是' : '',
       DHS組件: item.dhsNote || '',
-      組件: document.getElementById('componentInput').value,
-      工具: document.getElementById('toolInput').value,
-      備註: document.getElementById('remarkInput').value,
-      單據類型: selectedType,
+      組件: isFirst ? document.getElementById('componentInput').value : '',
+      工具: isFirst ? document.getElementById('toolInput').value : '',
+      備註: isFirst ? document.getElementById('remarkInput').value : '',
+      單據類型: isFirst ? selectedType : '',
     };
     try{
       const ctrl=new AbortController();
