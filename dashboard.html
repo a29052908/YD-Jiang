@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>報刀總表</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f5f4f0; --card: #ffffff; --border: #e0ddd6;
+  --accent: #1a1a2e; --accent2: #e63946;
+  --green: #2d6a4f; --green-light: #d8f3dc;
+  --text: #1a1a2e; --muted: #888680; --dim: #c5c3bc;
+  --blue: #3a5bd9; --blue-light: #e8ecff;
+  --shadow: 0 2px 12px rgba(0,0,0,0.08); --radius: 12px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', sans-serif; min-height: 100vh; padding-bottom: 40px; }
+
+/* topbar */
+.topbar { background: var(--accent); color: white; padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+.topbar-left { display: flex; align-items: center; gap: 12px; }
+.topbar-logo { background: var(--accent2); border-radius: 8px; padding: 6px 8px; font-weight: 700; font-size: 11px; letter-spacing: -0.5px; }
+.topbar h1 { font-size: 17px; font-weight: 600; }
+.topbar-right { display: flex; align-items: center; gap: 8px; }
+.nav-btn { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 6px 12px; border-radius: 8px; font-size: 12px; cursor: pointer; font-family: 'Noto Sans TC', sans-serif; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; }
+.nav-btn:hover { background: rgba(255,255,255,0.2); }
+.nav-btn.active { background: rgba(255,255,255,0.25); }
+
+/* content */
+.content { padding: 16px; max-width: 900px; margin: 0 auto; }
+
+/* month bar */
+.month-bar { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; align-items: center; }
+.month-btn { padding: 7px 14px; border-radius: 20px; border: 1.5px solid var(--border); background: var(--card); font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.15s; color: var(--muted); font-family: 'Noto Sans TC', sans-serif; }
+.month-btn:hover { border-color: var(--accent); color: var(--accent); }
+.month-btn.active { background: var(--accent); border-color: var(--accent); color: white; font-weight: 600; }
+.year-label { font-size: 12px; font-weight: 700; color: var(--muted); font-family: 'JetBrains Mono', monospace; margin-right: 4px; }
+
+/* filter bar */
+.filter-bar { background: var(--card); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 12px; box-shadow: var(--shadow); border: 1px solid var(--border); display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
+.filter-field { display: flex; flex-direction: column; gap: 4px; }
+.filter-field label { font-size: 10px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-family: 'JetBrains Mono', monospace; }
+.filter-input { padding: 8px 12px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 13px; font-family: 'Noto Sans TC', sans-serif; outline: none; background: var(--bg); color: var(--text); min-width: 120px; }
+.filter-input:focus { border-color: var(--accent); }
+.filter-btn { padding: 8px 16px; border-radius: 8px; border: none; font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'Noto Sans TC', sans-serif; }
+.filter-btn-search { background: var(--accent); color: white; }
+.filter-btn-clear { background: var(--bg); color: var(--muted); border: 1.5px solid var(--border); }
+
+/* stats bar */
+.stats-bar { display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+.stat-chip { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 6px 14px; font-size: 12px; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+.stat-chip strong { color: var(--text); }
+
+/* table */
+.table-wrap { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid var(--border); overflow: hidden; }
+.table-scroll { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; min-width: 600px; }
+thead { background: var(--accent); color: white; }
+th { padding: 11px 14px; text-align: left; font-size: 11px; font-weight: 600; letter-spacing: 0.5px; white-space: nowrap; font-family: 'JetBrains Mono', monospace; }
+td { padding: 11px 14px; font-size: 13px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: #faf9f7; cursor: pointer; }
+.td-date { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--muted); white-space: nowrap; }
+.td-serial { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--dim); }
+.td-name { font-weight: 500; }
+.detail-btn { padding: 4px 12px; border-radius: 6px; border: 1.5px solid var(--border); background: white; font-size: 12px; cursor: pointer; font-family: 'Noto Sans TC', sans-serif; color: var(--accent); font-weight: 600; white-space: nowrap; transition: all 0.15s; }
+.detail-btn:hover { background: var(--accent); color: white; border-color: var(--accent); }
+
+/* pickup badge */
+.pickup-badge { padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+.pickup-pending { background: #fff0f1; color: var(--accent2); }
+.pickup-done { background: var(--green-light); color: var(--green); }
+
+/* empty / loading */
+.state-box { text-align: center; padding: 60px 20px; color: var(--muted); }
+.state-box .icon { font-size: 36px; margin-bottom: 12px; }
+.state-box p { font-size: 14px; }
+.spinner { width: 28px; height: 28px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 12px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* drawer */
+.drawer-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; display: none; }
+.drawer-overlay.show { display: block; }
+.drawer { position: fixed; right: 0; top: 0; bottom: 0; width: 100%; max-width: 420px; background: var(--card); z-index: 201; transform: translateX(100%); transition: transform 0.3s ease; overflow-y: auto; box-shadow: -4px 0 24px rgba(0,0,0,0.15); }
+.drawer.show { transform: translateX(0); }
+.drawer-header { background: var(--accent); color: white; padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 10; }
+.drawer-header h2 { font-size: 15px; font-weight: 600; }
+.drawer-close { background: rgba(255,255,255,0.15); border: none; color: white; width: 30px; height: 30px; border-radius: 50%; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.drawer-body { padding: 20px; }
+.drawer-section { margin-bottom: 20px; }
+.drawer-section-title { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; font-family: 'JetBrains Mono', monospace; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+.info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.info-item { background: var(--bg); border-radius: 8px; padding: 10px 12px; }
+.info-item .key { font-size: 10px; color: var(--muted); font-family: 'JetBrains Mono', monospace; margin-bottom: 3px; }
+.info-item .val { font-size: 14px; font-weight: 500; color: var(--text); }
+.info-item.full { grid-column: span 2; }
+.items-list { display: flex; flex-direction: column; gap: 8px; }
+.item-row-drawer { background: var(--bg); border-radius: 8px; padding: 10px 12px; }
+.item-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+.tag { padding: 2px 8px; border-radius: 5px; font-size: 11px; font-weight: 600; }
+.tag-buwei { background: var(--accent2); color: white; }
+.tag-spec { background: var(--blue-light); color: var(--blue); font-family: 'JetBrains Mono', monospace; }
+.tag-code { background: #f0f0f0; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+.tag-qty { background: var(--green-light); color: var(--green); font-family: 'JetBrains Mono', monospace; }
+.edit-request-btn { width: 100%; padding: 12px; background: var(--accent2); color: white; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: 'Noto Sans TC', sans-serif; margin-top: 4px; }
+.edit-request-btn:hover { background: #d02f3b; }
+
+/* toast */
+.toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--accent); color: white; padding: 11px 20px; border-radius: 24px; font-size: 13px; font-weight: 500; opacity: 0; transition: all 0.3s; z-index: 999; white-space: nowrap; pointer-events: none; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+@media (max-width: 480px) {
+  .filter-bar { gap: 8px; }
+  .filter-input { min-width: 100px; }
+  .info-grid { grid-template-columns: 1fr; }
+  .info-item.full { grid-column: span 1; }
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="topbar-logo">Tandry</div>
+    <h1>報刀總表</h1>
+  </div>
+  <div class="topbar-right">
+    <a href="手動報刀_v10.html" class="nav-btn">✏️ 報刀</a>
+    <button onclick="tandryLogout()" class="nav-btn">登出</button>
+  </div>
+</div>
+
+<!-- Drawer overlay -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-header">
+    <h2 id="drawerTitle">案件詳細</h2>
+    <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  </div>
+  <div class="drawer-body" id="drawerBody"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="content">
+  <!-- 月份切換 -->
+  <div class="month-bar" id="monthBar"></div>
+
+  <!-- 篩選 -->
+  <div class="filter-bar">
+    <div class="filter-field">
+      <label>醫院</label>
+      <input class="filter-input" id="filterHospital" placeholder="全部" style="min-width:100px;">
+    </div>
+    <div class="filter-field">
+      <label>醫師</label>
+      <input class="filter-input" id="filterDoctor" placeholder="全部" style="min-width:100px;">
+    </div>
+    <div id="filterSalesWrap" class="filter-field" style="display:none;">
+      <label>業務</label>
+      <input class="filter-input" id="filterSales" placeholder="全部" style="min-width:100px;">
+    </div>
+    <button class="filter-btn filter-btn-search" onclick="applyFilter()">🔍 篩選</button>
+    <button class="filter-btn filter-btn-clear" onclick="clearFilter()">清除</button>
+  </div>
+
+  <!-- 統計 -->
+  <div class="stats-bar" id="statsBar"></div>
+
+  <!-- 表格 -->
+  <div class="table-wrap">
+    <div class="table-scroll">
+      <table id="mainTable">
+        <thead id="tableHead"></thead>
+        <tbody id="tableBody">
+          <tr><td colspan="8">
+            <div class="state-box"><div class="spinner"></div><p>載入中...</p></div>
+          </td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Token 驗證 ────────────────────────────────
+(function() {
+  const token = localStorage.getItem('tandry_token');
+  const exp = parseInt(localStorage.getItem('tandry_token_exp') || '0');
+  if (!token || Date.now() >= exp) {
+    localStorage.removeItem('tandry_token');
+    localStorage.removeItem('tandry_token_exp');
+    localStorage.removeItem('tandry_user');
+    window.location.href = 'login.html';
+    return;
+  }
+  try { window.TANDRY_USER = JSON.parse(localStorage.getItem('tandry_user') || '{}'); }
+  catch(e) { window.TANDRY_USER = {}; }
+})();
+
+function tandryLogout() {
+  localStorage.removeItem('tandry_token');
+  localStorage.removeItem('tandry_token_exp');
+  localStorage.removeItem('tandry_user');
+  window.location.href = 'login.html';
+}
+
+// ── 常數 ──────────────────────────────────────
+const WEBHOOK_GET_CASES = 'https://ydj.zeabur.app/webhook/get-cases';
+const USER = window.TANDRY_USER || {};
+const IS_SALES = USER.role === 'sales';
+const IS_ADMIN = USER.role === 'admin' || USER.role === 'manager';
+
+// ── 狀態 ──────────────────────────────────────
+let allData = [];
+let filteredData = [];
+let currentMonth = new Date().getMonth() + 1;
+let currentYear = new Date().getFullYear();
+
+// ── 初始化 ────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  renderMonthBar();
+  if (IS_ADMIN) document.getElementById('filterSalesWrap').style.display = 'flex';
+  renderTableHead();
+  loadData();
+});
+
+// ── 月份列 ────────────────────────────────────
+function renderMonthBar() {
+  const bar = document.getElementById('monthBar');
+  const months = [1,2,3,4,5,6,7,8,9,10,11,12];
+  bar.innerHTML = `<span class="year-label">${currentYear}</span>` +
+    months.map(m => `
+      <button class="month-btn ${m === currentMonth ? 'active' : ''}" onclick="selectMonth(${m})">${m}月</button>
+    `).join('');
+}
+
+function selectMonth(m) {
+  currentMonth = m;
+  renderMonthBar();
+  loadData();
+}
+
+// ── 撈資料 ────────────────────────────────────
+async function loadData() {
+  showLoading();
+  try {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 10000);
+    const res = await fetch(WEBHOOK_GET_CASES, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        token: localStorage.getItem('tandry_token'),
+        role: USER.role,
+        username: USER.username,
+        month: currentMonth,
+        year: currentYear
+      }),
+      signal: ctrl.signal
+    });
+    clearTimeout(timer);
+    const json = await res.json();
+    if (json.success) {
+      allData = json.data || [];
+      filteredData = [...allData];
+      applyFilter();
+    } else {
+      showError('載入失敗：' + (json.message || '未知錯誤'));
+    }
+  } catch(e) {
+    showError(e.name === 'AbortError' ? '連線逾時，請重試' : '無法連線');
+  }
+}
+
+// ── 篩選 ──────────────────────────────────────
+function applyFilter() {
+  const hospital = document.getElementById('filterHospital').value.trim();
+  const doctor = document.getElementById('filterDoctor').value.trim();
+  const sales = document.getElementById('filterSales').value.trim();
+
+  filteredData = allData.filter(row => {
+    if (hospital && !(row['醫院'] || '').includes(hospital)) return false;
+    if (doctor && !(row['醫師'] || '').includes(doctor)) return false;
+    if (sales && !(row['業務'] || '').toLowerCase().includes(sales.toLowerCase())) return false;
+    return true;
+  });
+  renderTable();
+  renderStats();
+}
+
+function clearFilter() {
+  document.getElementById('filterHospital').value = '';
+  document.getElementById('filterDoctor').value = '';
+  document.getElementById('filterSales').value = '';
+  filteredData = [...allData];
+  renderTable();
+  renderStats();
+}
+
+// ── 統計 ──────────────────────────────────────
+function renderStats() {
+  const bar = document.getElementById('statsBar');
+  const total = filteredData.length;
+  const hospitals = new Set(filteredData.map(r => r['醫院']).filter(Boolean)).size;
+  bar.innerHTML = `
+    <div class="stat-chip">共 <strong>${total}</strong> 筆</div>
+    <div class="stat-chip"><strong>${currentMonth}</strong> 月</div>
+    <div class="stat-chip"><strong>${hospitals}</strong> 間醫院</div>
+    ${IS_ADMIN ? `<div class="stat-chip">檢視：<strong>全部</strong></div>` : `<div class="stat-chip">檢視：<strong>${USER.displayName || USER.username}</strong></div>`}
+  `;
+}
+
+// ── 表頭 ──────────────────────────────────────
+function renderTableHead() {
+  const head = document.getElementById('tableHead');
+  const cols = IS_ADMIN
+    ? ['日期', '流水號', '業務', '醫院', '醫師', '病人', '部位', '抓貨', '']
+    : ['日期', '流水號', '醫院', '醫師', '病人', '部位', ''];
+  head.innerHTML = `<tr>${cols.map(c => `<th>${c}</th>`).join('')}</tr>`;
+}
+
+// ── 表格 ──────────────────────────────────────
+function renderTable() {
+  const tbody = document.getElementById('tableBody');
+  if (filteredData.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="9"><div class="state-box"><div class="icon">📭</div><p>${currentMonth}月 沒有資料</p></div></td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = filteredData.map((row, i) => {
+    const pickup = row['抓貨狀態'] || '未處理';
+    const pickupBadge = IS_ADMIN
+      ? `<td><span class="pickup-badge ${pickup === '已處理' ? 'pickup-done' : 'pickup-pending'}">${pickup}</span></td>`
+      : '';
+
+    if (IS_ADMIN) {
+      return `<tr onclick="openDrawer(${i})">
+        <td class="td-date">${row['日期'] || ''}</td>
+        <td class="td-serial">${row['流水號'] || '-'}</td>
+        <td class="td-name">${row['業務'] || ''}</td>
+        <td>${row['醫院'] || ''}</td>
+        <td>${row['醫師'] || ''}</td>
+        <td>${row['病人'] || ''}</td>
+        <td>${row['部位'] || ''}</td>
+        ${pickupBadge}
+        <td><button class="detail-btn" onclick="event.stopPropagation();openDrawer(${i})">詳細</button></td>
+      </tr>`;
+    } else {
+      return `<tr onclick="openDrawer(${i})">
+        <td class="td-date">${row['日期'] || ''}</td>
+        <td class="td-serial">${row['流水號'] || '-'}</td>
+        <td>${row['醫院'] || ''}</td>
+        <td>${row['醫師'] || ''}</td>
+        <td>${row['病人'] || ''}</td>
+        <td>${row['部位'] || ''}</td>
+        <td><button class="detail-btn" onclick="event.stopPropagation();openDrawer(${i})">詳細</button></td>
+      </tr>`;
+    }
+  }).join('');
+}
+
+// ── Drawer ────────────────────────────────────
+function openDrawer(index) {
+  const row = filteredData[index];
+  if (!row) return;
+
+  document.getElementById('drawerTitle').textContent = `${row['醫院'] || ''} · ${row['病人'] || ''}`;
+
+  const canEdit = IS_SALES
+    ? (row['業務'] || '').toLowerCase() === (USER.username || '').toLowerCase()
+    : IS_ADMIN;
+
+  document.getElementById('drawerBody').innerHTML = `
+    <div class="drawer-section">
+      <div class="drawer-section-title">基本資料</div>
+      <div class="info-grid">
+        <div class="info-item"><div class="key">日期</div><div class="val">${row['日期'] || '-'}</div></div>
+        <div class="info-item"><div class="key">流水號</div><div class="val" style="font-family:'JetBrains Mono',monospace;font-size:13px;">${row['流水號'] || '-'}</div></div>
+        <div class="info-item"><div class="key">醫院</div><div class="val">${row['醫院'] || '-'}</div></div>
+        <div class="info-item"><div class="key">醫師</div><div class="val">${row['醫師'] || '-'}</div></div>
+        <div class="info-item"><div class="key">病人</div><div class="val">${row['病人'] || '-'}</div></div>
+        <div class="info-item"><div class="key">病歷號</div><div class="val" style="font-family:'JetBrains Mono',monospace;">${row['病歷號'] || '-'}</div></div>
+        <div class="info-item"><div class="key">業務</div><div class="val">${row['業務'] || '-'}</div></div>
+        <div class="info-item"><div class="key">負責業務</div><div class="val">${row['負責業務'] || '-'}</div></div>
+        <div class="info-item"><div class="key">庫別</div><div class="val">${row['庫別'] || '-'}</div></div>
+        <div class="info-item"><div class="key">大區</div><div class="val">${row['大區'] || '-'}</div></div>
+        <div class="info-item"><div class="key">單據類型</div><div class="val">${row['單據類型'] || '-'}</div></div>
+        <div class="info-item"><div class="key">費用類型</div><div class="val">${row['費用類型'] || '-'}</div></div>
+      </div>
+    </div>
+
+    <div class="drawer-section">
+      <div class="drawer-section-title">產品資料</div>
+      <div class="info-grid">
+        <div class="info-item"><div class="key">部位</div><div class="val">${row['部位'] || '-'}</div></div>
+        <div class="info-item"><div class="key">規格</div><div class="val">${row['規格'] || '-'}</div></div>
+        <div class="info-item"><div class="key">品號</div><div class="val" style="font-family:'JetBrains Mono',monospace;font-size:13px;">${row['品號'] || '-'}</div></div>
+        <div class="info-item"><div class="key">數量</div><div class="val">${row['數量'] || '-'}</div></div>
+        <div class="info-item"><div class="key">院內碼</div><div class="val" style="font-family:'JetBrains Mono',monospace;font-size:12px;">${row['院內碼'] || '-'}</div></div>
+        <div class="info-item"><div class="key">另洽</div><div class="val">${row['另洽'] || '-'}</div></div>
+        ${row['DHS組件'] ? `<div class="info-item full"><div class="key">DHS組件</div><div class="val">${row['DHS組件']}</div></div>` : ''}
+      </div>
+    </div>
+
+    ${(row['組件'] || row['工具'] || row['備註']) ? `
+    <div class="drawer-section">
+      <div class="drawer-section-title">報刀單內容</div>
+      <div class="info-grid">
+        ${row['組件'] ? `<div class="info-item full"><div class="key">組件</div><div class="val" style="white-space:pre-wrap;font-size:12px;line-height:1.8;">${row['組件']}</div></div>` : ''}
+        ${row['工具'] ? `<div class="info-item full"><div class="key">工具</div><div class="val" style="white-space:pre-wrap;font-size:12px;line-height:1.8;">${row['工具']}</div></div>` : ''}
+        ${row['備註'] ? `<div class="info-item full"><div class="key">備註</div><div class="val" style="white-space:pre-wrap;font-size:13px;">${row['備註']}</div></div>` : ''}
+      </div>
+    </div>` : ''}
+
+    ${canEdit ? `
+    <div class="drawer-section">
+      <button class="edit-request-btn" onclick="requestEdit(${index})">✏️ 申請資料變更</button>
+    </div>` : ''}
+  `;
+
+  document.getElementById('drawerOverlay').classList.add('show');
+  document.getElementById('drawer').classList.add('show');
+}
+
+function closeDrawer() {
+  document.getElementById('drawerOverlay').classList.remove('show');
+  document.getElementById('drawer').classList.remove('show');
+}
+
+function requestEdit(index) {
+  // 之後階段三實作
+  showToast('⏳ 變更申請功能即將上線');
+}
+
+// ── 狀態顯示 ──────────────────────────────────
+function showLoading() {
+  document.getElementById('tableBody').innerHTML = `
+    <tr><td colspan="9"><div class="state-box"><div class="spinner"></div><p>載入中...</p></div></td></tr>`;
+  document.getElementById('statsBar').innerHTML = '';
+}
+
+function showError(msg) {
+  document.getElementById('tableBody').innerHTML = `
+    <tr><td colspan="9"><div class="state-box"><div class="icon">⚠️</div><p>${msg}</p></div></td></tr>`;
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+</script>
+</body>
+</html>
