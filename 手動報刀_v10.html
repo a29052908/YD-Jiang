@@ -1136,18 +1136,22 @@ function renderItemList() {
   const divider = document.getElementById('productListDivider');
   if (!productItems.length) { listEl.style.display='none'; divider.style.display='none'; return; }
   listEl.style.display='block'; divider.style.display='block';
-  listEl.innerHTML = productItems.map((item,i) => {
+ listEl.innerHTML = productItems.map((item,i) => {
     const payClass = item.payNote==='自費' ? 'item-pay-self' : item.payNote ? 'item-pay-ins' : '';
     return `<div class="product-list-item">
-      <span class="item-buwei">${item.buwei}</span>
-      ${item.spec ? `<span class="item-spec">${item.spec}</span>` : ''}
-      ${item.payNote ? `<span class="${payClass}">${item.payNote}</span>` : ''}
-      ${item.品號 ? `<span class="item-code">${item.品號}</span>` : ''}
-      ${item.innerCode ? `<span class="item-code" style="color:var(--accent);">${item.innerCode}</span>` : ''}
-      <span class="item-qty">×${item.qty}</span>
-      ${item.dhsNote ? `<span class="item-dhs">🔩 ${item.dhsNote}</span>` : ''}
-      ${item.另洽 ? `<span class="item-negotiate">另洽</span>` : ''}
-      <button class="item-remove" onclick="removeItem(${i})">×</button>
+      <div style="display:flex;align-items:center;gap:8px;width:100%;flex-wrap:nowrap;min-width:0;">
+        <span class="item-buwei" style="flex-shrink:0;">${item.buwei}</span>
+        ${item.spec ? `<span class="item-spec" style="flex-shrink:0;">${item.spec}</span>` : ''}
+        ${item.payNote ? `<span class="${payClass}" style="flex-shrink:0;">${item.payNote}</span>` : ''}
+        <span class="item-qty" style="flex-shrink:0;">×${item.qty}</span>
+        ${item.dhsNote ? `<span class="item-dhs" style="flex-shrink:0;">🔩 ${item.dhsNote}</span>` : ''}
+        ${item.另洽 ? `<span class="item-negotiate" style="flex-shrink:0;">另洽</span>` : ''}
+        <button class="item-remove" onclick="removeItem(${i})" style="flex-shrink:0;margin-left:auto;">×</button>
+      </div>
+      ${(item.品號 || item.innerCode) ? `<div style="display:flex;align-items:center;gap:8px;width:100%;padding-top:4px;flex-wrap:wrap;">
+        ${item.品號 ? `<span class="item-code">${item.品號}</span>` : ''}
+        ${item.innerCode ? `<span class="item-code" style="color:var(--accent);font-weight:600;">${item.innerCode}</span>` : ''}
+      </div>` : ''}
     </div>`;
   }).join('');
 }
