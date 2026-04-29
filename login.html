@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>報刀系統 — 登入</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f5f4f0; --card: #ffffff; --border: #e0ddd6;
+  --accent: #1a1a2e; --accent2: #e63946;
+  --green: #2d6a4f; --green-light: #d8f3dc;
+  --text: #1a1a2e; --muted: #888680;
+  --shadow: 0 2px 12px rgba(0,0,0,0.08); --radius: 12px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Noto Sans TC', sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* topbar */
+.topbar {
+  background: var(--accent);
+  color: white;
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.topbar-logo {
+  background: var(--accent2);
+  border-radius: 8px;
+  padding: 6px 8px;
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: -0.5px;
+}
+.topbar h1 { font-size: 17px; font-weight: 600; letter-spacing: 0.5px; }
+
+/* main layout */
+.login-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+}
+.login-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 32px 28px 28px;
+  width: 100%;
+  max-width: 380px;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+}
+.login-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 24px;
+  font-family: 'JetBrains Mono', monospace;
+  text-align: center;
+}
+
+/* form fields */
+.field { margin-bottom: 16px; }
+.field label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 7px;
+  font-family: 'JetBrains Mono', monospace;
+}
+.field input {
+  width: 100%;
+  padding: 13px 15px;
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  font-size: 15px;
+  font-family: 'Noto Sans TC', sans-serif;
+  outline: none;
+  transition: border-color 0.2s;
+  background: var(--bg);
+  color: var(--text);
+  -webkit-appearance: none;
+}
+.field input:focus { border-color: var(--accent); background: white; }
+.field input::placeholder { color: #bbb8b2; }
+
+/* submit */
+.login-btn {
+  width: 100%;
+  padding: 15px;
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: 'Noto Sans TC', sans-serif;
+  letter-spacing: 0.5px;
+  margin-top: 4px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.login-btn:hover { background: #2d2d4e; transform: translateY(-1px); }
+.login-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+.login-btn .spinner {
+  width: 18px; height: 18px;
+  border: 2.5px solid rgba(255,255,255,0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  display: none;
+}
+.login-btn.loading .spinner { display: block; }
+.login-btn.loading .btn-text { display: none; }
+
+/* error */
+.error-msg {
+  background: #fff0f1;
+  border: 1px solid #ffc0c4;
+  color: var(--accent2);
+  border-radius: 10px;
+  padding: 11px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 16px;
+  display: none;
+  text-align: center;
+}
+.error-msg.show { display: block; }
+
+/* toast */
+.toast {
+  position: fixed;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--accent);
+  color: white;
+  padding: 12px 22px;
+  border-radius: 24px;
+  font-size: 14px;
+  font-weight: 500;
+  opacity: 0;
+  transition: all 0.3s;
+  z-index: 999;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* footer */
+.login-footer {
+  text-align: center;
+  padding: 20px;
+  font-size: 11px;
+  color: #c5c3bc;
+  font-family: 'JetBrains Mono', monospace;
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-logo">Tandry</div>
+  <h1>報刀系統</h1>
+</div>
+
+<div class="login-wrap">
+  <div class="login-card">
+    <div class="login-title">帳號登入</div>
+
+    <div class="error-msg" id="errorMsg">帳號或密碼錯誤，請重試</div>
+
+    <div class="field">
+      <label>帳號</label>
+      <input type="text" id="usernameInput" placeholder="請輸入帳號"
+        autocomplete="username" autocapitalize="none"
+        onkeydown="if(event.key==='Enter')document.getElementById('passwordInput').focus()">
+    </div>
+    <div class="field">
+      <label>密碼</label>
+      <input type="password" id="passwordInput" placeholder="請輸入密碼"
+        autocomplete="current-password"
+        onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+
+    <button class="login-btn" id="loginBtn" onclick="doLogin()">
+      <div class="spinner"></div>
+      <span class="btn-text">登入</span>
+    </button>
+  </div>
+</div>
+
+<div class="login-footer">星泓股份有限公司 · Tandry</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const WEBHOOK_LOGIN = 'https://ydj.zeabur.app/webhook/login';
+const REDIRECT_PAGE = '手動報刀_v10.html'; // 登入後跳轉的頁面
+
+// 如果已經有有效 token，直接跳轉
+(function checkExistingToken() {
+  const token = localStorage.getItem('tandry_token');
+  const exp = parseInt(localStorage.getItem('tandry_token_exp') || '0');
+  if (token && Date.now() < exp) {
+    window.location.href = REDIRECT_PAGE;
+  }
+})();
+
+async function doLogin() {
+  const username = document.getElementById('usernameInput').value.trim();
+  const password = document.getElementById('passwordInput').value;
+  const btn = document.getElementById('loginBtn');
+  const errEl = document.getElementById('errorMsg');
+
+  if (!username || !password) {
+    showError('請輸入帳號和密碼');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.classList.add('loading');
+  errEl.classList.remove('show');
+
+  try {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 10000);
+
+    const res = await fetch(WEBHOOK_LOGIN, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password }),
+      signal: ctrl.signal
+    });
+    clearTimeout(timer);
+
+    const data = await res.json();
+
+    if (data.success && data.token) {
+      // 存 token（30天）
+      const expMs = Date.now() + 30 * 24 * 60 * 60 * 1000;
+      localStorage.setItem('tandry_token', data.token);
+      localStorage.setItem('tandry_token_exp', expMs.toString());
+      localStorage.setItem('tandry_user', JSON.stringify({
+        username: data.username,
+        role: data.role,
+        displayName: data.displayName || data.username
+      }));
+      // 自動帶入業務姓名
+      if (data.role === 'sales' && data.displayName) {
+        localStorage.setItem('tandry_sales_current', data.displayName);
+      }
+      showToast('✅ 登入成功');
+      setTimeout(() => { window.location.href = REDIRECT_PAGE; }, 600);
+    } else {
+      showError(data.message || '帳號或密碼錯誤，請重試');
+    }
+  } catch (e) {
+    if (e.name === 'AbortError') {
+      showError('連線逾時，請稍後再試');
+    } else {
+      showError('無法連線，請確認網路狀態');
+    }
+  } finally {
+    btn.disabled = false;
+    btn.classList.remove('loading');
+  }
+}
+
+function showError(msg) {
+  const el = document.getElementById('errorMsg');
+  el.textContent = msg;
+  el.classList.add('show');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+</script>
+</body>
+</html>
