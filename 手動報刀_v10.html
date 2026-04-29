@@ -14,7 +14,7 @@
 }
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', sans-serif; min-height: 100vh; padding-bottom: 120px; }
-.topbar { background: var(--accent); color: white; padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+.topbar { background: var(--accent); color: white; padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; }
 .topbar-left { display: flex; align-items: center; gap: 12px; }
 .topbar-logo { background: var(--accent2); border-radius: 8px; padding: 6px 8px; font-weight: 700; font-size: 11px; letter-spacing: -0.5px; white-space: nowrap; }
 .topbar h1 { font-size: 17px; font-weight: 600; letter-spacing: 0.5px; }
@@ -200,10 +200,9 @@ function tandryLogout() {
     <h1>報刀系統</h1>
   </div>
 <div style="display:flex;align-items:center;gap:8px;">
+    <span id="salesName" style="font-size:13px;color:rgba(255,255,255,0.7);"></span>
     <div class="sales-badge" onclick="openSalesModal()">
-      <span>👤</span>
-      <span id="salesName">設定業務</span>
-      <span id="warehouseBadge" style="background:rgba(255,255,255,0.2);border-radius:10px;padding:1px 7px;font-size:11px;display:none;"></span>
+      🏭 <span id="warehouseBadge">選庫別</span>
     </div>
     <button onclick="tandryLogout()" style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.25);color:white;padding:6px 11px;border-radius:8px;font-size:12px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;">登出</button>
   </div>
@@ -211,14 +210,7 @@ function tandryLogout() {
 
 <div class="modal-overlay" id="salesModal" onclick="closeSalesModalOutside(event)">
   <div class="modal">
-    <h3>選擇 / 新增業務</h3>
-    <div class="sales-list" id="salesList"></div>
-    <div class="new-sales-row">
-      <input class="modal-input" id="newSalesInput" type="text" placeholder="新增業務姓名">
-      <button class="modal-btn" onclick="addSales()">新增</button>
-    </div>
-    <div style="height:1px;background:var(--border);margin:16px 0;"></div>
-    <h3>庫別</h3>
+    <h3>選擇庫別</h3>
     <div class="sales-list" id="warehouseList">
       <div class="sales-option" id="wh-桃庫" onclick="selectWarehouse('桃庫')">🏭 桃庫</div>
       <div class="sales-option" id="wh-北庫" onclick="selectWarehouse('北庫')">🏭 北庫</div>
@@ -1303,7 +1295,12 @@ function resetDate(){currentDate=new Date();renderDate();updateSummary();}
 function getDateStr(){const y=currentDate.getFullYear(),m=currentDate.getMonth()+1,d=currentDate.getDate();return `${y}/${m}/${d}`;}
 
 // ── 業務/庫別 ─────────────────────────────────────────────────
-function renderSalesBadge(){document.getElementById('salesName').textContent=currentSales||'設定業務';const wb=document.getElementById('warehouseBadge');if(currentWarehouse){wb.textContent=currentWarehouse;wb.style.display='inline';}else wb.style.display='none';}
+function renderSalesBadge(){
+  document.getElementById('salesName').textContent = currentSales || '';
+  document.getElementById('warehouseBadge').textContent = currentWarehouse || '選庫別';
+  const wh = document.getElementById(`wh-${currentWarehouse}`);
+  if(wh) wh.className = 'sales-option selected';
+}
 function renderSalesList(){document.getElementById('salesList').innerHTML=salesList.map(s=>{const wh=salesWarehouseMap[s]?` · ${salesWarehouseMap[s]}`:'';return`<div class="sales-option ${s===currentSales?'selected':''}" onclick="selectSales('${s}')">${s}${wh}</div>`;}).join('');}
 function selectSales(name){currentSales=name;localStorage.setItem('tandry_sales_current',name);if(salesWarehouseMap[name]){currentWarehouse=salesWarehouseMap[name];localStorage.setItem('tandry_warehouse_current',currentWarehouse);}renderSalesBadge();renderSalesList();renderWarehouseList();updateSummary();}
 function addSales(){const val=document.getElementById('newSalesInput').value.trim();if(!val)return;if(!salesList.includes(val)){salesList.push(val);localStorage.setItem('tandry_sales_list',JSON.stringify(salesList));}selectSales(val);document.getElementById('newSalesInput').value='';renderSalesList();}
