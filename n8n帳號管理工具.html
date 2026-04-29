@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>n8n 帳號管理工具</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0f0f13; --surface: #1a1a24; --surface2: #22222f;
+  --border: #2e2e3e; --accent: #e63946; --accent2: #3a86ff;
+  --green: #06d6a0; --yellow: #ffd166;
+  --text: #e8e6f0; --muted: #6b6880; --dim: #3a3848;
+  --radius: 10px; --shadow: 0 4px 24px rgba(0,0,0,0.4);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', sans-serif; min-height: 100vh; padding: 0 0 60px; }
+
+/* header */
+header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 18px 24px;
+  display: flex; align-items: center; gap: 14px;
+  position: sticky; top: 0; z-index: 100;
+}
+.logo {
+  background: var(--accent);
+  color: white; font-weight: 700; font-size: 11px;
+  padding: 5px 8px; border-radius: 6px; letter-spacing: -0.5px;
+  font-family: 'JetBrains Mono', monospace;
+}
+header h1 { font-size: 15px; font-weight: 600; color: var(--text); }
+header small { font-size: 12px; color: var(--muted); margin-left: auto; font-family: 'JetBrains Mono', monospace; }
+
+.wrap { max-width: 860px; margin: 0 auto; padding: 28px 20px; }
+
+/* section titles */
+.section-title {
+  font-size: 11px; font-weight: 700; color: var(--muted);
+  text-transform: uppercase; letter-spacing: 2px;
+  font-family: 'JetBrains Mono', monospace;
+  margin-bottom: 12px;
+  display: flex; align-items: center; gap: 8px;
+}
+.section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+/* card */
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 20px;
+  margin-bottom: 20px;
+}
+
+/* step badges */
+.step { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: white; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+
+/* file drop */
+.drop-zone {
+  border: 2px dashed var(--border); border-radius: var(--radius);
+  padding: 32px; text-align: center; cursor: pointer;
+  transition: all 0.2s; position: relative;
+}
+.drop-zone:hover, .drop-zone.drag { border-color: var(--accent2); background: rgba(58,134,255,0.05); }
+.drop-zone input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+.drop-icon { font-size: 32px; margin-bottom: 8px; }
+.drop-text { font-size: 14px; color: var(--muted); }
+.drop-text strong { color: var(--accent2); }
+.drop-status { margin-top: 10px; font-size: 12px; font-family: 'JetBrains Mono', monospace; color: var(--green); display: none; }
+
+/* users table */
+.users-table { width: 100%; border-collapse: collapse; }
+.users-table th {
+  text-align: left; padding: 10px 12px;
+  font-size: 11px; font-weight: 600; color: var(--muted);
+  text-transform: uppercase; letter-spacing: 1px;
+  font-family: 'JetBrains Mono', monospace;
+  border-bottom: 1px solid var(--border);
+}
+.users-table td { padding: 10px 12px; font-size: 14px; border-bottom: 1px solid var(--dim); vertical-align: middle; }
+.users-table tr:last-child td { border-bottom: none; }
+.users-table tr:hover td { background: var(--surface2); }
+
+/* role badge */
+.role-badge {
+  padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600;
+  font-family: 'JetBrains Mono', monospace;
+}
+.role-sales { background: rgba(6,214,160,0.15); color: var(--green); }
+.role-manager { background: rgba(255,209,102,0.15); color: var(--yellow); }
+.role-admin { background: rgba(230,57,70,0.15); color: var(--accent); }
+
+/* inputs */
+.field-row { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr auto; gap: 10px; align-items: end; margin-bottom: 10px; }
+.field { display: flex; flex-direction: column; gap: 5px; }
+.field label { font-size: 11px; color: var(--muted); font-family: 'JetBrains Mono', monospace; letter-spacing: 0.5px; }
+.field input, .field select {
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 8px; padding: 9px 12px; color: var(--text);
+  font-size: 14px; font-family: 'Noto Sans TC', sans-serif;
+  outline: none; transition: border-color 0.2s;
+}
+.field input:focus, .field select:focus { border-color: var(--accent2); }
+.field select option { background: var(--surface); }
+
+/* buttons */
+.btn {
+  padding: 9px 16px; border-radius: 8px; border: none;
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  font-family: 'Noto Sans TC', sans-serif;
+  transition: all 0.15s; white-space: nowrap;
+}
+.btn-primary { background: var(--accent2); color: white; }
+.btn-primary:hover { background: #2a76ef; }
+.btn-green { background: var(--green); color: #0a2a22; }
+.btn-green:hover { background: #04c090; }
+.btn-danger { background: transparent; border: 1px solid var(--accent); color: var(--accent); padding: 6px 12px; font-size: 12px; }
+.btn-danger:hover { background: var(--accent); color: white; }
+.btn-big {
+  width: 100%; padding: 14px; font-size: 15px; border-radius: 10px;
+  background: var(--green); color: #0a2a22;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.btn-big:hover { background: #04c090; transform: translateY(-1px); }
+.btn-big:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+/* output */
+.output-box {
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 8px; padding: 16px;
+  font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  color: #a0f0c0; line-height: 1.7;
+  max-height: 200px; overflow-y: auto;
+  white-space: pre-wrap; word-break: break-all;
+  display: none;
+}
+.output-box.show { display: block; }
+
+.copy-row { display: flex; gap: 10px; margin-top: 10px; }
+
+/* empty state */
+.empty { text-align: center; padding: 32px; color: var(--muted); font-size: 13px; }
+
+/* toast */
+.toast {
+  position: fixed; bottom: 24px; left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--surface); border: 1px solid var(--border);
+  color: var(--text); padding: 11px 20px; border-radius: 24px;
+  font-size: 13px; opacity: 0; transition: all 0.3s; z-index: 999;
+  white-space: nowrap; pointer-events: none;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* divider */
+.divider { height: 1px; background: var(--border); margin: 20px 0; }
+
+@media (max-width: 600px) {
+  .field-row { grid-template-columns: 1fr 1fr; }
+  .field-row .btn { grid-column: span 2; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Tandry</div>
+  <h1>n8n 帳號管理工具</h1>
+  <small>Login Workflow 產生器</small>
+</header>
+
+<div class="wrap">
+
+  <!-- Step 1: 匯入 -->
+  <div class="section-title"><span class="step">1</span> 匯入現有 Workflow（選填）</div>
+  <div class="card">
+    <div class="drop-zone" id="dropZone">
+      <input type="file" id="fileInput" accept=".json" onchange="loadFile(this)">
+      <div class="drop-icon">📂</div>
+      <div class="drop-text">拖拉或點擊上傳 <strong>n8n workflow JSON</strong></div>
+      <div class="drop-text" style="margin-top:4px;font-size:12px;">若不上傳，會從空白開始建立</div>
+      <div class="drop-status" id="dropStatus"></div>
+    </div>
+  </div>
+
+  <!-- Step 2: 帳號列表 -->
+  <div class="section-title"><span class="step">2</span> 帳號列表</div>
+  <div class="card">
+    <div id="usersTableWrap">
+      <div class="empty" id="emptyState">尚無帳號，請在下方新增</div>
+      <table class="users-table" id="usersTable" style="display:none;">
+        <thead>
+          <tr>
+            <th>帳號</th>
+            <th>顯示名稱</th>
+            <th>密碼</th>
+            <th>角色</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="usersBody"></tbody>
+      </table>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- 新增表單 -->
+    <div style="font-size:12px;color:var(--muted);margin-bottom:10px;font-family:'JetBrains Mono',monospace;">➕ 新增帳號</div>
+    <div class="field-row">
+      <div class="field">
+        <label>帳號（登入用）</label>
+        <input type="text" id="newUsername" placeholder="ivan">
+      </div>
+      <div class="field">
+        <label>顯示名稱</label>
+        <input type="text" id="newDisplay" placeholder="Ivan">
+      </div>
+      <div class="field">
+        <label>密碼</label>
+        <input type="text" id="newPassword" placeholder="設定密碼">
+      </div>
+      <div class="field">
+        <label>角色</label>
+        <select id="newRole">
+          <option value="sales">業務 (sales)</option>
+          <option value="manager">主管 (manager)</option>
+          <option value="admin">內勤/管理員 (admin)</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" onclick="addUser()">新增</button>
+    </div>
+
+    <!-- 快速新增業務 -->
+    <div style="margin-top:12px;">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px;font-family:'JetBrains Mono',monospace;">快速新增業務（統一密碼）</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+        <input type="text" id="bulkPassword" placeholder="統一密碼" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-size:13px;outline:none;width:140px;">
+        <button class="btn btn-primary" onclick="bulkAdd('Ivan')">+ Ivan</button>
+        <button class="btn btn-primary" onclick="bulkAdd('Dino')">+ Dino</button>
+        <button class="btn btn-primary" onclick="bulkAdd('Henry')">+ Henry</button>
+        <button class="btn btn-primary" onclick="bulkAdd('Vincent')">+ Vincent</button>
+        <button class="btn btn-primary" onclick="bulkAdd('Kaley')">+ Kaley</button>
+        <button class="btn btn-primary" onclick="bulkAdd('Tan')">+ Tan</button>
+        <button class="btn btn-primary" onclick="bulkAdd('Eddie')">+ Eddie</button>
+        <button class="btn btn-primary" onclick="bulkAdd('Bruce')">+ Bruce</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 3: 產出 -->
+  <div class="section-title"><span class="step">3</span> 產出 Workflow JSON</div>
+  <div class="card">
+    <button class="btn btn-big" onclick="generate()" id="generateBtn">
+      <span>⚡</span><span>產生 n8n Workflow JSON</span>
+    </button>
+
+    <div style="margin-top:16px;">
+      <div class="output-box" id="outputBox"></div>
+      <div class="copy-row" id="copyRow" style="display:none;">
+        <button class="btn btn-green" onclick="copyOutput()">📋 複製 JSON</button>
+        <button class="btn btn-green" onclick="downloadOutput()">⬇️ 下載 JSON</button>
+      </div>
+    </div>
+
+    <div style="margin-top:16px;padding:14px;background:var(--bg);border-radius:8px;border:1px solid var(--border);">
+      <div style="font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-bottom:8px;">使用方式</div>
+      <div style="font-size:13px;color:var(--text);line-height:2;">
+        1. 下載產出的 JSON<br>
+        2. n8n → 開啟 Login workflow → 右上角 ⋯ → Import<br>
+        3. 或直接複製 Code node 裡的 TANDRY_USERS 那行貼進去<br>
+        4. Publish
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let users = [];
+let baseWorkflow = null;
+
+// ── 拖拉上傳 ──────────────────────────────────
+const dropZone = document.getElementById('dropZone');
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault(); dropZone.classList.remove('drag');
+  const file = e.dataTransfer.files[0];
+  if (file) readFile(file);
+});
+
+function loadFile(input) {
+  if (input.files[0]) readFile(input.files[0]);
+}
+
+function readFile(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      baseWorkflow = JSON.parse(e.target.result);
+      // 嘗試從現有 workflow 讀取帳號
+      extractUsersFromWorkflow(baseWorkflow);
+      const status = document.getElementById('dropStatus');
+      status.textContent = `✅ 已載入：${file.name}`;
+      status.style.display = 'block';
+      showToast('✅ Workflow 載入成功');
+    } catch(err) {
+      showToast('❌ JSON 格式錯誤');
+    }
+  };
+  reader.readAsText(file);
+}
+
+function extractUsersFromWorkflow(wf) {
+  try {
+    const codeNode = wf.nodes?.find(n => n.name === '驗證帳密並發Token');
+    if (!codeNode) return;
+    const code = codeNode.parameters?.jsCode || '';
+    const match = code.match(/const TANDRY_USERS = '(\[.*?\])'/s);
+    if (match) {
+      const extracted = JSON.parse(match[1]);
+      users = extracted;
+      renderTable();
+      showToast(`📋 已讀取 ${users.length} 個帳號`);
+    }
+  } catch(e) {}
+}
+
+// ── 帳號管理 ──────────────────────────────────
+function addUser() {
+  const username = document.getElementById('newUsername').value.trim();
+  const display = document.getElementById('newDisplay').value.trim();
+  const password = document.getElementById('newPassword').value.trim();
+  const role = document.getElementById('newRole').value;
+
+  if (!username || !password) { showToast('❌ 帳號和密碼必填'); return; }
+  if (users.find(u => u.username.toLowerCase() === username.toLowerCase())) {
+    showToast('⚠️ 帳號已存在'); return;
+  }
+
+  users.push({ username: username.toLowerCase(), password, role, displayName: display || username });
+  renderTable();
+  document.getElementById('newUsername').value = '';
+  document.getElementById('newDisplay').value = '';
+  document.getElementById('newPassword').value = '';
+  showToast(`✅ 已新增 ${display || username}`);
+}
+
+function bulkAdd(name) {
+  const password = document.getElementById('bulkPassword').value.trim();
+  if (!password) { showToast('❌ 請先填寫統一密碼'); return; }
+  const username = name.toLowerCase();
+  if (users.find(u => u.username === username)) {
+    showToast(`⚠️ ${name} 已存在`); return;
+  }
+  users.push({ username, password, role: 'sales', displayName: name });
+  renderTable();
+  showToast(`✅ 已新增 ${name}`);
+}
+
+function removeUser(index) {
+  const name = users[index].displayName;
+  users.splice(index, 1);
+  renderTable();
+  showToast(`🗑️ 已刪除 ${name}`);
+}
+
+function renderTable() {
+  const tbody = document.getElementById('usersBody');
+  const table = document.getElementById('usersTable');
+  const empty = document.getElementById('emptyState');
+
+  if (users.length === 0) {
+    table.style.display = 'none';
+    empty.style.display = 'block';
+    return;
+  }
+
+  table.style.display = 'table';
+  empty.style.display = 'none';
+
+  tbody.innerHTML = users.map((u, i) => `
+    <tr>
+      <td><span style="font-family:'JetBrains Mono',monospace;font-size:13px;">${u.username}</span></td>
+      <td>${u.displayName}</td>
+      <td><span style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--muted);">${'•'.repeat(u.password.length)}</span> <span style="font-size:11px;color:var(--muted);">(${u.password})</span></td>
+      <td><span class="role-badge role-${u.role}">${u.role}</span></td>
+      <td><button class="btn btn-danger" onclick="removeUser(${i})">刪除</button></td>
+    </tr>
+  `).join('');
+}
+
+// ── 產生 Workflow ──────────────────────────────
+function generate() {
+  if (users.length === 0) { showToast('❌ 請先新增至少一個帳號'); return; }
+
+  const usersJson = JSON.stringify(users).replace(/'/g, "\\'");
+
+  const loginCode = `const TANDRY_USERS = '${usersJson}';
+const SECRET = 'Tandry@2026!StarHong#Secret';
+
+let users;
+try { users = JSON.parse(TANDRY_USERS); }
+catch(e) { return [{ json: { success: false, message: '系統設定錯誤' } }]; }
+
+const body = $input.first().json.body;
+const { username, password } = body || {};
+
+if (!username || !password) {
+  return [{ json: { success: false, message: '請輸入帳號和密碼' } }];
+}
+
+const user = users.find(u => u.username.toLowerCase() === username.toLowerCase());
+if (!user) {
+  return [{ json: { success: false, message: '帳號或密碼錯誤' } }];
+}
+
+if (password !== user.password) {
+  return [{ json: { success: false, message: '帳號或密碼錯誤' } }];
+}
+
+const exp = Math.floor(Date.now() / 1000) + (30 * 24 * 60 * 60);
+const payload = { username: user.username, role: user.role, displayName: user.displayName || user.username, exp };
+const payloadB64 = Buffer.from(JSON.stringify(payload)).toString('base64');
+const token = \`\${payloadB64}.\${Buffer.from(SECRET + exp).toString('base64')}\`;
+
+return [{ json: { success: true, token, username: user.username, role: user.role, displayName: user.displayName || user.username } }];`;
+
+  const verifyCode = `const SECRET = 'Tandry@2026!StarHong#Secret';
+const body = $input.first().json.body;
+const token = body?.token || '';
+
+if (!token) {
+  return [{ json: { valid: false, message: 'Token 不存在' } }];
+}
+
+const parts = token.split('.');
+if (parts.length !== 2) {
+  return [{ json: { valid: false, message: 'Token 格式錯誤' } }];
+}
+
+const [payloadB64, receivedSig] = parts;
+
+let payload;
+try {
+  payload = JSON.parse(Buffer.from(payloadB64, 'base64').toString('utf8'));
+} catch(e) {
+  return [{ json: { valid: false, message: 'Token 解析失敗' } }];
+}
+
+const now = Math.floor(Date.now() / 1000);
+if (payload.exp && now > payload.exp) {
+  return [{ json: { valid: false, message: 'Token 已過期' } }];
+}
+
+const expectedSig = Buffer.from(SECRET + payload.exp).toString('base64');
+if (receivedSig !== expectedSig) {
+  return [{ json: { valid: false, message: 'Token 簽名無效' } }];
+}
+
+return [{ json: { valid: true, username: payload.username, role: payload.role, displayName: payload.displayName || payload.username } }];`;
+
+  // 如果有載入基礎 workflow，更新其中的 Code node
+  let wf;
+  if (baseWorkflow) {
+    wf = JSON.parse(JSON.stringify(baseWorkflow));
+    const loginNode = wf.nodes?.find(n => n.name === '驗證帳密並發Token');
+    const verifyNode = wf.nodes?.find(n => n.name === '驗證Token');
+    if (loginNode) loginNode.parameters.jsCode = loginCode;
+    if (verifyNode) verifyNode.parameters.jsCode = verifyCode;
+  } else {
+    // 從頭建立完整 workflow
+    wf = {
+      name: "Login & Verify Token",
+      nodes: [
+        { parameters: { httpMethod: "POST", path: "login", responseMode: "responseNode", options: { allowedOrigins: "*" } }, type: "n8n-nodes-base.webhook", typeVersion: 2, position: [-32, -224], id: "login-wh-001", name: "Login Webhook", webhookId: "login-wh-tandry" },
+        { parameters: { jsCode: loginCode }, type: "n8n-nodes-base.code", typeVersion: 2, position: [208, -224], id: "login-code-001", name: "驗證帳密並發Token" },
+        { parameters: { respondWith: "json", responseBody: "={{ $json }}", options: {} }, type: "n8n-nodes-base.respondToWebhook", typeVersion: 1, position: [448, -224], id: "login-resp-001", name: "回傳結果" },
+        { parameters: { httpMethod: "POST", path: "verify-token", responseMode: "responseNode", options: { allowedOrigins: "*" } }, type: "n8n-nodes-base.webhook", typeVersion: 2, position: [-32, -48], id: "verify-wh-001", name: "Verify Token Webhook", webhookId: "verify-wh-tandry" },
+        { parameters: { jsCode: verifyCode }, type: "n8n-nodes-base.code", typeVersion: 2, position: [208, -48], id: "verify-code-001", name: "驗證Token" },
+        { parameters: { respondWith: "json", responseBody: "={{ $json }}", options: {} }, type: "n8n-nodes-base.respondToWebhook", typeVersion: 1, position: [448, -48], id: "verify-resp-001", name: "回傳驗證結果" }
+      ],
+      connections: {
+        "Login Webhook": { main: [[{ node: "驗證帳密並發Token", type: "main", index: 0 }]] },
+        "驗證帳密並發Token": { main: [[{ node: "回傳結果", type: "main", index: 0 }]] },
+        "Verify Token Webhook": { main: [[{ node: "驗證Token", type: "main", index: 0 }]] },
+        "驗證Token": { main: [[{ node: "回傳驗證結果", type: "main", index: 0 }]] }
+      },
+      pinData: {}, meta: { instanceId: "tandry-login-tool" }
+    };
+  }
+
+  const output = JSON.stringify(wf, null, 2);
+  document.getElementById('outputBox').textContent = output;
+  document.getElementById('outputBox').classList.add('show');
+  document.getElementById('copyRow').style.display = 'flex';
+  showToast(`✅ 已產生（${users.length} 個帳號）`);
+  window._generatedJson = output;
+}
+
+function copyOutput() {
+  navigator.clipboard.writeText(window._generatedJson || '');
+  showToast('📋 已複製到剪貼簿');
+}
+
+function downloadOutput() {
+  const blob = new Blob([window._generatedJson || ''], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'tandry_login_workflow.json';
+  a.click();
+  showToast('⬇️ 下載中...');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+</script>
+</body>
+</html>
