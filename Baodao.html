@@ -448,6 +448,8 @@ function showPreview(){
   let innerCodeLines=[];
   const itemSrc=d.productItems&&d.productItems.length>0?d.productItems:null;
   if(itemSrc){
+    // 院內碼整合：相同院內碼合併數量
+    const icMap = {};
     itemSrc.forEach(item=>{
       const buwei=item.buwei||item.部位||'';
       const spec=item.spec||item.規格||'';
@@ -456,9 +458,17 @@ function showPreview(){
       const ic=item.innerCode||item.院內碼||'';
       const neg=item.另洽?'（另洽）':'';
       const dhs=item.dhsNote||item.DHS||'';
-      implantLines.push(`${buwei}${spec?' '+spec:''}${pn?' ('+pn+')':''}${qty>1?' ×'+qty:''}${dhs?' | '+dhs:''}`.trim());
-      innerCodeLines.push(`${ic}${neg}${qty>1?' ×'+qty:''}`);
+      const pay=item.payNote||'';
+      const payTag=pay?` [${pay}]`:'';
+      implantLines.push(`${buwei}${spec?' '+spec:''}${pn?' ('+pn+')':''}${payTag}${qty>1?' ×'+qty:''}${dhs?' | '+dhs:''}`.trim());
+      // 整合院內碼
+      if(ic){
+        const mapKey=`${ic}${neg}`;
+        if(!icMap[mapKey]) icMap[mapKey]={ic,neg,qty:0};
+        icMap[mapKey].qty+=qty;
+      }
     });
+    innerCodeLines=Object.values(icMap).map(({ic,neg,qty})=>`${ic}${neg}${qty>1?' ×'+qty:''}`);
   } else {
     const qty=d.數量||1;
     implantLines=[`${d.部位||''}${d.規格?' '+d.規格:''}${d.品號?' ('+d.品號+')':''}${qty>1?' ×'+qty:''}`.trim()];
