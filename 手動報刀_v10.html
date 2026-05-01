@@ -1384,6 +1384,7 @@ function submitForm(){
   if(!selectedHospital){showToast('請選擇醫院','error');return;}
   if(!productItems.length&&!sel.buwei){showToast('請至少加入一個產品','error');return;}
   if(!patient){showToast('請輸入病人姓名','error');return;}
+  if(!patientId){showToast('請輸入病歷號','error');return;}
   if(sel.buwei) addProduct();
   const history=JSON.parse(localStorage.getItem('tandry_manual_history')||'[]');
   const btn=document.getElementById('submitBtn'); btn.disabled=true;
@@ -1423,6 +1424,7 @@ function goToReport(){
   const doctor=getDoctor();
   if(!selectedHospital){showToast('請選擇醫院','error');return;}
   if(!patient){showToast('請輸入病人姓名','error');return;}
+  if(!patientId){showToast('請輸入病歷號','error');return;}
   if(sel.buwei) addProduct();
   const data={
     日期:getDateStr(),業務:currentSales,庫別:currentWarehouse,
