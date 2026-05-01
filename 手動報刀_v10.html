@@ -232,7 +232,7 @@ function tandryLogout() {
     <div class="card-label">📅 日期</div>
     <div class="date-row">
       <button class="date-btn" onclick="adjustDate(-1)">−</button>
-      <div class="date-display"><span id="dateDisplay">--</span><span class="date-sub" id="dateWeekday"></span></div>
+      <div class="date-display" onclick="promptDateEdit()" style="cursor:pointer;user-select:none;" title="點擊手動輸入日期"><span id="dateDisplay">--</span><span class="date-sub" id="dateWeekday"></span></div>
       <button class="date-btn" onclick="adjustDate(1)">+</button>
       <button class="date-today" onclick="resetDate()">今天</button>
     </div>
@@ -531,8 +531,8 @@ const rulesDb = [
   {醫師:'洪偉翔',醫院:'聖保祿'},{醫師:'徐金洲',醫院:'聖保祿'},{醫師:'陳俊仰',醫院:'聖保祿'},
   {醫師:'吳龠',醫院:'聖保祿'},{醫師:'謝易帆',醫院:'聖保祿'},{醫師:'楊崇光',醫院:'中天'},
   {醫師:'林世惟',醫院:'中天'},{醫師:'陳榮貴',醫院:'中天'},{醫師:'林重道',醫院:'中天'},
-  {醫師:'陳宗偉',醫院:'中天'},{醫師:'彭廷揚',醫院:'中天'},{醫師:'譚傳明',醫院:'楊天'},
-  {醫師:'馮輝賢',醫院:'楊天'},{醫師:'范國豐',醫院:'天祥'},{醫師:'范姜治雲',醫院:'大千'},
+  {醫師:'陳宗偉',醫院:'中天'},{醫師:'彭廷揚',醫院:'中天'},{醫師:'譚傳明',醫院:'楊天'},{醫師:'彭廷揚',醫院:'楊天'},
+  {醫師:'馮輝賢',醫院:'楊天'},{醫師:'范國豐',醫院:'天祥'},{醫師:'范姜治雲',醫院:'大千'},{醫師:'陳宗偉',醫院:'天祥'},
   {醫師:'劉少政',醫院:'大千'},{醫師:'陳俊橋',醫院:'新光'},{醫師:'游敬孝',醫院:'部桃'},
   {醫師:'吳鴻康',醫院:'部桃'},{醫師:'徐千甯',醫院:'部桃'},{醫師:'施秉鋈',醫院:'聯新'},
   {醫師:'侯咸仰',醫院:'聯新'},{醫師:'賈維焯',醫院:'新竹台大'},{醫師:'吳俊毅',醫院:'新竹台大'},
@@ -1303,8 +1303,15 @@ window.addProduct = function() {
 function renderDate(){const y=currentDate.getFullYear(),m=currentDate.getMonth()+1,d=currentDate.getDate();document.getElementById('dateDisplay').textContent=`${y}/${m}/${d}`;document.getElementById('dateWeekday').textContent=`週${WEEKDAYS[currentDate.getDay()]}`;}
 function adjustDate(delta){currentDate.setDate(currentDate.getDate()+delta);renderDate();updateSummary();}
 function resetDate(){currentDate=new Date();renderDate();updateSummary();}
-function getDateStr(){const y=currentDate.getFullYear(),m=currentDate.getMonth()+1,d=currentDate.getDate();return `${y}/${m}/${d}`;}
-
+function getDateStr(){const y=currentDate.getFullYear(),m=String(currentDate.getMonth()+1).padStart(2,'0'),d=String(currentDate.getDate()).padStart(2,'0');return `${y}/${m}/${d}`;}
+function promptDateEdit(){
+  const val=prompt('請輸入日期（格式：YYYY/MM/DD）',getDateStr());
+  if(!val)return;
+  const mt=val.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
+  if(!mt){showToast('格式錯誤，請輸入如 2026/05/01','error');return;}
+  currentDate=new Date(+mt[1],+mt[2]-1,+mt[3]);
+  updateDateDisplay();
+}
 // ── 業務/庫別 ─────────────────────────────────────────────────
 function renderSalesBadge(){
   document.getElementById('salesName').textContent = currentSales || '';
