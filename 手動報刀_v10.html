@@ -247,13 +247,15 @@ function tandryLogout() {
     <div id="zoneGrid" style="display:none;flex-wrap:wrap;gap:8px;margin-bottom:10px;"></div>
     <div class="btn-grid" id="hospitalGrid"></div>
   </div>
-
+  
   <!-- 醫師 -->
   <div class="card">
     <div class="card-label">👨‍⚕️ 醫師</div>
-    <select class="doctor-select" id="doctorSelect" onchange="updateSummary()">
+    <select class="doctor-select" id="doctorSelect" onchange="handleDoctorSelect()">
       <option value="">— 請先選擇醫院 —</option>
     </select>
+    <input type="text" id="doctorManualInput" placeholder="手動輸入醫師姓名" oninput="updateSummary()"
+      style="display:none;margin-top:8px;width:100%;padding:12px 14px;border:2px solid var(--border);border-radius:10px;font-size:15px;font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text);outline:none;box-sizing:border-box;">
   </div>
 
   <!-- 部位 & 品號 -->
@@ -1360,11 +1362,12 @@ function renderHospitals(){const{prioritized,rest}=getHospitals();const c=docume
 function selectHospital(h){selectedHospital=h;document.getElementById('doctorSelect').value='';
   if(currentSales){const k=`tandry_priority_${currentSales}`;let p=JSON.parse(localStorage.getItem(k)||'[]');p=[h,...p.filter(x=>x!==h)].slice(0,5);localStorage.setItem(k,JSON.stringify(p));}
   renderHospitals(); renderDoctors(); updateCode(); updateSummary();}
-function renderDoctors(){const s=document.getElementById('doctorSelect');if(!selectedHospital){s.innerHTML='<option value="">— 請先選擇醫院 —</option>';return;}
+  function handleDoctorSelect(){const v=document.getElementById('doctorSelect').value;const inp=document.getElementById('doctorManualInput');if(v==='__manual__'){inp.style.display='block';inp.focus();}else{inp.style.display='none';inp.value='';}updateSummary();}
+function getDoctor(){const s=document.getElementById('doctorSelect');if(s.value==='__manual__') return document.getElementById('doctorManualInput').value.trim();return s.value.trim();}
+function renderDoctors(){const s=document.getElementById('doctorSelect');if(!selectedHospital){s.innerHTML='<option value="">— 請先選擇醫院 —</option>';document.getElementById('doctorManualInput').style.display='none';return;}
   const d=[...new Set(rulesDb.filter(r=>r['醫院']===selectedHospital&&r['醫師']).map(r=>r['醫師']))];
   if(!d.length){s.innerHTML='<option value="">— 此醫院無醫師資料 —</option>';return;}
-  s.innerHTML='<option value="">— 選擇醫師（可不選）—</option>'+d.map(x=>`<option value="${x}">${x}</option>`).join('');}
-
+  s.innerHTML='<option value="">— 選擇醫師（可不選）—</option>'+d.map(x=>`<option value="${x}">${x}</option>`).join('')+'<option value="__manual__">✏️ 手動輸入...</option>';}
 // ── Summary ───────────────────────────────────────────────────
 function updateSummary(){const card=document.getElementById('summaryCard'),content=document.getElementById('summaryContent');
   const base=[{label:'日期',val:getDateStr()},{label:'業務',val:currentSales},{label:'醫院',val:selectedHospital},{label:'病人',val:document.getElementById('patientInput')?.value}].filter(i=>i.val);
@@ -1376,7 +1379,7 @@ function updateSummary(){const card=document.getElementById('summaryCard'),conte
 function submitForm(){
   const patient=document.getElementById('patientInput').value.trim();
   const patientId=document.getElementById('patientIdInput').value.trim();
-  const doctor=document.getElementById('doctorSelect').value.trim();
+  const doctor=getDoctor();
   const webhookUrl="https://ydj.zeabur.app/webhook/manual-baodao";
   if(!selectedHospital){showToast('請選擇醫院','error');return;}
   if(!productItems.length&&!sel.buwei){showToast('請至少加入一個產品','error');return;}
@@ -1416,7 +1419,7 @@ function submitForm(){
 function goToReport(){
   const patient=document.getElementById('patientInput').value.trim();
   const patientId=document.getElementById('patientIdInput').value.trim();
-  const doctor=document.getElementById('doctorSelect').value.trim();
+  const doctor=getDoctor();
   if(!selectedHospital){showToast('請選擇醫院','error');return;}
   if(!patient){showToast('請輸入病人姓名','error');return;}
   if(sel.buwei) addProduct();
@@ -1436,7 +1439,7 @@ function goToReport(){
 function showDebug() {
   const patient = document.getElementById('patientInput').value.trim();
   const patientId = document.getElementById('patientIdInput').value.trim();
-  const doctor = document.getElementById('doctorSelect').value.trim();
+  const doctor = getDoctor();
   const items = sel.buwei ? [...productItems, {
     buwei: sel.buwei, spec: [sel.v1,sel.v2,sel.v3].filter(Boolean).join(' '),
     品號: sel.品號, qty, payNote: sel.buwei==='埋頭釘'?screwPayType:'',
