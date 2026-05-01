@@ -659,19 +659,22 @@ function showSuccessOverlay(serial){
 }
 
 function goBack(){
-  // 把釘盤、組件、工具、備註、單據類型存回
-  const returnState={
-    screwState,
-    activeScrewBoards,
-    selectedType,
-    component:document.getElementById('componentInput').value,
-    tool:document.getElementById('toolInput').value,
-    remark:document.getElementById('remarkInput').value,
-  };
-  localStorage.setItem('tandry_baodao_return',JSON.stringify(returnState));
+  const keep=confirm('是否保留已填寫的資料？\n（釘盤、組件、工具、備註、單據類型）');
+  if(keep){
+    const returnState={
+      screwState,
+      activeScrewBoards,
+      selectedType,
+      component:document.getElementById('componentInput').value,
+      tool:document.getElementById('toolInput').value,
+      remark:document.getElementById('remarkInput').value,
+    };
+    localStorage.setItem('tandry_baodao_return',JSON.stringify(returnState));
+  } else {
+    localStorage.removeItem('tandry_baodao_return');
+  }
   window.location.href='手動報刀_v10.html';
 }
-
 function showToast(msg,type=''){const t=document.getElementById('toast');t.textContent=msg;t.className=`toast show ${type}`;setTimeout(()=>t.className='toast',3000);}
 </script>
 </body>
