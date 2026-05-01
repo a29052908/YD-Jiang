@@ -1403,8 +1403,10 @@ function submitForm(){
       try{const ctrl=new AbortController();const t=setTimeout(()=>ctrl.abort(),8000);await fetch(webhookUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data),signal:ctrl.signal});clearTimeout(t);}catch(e){console.error(e);}
     }
     localStorage.setItem('tandry_manual_history',JSON.stringify(history.slice(0,100)));
-    showToast(`✅ 成功送出 ${total} 筆`,'success');
     btn.disabled=false; productItems=[];
+    const goReport=confirm(`✅ 成功送出 ${total} 筆\n\n是否進入報刀單？`);
+    if(goReport){window.location.href='Baodao.html';return;}
+    showToast(`✅ 成功送出 ${total} 筆`,'success');
     document.getElementById('patientInput').value=''; document.getElementById('patientIdInput').value='';
     sel={buwei:'',v1:'',v2:'',v3:'',品號:'',innerCodeKey:''}; qty=1;
     supportMode=false; selectedZone='';
