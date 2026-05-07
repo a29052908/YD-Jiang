@@ -1483,5 +1483,10 @@ function showDebug() {
 
 function showToast(msg,type=''){const t=document.getElementById('toast');t.textContent=msg;t.className=`toast show ${type}`;setTimeout(()=>t.className='toast',3000);}
 </script>
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/YD-Jiang/sw.js');
+}
+</script>
 </body>
 </html>

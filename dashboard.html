@@ -461,5 +461,10 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove('show'), 2500);
 }
 </script>
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/YD-Jiang/sw.js');
+}
+</script>
 </body>
 </html>
