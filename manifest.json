@@ -1,0 +1,22 @@
+{
+  "name": "星泓報刀系統",
+  "short_name": "報刀系統",
+  "description": "Tandry 手術案件數位回報平台",
+  "start_url": "/YD-Jiang/手動報刀_v10.html",
+  "display": "standalone",
+  "background_color": "#1a1a2e",
+  "theme_color": "#1a1a2e",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
