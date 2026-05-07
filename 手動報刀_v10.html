@@ -1312,7 +1312,7 @@ function promptDateEdit(){
   const mt=val.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
   if(!mt){showToast('格式錯誤，請輸入如 2026/05/01','error');return;}
   currentDate=new Date(+mt[1],+mt[2]-1,+mt[3]);
-  updateDateDisplay();
+  renderDate();updateSummary();
 }
 // ── 業務/庫別 ─────────────────────────────────────────────────
 function renderSalesBadge(){
@@ -1403,9 +1403,22 @@ function submitForm(){
       try{const ctrl=new AbortController();const t=setTimeout(()=>ctrl.abort(),8000);await fetch(webhookUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data),signal:ctrl.signal});clearTimeout(t);}catch(e){console.error(e);}
     }
     localStorage.setItem('tandry_manual_history',JSON.stringify(history.slice(0,100)));
-    btn.disabled=false; productItems=[];
+    btn.disabled=false;
     const goReport=confirm(`✅ 成功送出 ${total} 筆\n\n是否進入報刀單？`);
-    if(goReport){window.location.href='Baodao.html';return;}
+    if(goReport){
+      const phase2={日期:getDateStr(),業務:currentSales,庫別:currentWarehouse,
+        醫院:selectedHospital,醫師:doctor,病人:patient,病歷號:patientId,
+        productItems:productItems,
+        大區:productItems[0]?.大區||'',負責業務:productItems[0]?.負責業務||currentSales,
+        部位:productItems.map(i=>i.buwei).join('、'),
+        院內碼:productItems.map(i=>i.另洽?i.innerCode+'（另洽）':i.innerCode).join('、'),
+      };
+      localStorage.setItem('tandry_phase2_data',JSON.stringify(phase2));
+      localStorage.removeItem('tandry_baodao_return');
+      productItems=[];
+      window.location.href='Baodao.html';return;
+    }
+    productItems=[];
     showToast(`✅ 成功送出 ${total} 筆`,'success');
     document.getElementById('patientInput').value=''; document.getElementById('patientIdInput').value='';
     sel={buwei:'',v1:'',v2:'',v3:'',品號:'',innerCodeKey:''}; qty=1;
