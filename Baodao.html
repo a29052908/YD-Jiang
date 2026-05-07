@@ -239,7 +239,6 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', s
 <script>
 // ── 報刀單基本資料 ────────────────────────────────────────────
 const WEBHOOK_URL = "https://ydj.zeabur.app/webhook/manual-baodao";
-const SERIAL_KEY = 'tandry_serial_number';
 let selectedType = '出貨';
 let screwState = {};
 
@@ -422,12 +421,9 @@ function buildScrewText(){
 function selectType(t){selectedType=t;document.getElementById('typeDisplay').textContent=t;document.querySelectorAll('.type-btn').forEach(b=>{b.classList.toggle('selected',b.textContent===t);});document.getElementById('typePanel').style.display='none';document.getElementById('typeArrow').textContent='▼';}
 function toggleTypePanel(){const p=document.getElementById('typePanel');const arrow=document.getElementById('typeArrow');const isOpen=p.style.display!=='none';p.style.display=isOpen?'none':'block';arrow.textContent=isOpen?'▼':'▲';}
 
-function getSerial(){return parseInt(localStorage.getItem(SERIAL_KEY)||'30000');}
-function incrementSerial(){let s=getSerial();s++;localStorage.setItem(SERIAL_KEY,s);return s;}
-
 function buildPayload(){
   return{...baseData,
-    流水號:getSerial(),單據類型:selectedType,
+    流水號:baseData.流水號||'',單據類型:selectedType,
     釘子明細:buildScrewText(),
     組件:document.getElementById('componentInput').value,
     工具:document.getElementById('toolInput').value,
@@ -446,7 +442,7 @@ function buildInnerCodeDisplay(d){
 
 function showPreview(){
   const d=baseData;
-  const serial=getSerial();
+  const serial=baseData.流水號||'';
   const dateParts=(d.日期||'').split('/');
   const yr=dateParts[0]?(parseInt(dateParts[0])-1911)+'年':'';
   const mo=dateParts[1]?dateParts[1]+'月':'';
@@ -554,7 +550,7 @@ function closePreview(){document.getElementById('previewModal').classList.remove
 async function confirmSubmit(){
   const btn=document.getElementById('confirmBtn');
   btn.disabled=true; btn.textContent='處理中...';
-  const serial=incrementSerial();
+  const serial=baseData.流水號||'';
   const data={...buildPayload(),流水號:serial};
 
  // 1. 送報刀資料：每個 productItem 各送一列
