@@ -1,6 +1,6 @@
 {
-  "name": "星泓報刀系統",
-  "short_name": "報刀系統",
+  "name": "Tandry",
+  "short_name": "Tandry",
   "description": "Tandry 手術案件數位回報平台",
   "start_url": "/YD-Jiang/手動報刀_v10.html",
   "display": "standalone",
