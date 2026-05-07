@@ -1391,7 +1391,14 @@ function submitForm(){
   const btn=document.getElementById('submitBtn'); btn.disabled=true;
   const total=productItems.length;
   const sendAll=async()=>{
-    let serialNo='';
+    // 先建立 phase2，流水號等第一筆回傳後填入
+    const phase2={日期:getDateStr(),業務:currentSales,庫別:currentWarehouse,
+      醫院:selectedHospital,醫師:doctor,病人:patient,病歷號:patientId,
+      productItems:productItems,流水號:'',
+      大區:productItems[0]?.大區||'',負責業務:productItems[0]?.負責業務||currentSales,
+      部位:productItems.map(i=>i.buwei).join('、'),
+      院內碼:productItems.map(i=>i.另洽?i.innerCode+'（另洽）':i.innerCode).join('、'),
+    };
     for(const item of productItems){
       const isFirst=productItems.indexOf(item)===0;
       const codeOut = item.另洽 ? item.innerCode+'（另洽）' : item.innerCode;
@@ -1407,21 +1414,16 @@ function submitForm(){
         const ctrl=new AbortController();const t=setTimeout(()=>ctrl.abort(),8000);
         const res=await fetch(webhookUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data),signal:ctrl.signal});
         clearTimeout(t);
-        if(isFirst){try{const json=await res.json();if(json.serialNo)serialNo=String(json.serialNo);}catch(e){}}
+        // 只有第一筆回傳的 serialNo 存進 phase2
+        if(isFirst){try{const json=await res.json();if(json.serialNo)phase2.流水號=String(json.serialNo);}catch(e){}}
       }catch(e){console.error(e);}
     }
+    // 所有品項送完，存 phase2 進 localStorage
     localStorage.setItem('tandry_manual_history',JSON.stringify(history.slice(0,100)));
     btn.disabled=false;
-    const serialMsg=serialNo?`\n流水號：${serialNo}`:'';
+    const serialMsg=phase2.流水號?`\n流水號：${phase2.流水號}`:'';
     const goReport=confirm(`✅ 成功送出 ${total} 筆${serialMsg}\n\n是否進入報刀單？`);
     if(goReport){
-      const phase2={日期:getDateStr(),業務:currentSales,庫別:currentWarehouse,
-        醫院:selectedHospital,醫師:doctor,病人:patient,病歷號:patientId,
-        productItems:productItems,流水號:serialNo,
-        大區:productItems[0]?.大區||'',負責業務:productItems[0]?.負責業務||currentSales,
-        部位:productItems.map(i=>i.buwei).join('、'),
-        院內碼:productItems.map(i=>i.另洽?i.innerCode+'（另洽）':i.innerCode).join('、'),
-      };
       localStorage.setItem('tandry_phase2_data',JSON.stringify(phase2));
       localStorage.removeItem('tandry_baodao_return');
       productItems=[];
