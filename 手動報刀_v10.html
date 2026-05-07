@@ -1409,12 +1409,14 @@ function submitForm(){
         數量:item.qty,病人:patient,病歷號:patientId,
         院內碼:codeOut,費用類型:item.payNote||'',另洽:item.另洽?'是':'',
         DHS組件:item.dhsNote||''};
+      // 非第一筆帶入已取得的流水號，讓 n8n 直接使用不重新產生
+      if(!isFirst && phase2.流水號) data.流水號=phase2.流水號;
       history.unshift({...data,_time:new Date().toISOString()});
       try{
         const ctrl=new AbortController();const t=setTimeout(()=>ctrl.abort(),8000);
         const res=await fetch(webhookUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data),signal:ctrl.signal});
         clearTimeout(t);
-        // 只有第一筆回傳的 serialNo 存進 phase2
+        // 第一筆取得 serialNo 後立即存進 phase2
         if(isFirst){try{const json=await res.json();if(json.serialNo)phase2.流水號=String(json.serialNo);}catch(e){}}
       }catch(e){console.error(e);}
     }
