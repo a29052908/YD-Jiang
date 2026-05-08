@@ -1779,6 +1779,11 @@ async function confirmSubmit(){
       備註:isFirst?document.getElementById('remarkInput')?.value||'':'',
       單據類型:isFirst?selectedType:'',
     };
+    if(isFirst){
+      console.log('[confirmSubmit] 組件:', row.組件);
+      console.log('[confirmSubmit] 工具:', row.工具);
+      console.log('[confirmSubmit] 備註:', row.備註);
+    }
     try{
       const ctrl=new AbortController();
       const t=setTimeout(()=>ctrl.abort(),8000);
@@ -1809,7 +1814,8 @@ async function confirmSubmit(){
     const base64=jpgDataUrl.split(',')[1];
     const filename=`報刀單_${serialNo}_${selectedHospital}_${patient}.jpg`;
     const a=document.createElement('a');
-    a.href=jpgDataUrl; a.download=filename; a.click();
+    a.href=jpgDataUrl; a.download=filename;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
     const DRIVE_WEBHOOK='https://ydj.zeabur.app/webhook/baodao-image';
     try{
       const ctrl2=new AbortController();
