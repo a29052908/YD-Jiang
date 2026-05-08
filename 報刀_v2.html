@@ -167,6 +167,17 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', s
 .inner-code-card{background:var(--card);border-radius:var(--radius);padding:16px 20px;margin-bottom:12px;box-shadow:var(--shadow);border:1px solid var(--border);}
 
 @keyframes fadeIn{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:translateY(0);}}
+
+/* ── 螺絲板 ── */
+.screw-section { margin-bottom: 20px; }
+.screw-type-label { font-size: 10px; font-weight: 700; color: var(--muted); letter-spacing: 1px; margin-bottom: 4px; font-family: 'JetBrains Mono', monospace; }
+.screw-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; align-items: center; }
+.screw-dot-wrap { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.screw-len { font-size: 9px; color: var(--muted); font-family: 'JetBrains Mono', monospace; text-align: center; }
+.screw-dot { width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--border); background: var(--bg); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; font-family: 'Noto Sans TC', sans-serif; transition: all 0.15s; color: var(--text); }
+.screw-legend { display: flex; gap: 12px; margin-bottom: 12px; }
+.legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--muted); }
+.legend-dot { width: 12px; height: 12px; border-radius: 50%; }
 </style>
 <script>
 (function() {
@@ -281,6 +292,32 @@ function tandryLogout() {
       </div>
       <button class="add-btn" id="addBtn" style="display:none;" onclick="addProduct()"><span>＋</span><span>加入此產品</span></button>
     </div>
+  </div>
+
+  <!-- 釘盤 -->
+  <div class="card" id="screwCard">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <div class="card-label" style="margin-bottom:0;">🔩 釘子</div>
+      <button onclick="showAddScrewBoard()" style="padding:5px 14px;border-radius:20px;border:1.5px solid var(--accent);background:white;color:var(--accent);font-size:12px;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;">＋ 新增釘盤</button>
+    </div>
+    <div class="screw-legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#4CAF50"></div>L = Locking</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#FF9800"></div>C = Cortex</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#9C27B0"></div>VA-L</div>
+    </div>
+    <div id="addScrewPanel" style="display:none;margin-bottom:12px;padding:12px;background:var(--bg);border-radius:10px;border:1px solid var(--border);">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px;font-family:'JetBrains Mono',monospace;">選擇釘子直徑</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;">
+        <button class="type-btn" onclick="addScrewBoard('1.5')">1.5 mm</button>
+        <button class="type-btn" onclick="addScrewBoard('2.0')">2.0 mm</button>
+        <button class="type-btn" onclick="addScrewBoard('2.4')">2.4 mm</button>
+        <button class="type-btn" onclick="addScrewBoard('3.5')">3.5 mm</button>
+        <button class="type-btn" onclick="addScrewBoard('5.0')">5.0 mm</button>
+        <button class="type-btn" onclick="addScrewBoard('VA')">VA</button>
+      </div>
+    </div>
+    <div id="screwBoards"></div>
+    <textarea id="componentInput" style="display:none;"></textarea>
   </div>
 
   <!-- 院內碼 -->
@@ -1494,6 +1531,127 @@ function showDebug() {
 }
 
 function showToast(msg,type=''){const t=document.getElementById('toast');t.textContent=msg;t.className=`toast show ${type}`;setTimeout(()=>t.className='toast',3000);}
+
+// ── 釘盤 ──────────────────────────────────
+function genLengths(rules) {
+  const lens = new Set();
+  for (const r of rules) {
+    for (let l = r.from; l <= r.to; l += r.step) lens.add(l);
+    if (r.extra) r.extra.forEach(e => lens.add(e));
+  }
+  return [...lens].sort((a,b) => a-b);
+}
+const std35 = genLengths([{from:10,to:40,step:2},{from:45,to:70,step:5,extra:[42,48]}]);
+const std24 = genLengths([{from:10,to:50,step:2}]);
+const std15 = genLengths([{from:6,to:14,step:1},{from:16,to:20,step:2}]);
+const std20 = genLengths([{from:6,to:14,step:1},{from:16,to:20,step:2}]);
+const std50L = genLengths([{from:20,to:50,step:2},{from:55,to:90,step:5}]);
+const std50C = genLengths([{from:20,to:50,step:2}]);
+std50C.push(...[54,60,64,70,80,90]); std50C.sort((a,b)=>a-b);
+
+const screwBoardDefs = {
+  '1.5':{types:[{type:'L',color:'#4CAF50',dark:'#2E7D32'},{type:'C',color:'#FF9800',dark:'#E65100'}],lengths:std15},
+  '2.0':{types:[{type:'L',color:'#4CAF50',dark:'#2E7D32'},{type:'C',color:'#FF9800',dark:'#E65100'}],lengths:std20},
+  '2.4':{types:[{type:'L',color:'#4CAF50',dark:'#2E7D32'},{type:'C',color:'#FF9800',dark:'#E65100'}],lengths:std24},
+  '3.5':{types:[{type:'L',color:'#4CAF50',dark:'#2E7D32'},{type:'C',color:'#FF9800',dark:'#E65100'}],lengths:std35},
+  '5.0':{types:[{type:'L',color:'#4CAF50',dark:'#2E7D32'},{type:'C',color:'#FF9800',dark:'#E65100'}],lengthsL:std50L,lengthsC:std50C},
+  'VA': {types:[{type:'L',color:'#9C27B0',dark:'#6A1B9A'},{type:'C',color:'#FF9800',dark:'#E65100'}],lengths:[]},
+};
+let activeScrewBoards = [];
+let screwState = {};
+
+function showAddScrewBoard(){const p=document.getElementById('addScrewPanel');p.style.display=p.style.display==='none'?'block':'none';}
+function addScrewBoard(dia){if(activeScrewBoards.find(b=>b.dia===dia)){showToast(`已有 ${dia} mm 釘盤`,'error');document.getElementById('addScrewPanel').style.display='none';return;}const id=`board_${dia}_${Date.now()}`;activeScrewBoards.push({dia,id});document.getElementById('addScrewPanel').style.display='none';renderAllScrewBoards();}
+function removeScrewBoard(id){activeScrewBoards=activeScrewBoards.filter(b=>b.id!==id);Object.keys(screwState).filter(k=>k.startsWith(id+'_')).forEach(k=>delete screwState[k]);renderAllScrewBoards();updateComponentFromScrews();}
+function toggleScrewBoard(id){const body=document.getElementById(`body_${id}`);const arrow=document.getElementById(`arrow_${id}`);const isOpen=body.style.display!=='none';body.style.display=isOpen?'none':'block';arrow.textContent=isOpen?'▶':'▼';}
+
+function renderAllScrewBoards(){
+  const container=document.getElementById('screwBoards');
+  if(!activeScrewBoards.length){container.innerHTML='<div style="color:var(--muted);font-size:13px;padding:8px 0;">尚未新增釘盤，點「＋ 新增釘盤」開始</div>';return;}
+  container.innerHTML=activeScrewBoards.map(({dia,id})=>{
+    const def=screwBoardDefs[dia];if(!def)return'';
+    const typesHtml=def.types.map(({type,color,dark})=>{
+      const lengths=dia==='5.0'?(type==='L'?def.lengthsL:def.lengthsC):def.lengths;
+      if(!lengths.length)return`<div style="color:var(--muted);font-size:12px;padding:6px 0;">${type} — 尺寸待補齊</div>`;
+      return`<div class="screw-type-label" style="color:${color};margin-top:8px;">● ${type} — ${type==='L'?'Locking':'Cortex'}</div>
+      <div class="screw-row">${lengths.map(len=>`
+        <div class="screw-dot-wrap">
+          <div class="screw-len">${len}</div>
+          <div class="screw-dot" id="dot_${id}_${type}_${len}" style="border-color:${color};background:var(--bg);color:var(--text);" onclick="toggleScrew('${id}','${type}',${len},'${color}','${dark}')" data-count="0">0</div>
+          <div onclick="decreaseScrew('${id}','${type}',${len},'${color}','${dark}')" style="width:32px;height:14px;border-radius:4px;background:var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;font-weight:700;color:var(--muted);user-select:none;">－</div>
+        </div>`).join('')}</div>`;
+    }).join('');
+    return`<div style="margin-bottom:10px;border:1px solid var(--border);border-radius:10px;overflow:hidden;">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg);cursor:pointer;" onclick="toggleScrewBoard('${id}')">
+        <div style="font-size:13px;font-weight:700;color:var(--accent);"><span id="arrow_${id}">▼</span> ⌀ ${dia} mm</div>
+        <button onclick="event.stopPropagation();removeScrewBoard('${id}')" style="padding:3px 10px;border-radius:6px;border:1px solid var(--accent2);background:white;color:var(--accent2);font-size:11px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;">移除</button>
+      </div>
+      <div id="body_${id}" style="padding:12px;">${typesHtml}</div>
+    </div>`;
+  }).join('');
+  // restore dots
+  Object.keys(screwState).forEach(key=>{const cnt=screwState[key];if(!cnt)return;const lastUnd2=key.lastIndexOf('_',key.lastIndexOf('_')-1);const boardId=key.substring(0,lastUnd2);const rest=key.substring(lastUnd2+1).split('_');const type=rest[0],len=rest[1];const dot=document.getElementById(`dot_${boardId}_${type}_${len}`);if(!dot)return;const board=activeScrewBoards.find(b=>b.id===boardId);if(!board)return;const def=screwBoardDefs[board.dia];if(!def)return;const t=def.types.find(t=>t.type===type);if(!t)return;updateDot(dot,cnt,t.color,t.dark);});
+}
+
+function toggleScrew(id,type,len,color,dark){const key=`${id}_${type}_${len}`;const dot=document.getElementById(`dot_${id}_${type}_${len}`);const cur=screwState[key]||0;const next=cur>=99?0:cur+1;screwState[key]=next;updateDot(dot,next,color,dark);updateComponentFromScrews();}
+function decreaseScrew(id,type,len,color,dark){const key=`${id}_${type}_${len}`;const dot=document.getElementById(`dot_${id}_${type}_${len}`);const cur=screwState[key]||0;const next=Math.max(0,cur-1);screwState[key]=next;updateDot(dot,next,color,dark);updateComponentFromScrews();}
+function updateDot(dot,n,color,dark){dot.dataset.count=n;dot.textContent=n;if(n===0){dot.style.background='var(--bg)';dot.style.color='var(--text)';}else if(n<=2){dot.style.background=color;dot.style.color='white';}else{dot.style.background=dark;dot.style.color='white';}}
+
+function updateComponentFromScrews(){
+  const groups=[];
+  for(const{dia,id}of activeScrewBoards){
+    const def=screwBoardDefs[dia];if(!def)continue;
+    const diaLines=[];
+    for(const{type}of def.types){
+      const lengths=dia==='5.0'?(type==='L'?def.lengthsL:def.lengthsC):def.lengths;
+      const entries=[];
+      for(const len of lengths){const cnt=screwState[`${id}_${type}_${len}`]||0;if(cnt>0)entries.push(`${len}x${toZheng(cnt)}`);}
+      if(entries.length>0){
+      const prefix=`${dia} ${type}: `;
+      const indent=' '.repeat(prefix.length);
+      const rows=[];
+      for(let i=0;i<entries.length;i+=6){rows.push(entries.slice(i,i+6).join('・'));}
+      diaLines.push(prefix+rows.join('\n'+indent));
+    }
+    }
+    if(diaLines.length>0) groups.push(diaLines.join('\n'));
+  }
+  document.getElementById('componentInput').value=groups.join('\n');
+}
+
+function toZheng(n){
+  if(n<=0)return'';
+  const filled=[
+    '','①','②','③','④','⑤','⑥','⑦','⑧','⑨','⑩',
+    '⑪','⑫','⑬','⑭','⑮','⑯','⑰','⑱','⑲','⑳',
+    '㉑','㉒','㉓','㉔','㉕','㉖','㉗','㉘','㉙','㉚',
+    '㉛','㉜','㉝','㉞','㉟','㊱','㊲','㊳','㊴','㊵',
+    '㊶','㊷','㊸','㊹','㊺','㊻','㊼','㊽','㊾','㊿'
+  ];
+  return n<=50?filled[n]:String(n);
+}
+
+function buildScrewText(){
+  const groups=[];
+  for(const{dia,id}of activeScrewBoards){
+    const def=screwBoardDefs[dia];if(!def)continue;
+    const diaLines=[];
+    for(const{type}of def.types){
+      const lengths=dia==='5.0'?(type==='L'?def.lengthsL:def.lengthsC):def.lengths;
+      const entries=[];
+      for(const len of lengths){const cnt=screwState[`${id}_${type}_${len}`]||0;if(cnt>0)entries.push(`${len}x${toZheng(cnt)}`);}
+      if(entries.length>0){
+        const prefix=`${dia} ${type}: `;
+        const indent=' '.repeat(prefix.length);
+        const rows=[];
+        for(let i=0;i<entries.length;i+=6){rows.push(entries.slice(i,i+6).join('・'));}
+        diaLines.push(prefix+rows.join('\n'+indent));
+      }
+    }
+    if(diaLines.length>0)groups.push(diaLines.join('\n'));
+  }
+  return groups.join('\n');
+}
 </script>
 <script>
 if ('serviceWorker' in navigator) {
