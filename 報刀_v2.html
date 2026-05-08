@@ -168,6 +168,15 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', s
 
 @keyframes fadeIn{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:translateY(0);}}
 
+/* ── 預覽 Modal ── */
+.preview-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200; display: none; align-items: flex-start; justify-content: center; overflow-y: auto; padding: 20px 0; }
+.preview-overlay.show { display: flex; }
+.preview-modal { background: white; width: 95%; max-width: 640px; border-radius: 16px; overflow: hidden; margin: auto; }
+.preview-actions { display: flex; gap: 10px; padding: 16px; background: var(--bg); border-top: 1px solid var(--border); }
+.preview-action-btn { flex: 1; padding: 14px; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; font-family: 'Noto Sans TC', sans-serif; }
+.btn-cancel { background: var(--border); color: var(--text); }
+.btn-confirm { background: var(--green); color: white; }
+
 /* ── 螺絲板 ── */
 .screw-section { margin-bottom: 20px; }
 .screw-type-label { font-size: 10px; font-weight: 700; color: var(--muted); letter-spacing: 1px; margin-bottom: 4px; font-family: 'JetBrains Mono', monospace; }
@@ -232,6 +241,35 @@ function tandryLogout() {
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- 預覽 Modal -->
+<div class="preview-overlay" id="previewModal">
+  <div class="preview-modal">
+    <div style="padding:12px 16px;background:var(--accent);color:white;font-size:14px;font-weight:600;">📄 報刀單預覽</div>
+    <!-- 單據類型選擇器 -->
+    <div style="padding:10px 16px;background:var(--bg);border-bottom:1px solid var(--border);">
+      <div style="display:flex;align-items:center;gap:8px;cursor:pointer;" onclick="toggleTypePanel()">
+        <span style="font-size:12px;color:var(--muted);">單據類型：</span>
+        <span id="typeDisplay" style="font-weight:700;color:var(--accent);">出貨</span>
+        <span id="typeArrow" style="font-size:11px;color:var(--muted);">▼</span>
+      </div>
+      <div id="typePanel" style="display:none;margin-top:8px;">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="type-btn selected" onclick="selectType('出貨')">出貨</button>
+          <button class="type-btn" onclick="selectType('借貨')">借貨</button>
+          <button class="type-btn" onclick="selectType('換貨')">換貨</button>
+          <button class="type-btn" onclick="selectType('還貨')">還貨</button>
+        </div>
+      </div>
+    </div>
+    <div id="previewContent" style="padding:16px;background:white;overflow-x:auto;overflow-y:auto;max-height:70vh;"></div>
+    <div class="preview-actions">
+      <button class="preview-action-btn btn-cancel" onclick="closePreview()">返回修改</button>
+      <button class="preview-action-btn" style="background:#065A82;color:white;" onclick="window.print()">🖨️ 列印</button>
+      <button class="preview-action-btn btn-confirm" id="confirmBtn" onclick="confirmSubmit()">✅ 確認送出</button>
+    </div>
+  </div>
+</div>
 
 <div class="content">
   <div id="summaryCard" style="display:none;position:sticky;top:0;z-index:90;background:var(--accent);color:white;border-radius:0;margin:0 -16px 16px;padding:12px 16px;box-shadow:0 4px 12px rgba(0,0,0,0.2);">
@@ -1531,6 +1569,165 @@ function showDebug() {
 }
 
 function showToast(msg,type=''){const t=document.getElementById('toast');t.textContent=msg;t.className=`toast show ${type}`;setTimeout(()=>t.className='toast',3000);}
+
+// ── 預覽 Modal ──────────────────────────────────
+let selectedType = '出貨';
+
+function selectType(t){selectedType=t;document.getElementById('typeDisplay').textContent=t;document.querySelectorAll('.type-btn').forEach(b=>{b.classList.toggle('selected',b.textContent===t);});document.getElementById('typePanel').style.display='none';document.getElementById('typeArrow').textContent='▼';}
+function toggleTypePanel(){const p=document.getElementById('typePanel');const arrow=document.getElementById('typeArrow');const isOpen=p.style.display!=='none';p.style.display=isOpen?'none':'block';arrow.textContent=isOpen?'▼':'▲';}
+
+function buildInnerCodeDisplay(d){
+  if(d.productItems&&d.productItems.length>0){
+    const codeQtyMap={};
+    d.productItems.forEach(item=>{const key=item.品號||item.buwei||'';if(!codeQtyMap[key])codeQtyMap[key]=0;codeQtyMap[key]+=item.qty||1;});
+    return Object.entries(codeQtyMap).map(([code,qty])=>qty>1?`${code} ×${qty}`:code).join('\n');
+  }
+  return d.院內碼||'';
+}
+
+function buildPayload(){
+  const patient=document.getElementById('patientInput')?.value||'';
+  const patientId=document.getElementById('patientIdInput')?.value||'';
+  const doctor=getDoctor();
+  return {
+    日期:getDateStr(), 業務:currentSales, 庫別:currentWarehouse,
+    醫院:selectedHospital, 醫師:doctor, 病人:patient, 病歷號:patientId,
+    productItems:productItems, 院內碼:innerCode, 流水號:'',
+    單據類型:selectedType,
+    釘子明細:buildScrewText(),
+    組件:document.getElementById('componentInput')?.value||'',
+    工具:'', 備註:'',
+  };
+}
+
+function showPreview(){
+  const d=buildPayload();
+  const serial=d.流水號||'';
+  const dateParts=(d.日期||'').split('/');
+  const yr=dateParts[0]?(parseInt(dateParts[0])-1911)+'年':'';
+  const mo=dateParts[1]?dateParts[1]+'月':'';
+  const dy=dateParts[2]?dateParts[2]+'日':'';
+  const cb=t=>t===selectedType?'☑':'☐';
+  const component=d.組件;
+  const tool=d.工具;
+  const remark=d.備註;
+
+  let implantLines=[];
+  let innerCodeLines=[];
+  const itemSrc=d.productItems&&d.productItems.length>0?d.productItems:null;
+  if(itemSrc){
+    const icMap={};
+    itemSrc.forEach(item=>{
+      const buwei=item.buwei||item.部位||'';
+      const spec=item.spec||item.規格||'';
+      const pn=item.品號||item.product||'';
+      const qty=item.qty||item.數量||1;
+      const ic=item.innerCode||item.院內碼||'';
+      const neg=item.另洽?'（另洽）':'';
+      const dhs=item.dhsNote||item.DHS||'';
+      const pay=item.payNote||'';
+      const payTag=pay?` [${pay}]`:'';
+      implantLines.push(`${buwei}${spec?' '+spec:''}${pn?' ('+pn+')':''}${payTag}${qty>1?' ×'+qty:''}${dhs?' | '+dhs:''}`.trim());
+      if(ic){const mapKey=`${ic}${neg}`;if(!icMap[mapKey])icMap[mapKey]={ic,neg,qty:0};icMap[mapKey].qty+=qty;}
+    });
+    innerCodeLines=Object.values(icMap).map(({ic,neg,qty})=>`${ic}${neg}${qty>1?' ×'+qty:''}`);
+  } else {
+    const qty=d.數量||1;
+    implantLines=[`${d.部位||''}${d.規格?' '+d.規格:''}${d.品號?' ('+d.品號+')':''}${qty>1?' ×'+qty:''}`.trim()];
+    innerCodeLines=[`${d.院內碼||''}${qty>1?' ×'+qty:''}`];
+  }
+  const implant=implantLines.join('\n');
+  const innerCodeDisplay=innerCodeLines.filter(Boolean).join('\n')||d.院內碼||'';
+
+  document.getElementById('previewContent').innerHTML=`<div style="min-width:580px;">
+    <div style="font-family:'Noto Sans TC',sans-serif;font-size:13px;color:#000;">
+      <div style="margin-bottom:8px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+          <img src="圖片1.png" style="height:72px;object-fit:contain;" alt="Tandry">
+          <div style="text-align:center;flex:1;padding:0 8px;">
+            <div style="font-size:16px;font-weight:700;letter-spacing:2px;white-space:nowrap;">星 泓 股 份 有 限 公 司</div>
+            <div style="font-size:11px;color:#333;word-break:break-all;line-height:1.5;">地址：114台北市內湖區瑞光路76巷65號2樓<br>電話：(02) 2796-2677　傳真：(02) 2796-2611</div>
+          </div>
+          <div style="color:#e63946;font-size:16px;font-weight:700;font-family:monospace;white-space:nowrap;">${serial}</div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;font-size:13px;border-top:1px solid #eee;padding-top:4px;flex-wrap:wrap;gap:4px;">
+          <div style="display:flex;gap:12px;">
+            <span>${cb('出貨')} 出貨</span><span>${cb('借貨')} 借貨</span><span>${cb('換貨')} 換貨</span><span>${cb('還貨')} 還貨</span>
+          </div>
+          <span style="font-weight:600;">日期：${yr} ${mo} ${dy}</span>
+        </div>
+      </div>
+      <table style="width:100%;border-collapse:collapse;border:1px solid #000;">
+        <tr>
+          <td style="width:28%;border-right:1px solid #000;padding:0;vertical-align:top;">
+            <table style="width:100%;border-collapse:collapse;">
+              <tr><td style="width:65px;background:#f9f9f9;border-bottom:1px solid #000;border-right:1px solid #000;padding:4px;text-align:center;font-size:11px;letter-spacing:1px;">客戶名稱</td><td style="border-bottom:1px solid #000;padding:4px 8px;">${d.醫院||''}</td></tr>
+              <tr><td style="width:65px;background:#f9f9f9;border-bottom:1px solid #000;border-right:1px solid #000;padding:4px;text-align:center;font-size:11px;letter-spacing:1px;">醫　　師</td><td style="border-bottom:1px solid #000;padding:4px 8px;">${d.醫師||''}</td></tr>
+              <tr><td style="width:65px;background:#f9f9f9;border-bottom:1px solid #000;border-right:1px solid #000;padding:4px;text-align:center;font-size:11px;letter-spacing:1px;">院 內 碼</td><td style="border-bottom:1px solid #000;padding:4px 8px;font-size:11px;white-space:pre-wrap;">${innerCodeDisplay}</td></tr>
+              <tr><td style="width:65px;background:#f9f9f9;border-bottom:1px solid #000;border-right:1px solid #000;padding:4px;text-align:center;font-size:11px;letter-spacing:1px;">病人姓名</td><td style="border-bottom:1px solid #000;padding:4px 8px;">${d.病人||''}</td></tr>
+              <tr><td style="width:65px;background:#f9f9f9;border-bottom:1px solid #000;border-right:1px solid #000;padding:4px;text-align:center;font-size:11px;letter-spacing:1px;">病歷號碼</td><td style="border-bottom:1px solid #000;padding:4px 8px;font-size:11px;">${d.病歷號||''}</td></tr>
+              <tr><td style="width:65px;background:#f9f9f9;border-bottom:1px solid #000;border-right:1px solid #000;padding:4px;text-align:center;font-size:11px;letter-spacing:1px;">業務人員</td><td style="border-bottom:1px solid #000;padding:4px 8px;">${d.業務||''}</td></tr>
+              <tr><td style="width:65px;background:#f9f9f9;border-bottom:1px solid #000;border-right:1px solid #000;padding:4px;text-align:center;font-size:11px;letter-spacing:1px;">庫　　別</td><td style="border-bottom:1px solid #000;padding:4px 8px;">${d.庫別||''}</td></tr>
+              <tr><td colspan="2" style="text-align:center;background:#f9f9f9;border-bottom:1px solid #000;padding:4px;font-size:11px;letter-spacing:3px;">備　　註</td></tr>
+              <tr><td colspan="2" style="padding:6px;min-height:50px;font-size:12px;">${remark}</td></tr>
+            </table>
+          </td>
+          <td style="vertical-align:top;padding:0;">
+            <div style="border-bottom:1px solid #000;padding:2px 8px;font-size:10px;display:flex;justify-content:space-between;"><span>品</span><span>名</span></div>
+            <div style="border-bottom:1px solid #000;padding:8px;min-height:100px;">
+              <div style="font-weight:700;font-size:12px;margin-bottom:4px;">植入物：</div>
+              <div style="font-family:monospace;font-size:12px;white-space:pre-wrap;line-height:1.8;">${implant}</div>
+            </div>
+            <div style="border-bottom:1px solid #000;padding:8px;">
+              <div style="font-weight:700;font-size:12px;margin-bottom:4px;">組件：</div>
+              <pre style="font-family:'Noto Sans TC','JetBrains Mono',monospace;font-size:14px;line-height:2;white-space:pre-wrap;word-break:break-all;margin:0;">${component}</pre>
+            </div>
+            <div style="padding:8px;min-height:60px;">
+              <div style="font-weight:700;font-size:12px;margin-bottom:4px;">工具：</div>
+              <div style="font-family:monospace;font-size:12px;white-space:pre-wrap;line-height:1.8;">${tool}</div>
+            </div>
+          </td>
+        </tr>
+      </table>
+      <div style="display:flex;justify-content:space-around;align-items:center;margin-top:10px;font-size:11px;border-top:1px solid #000;padding-top:8px;">
+        <span>主管：＿＿＿＿</span><span>會計：＿＿＿＿</span><span>倉管：＿＿＿＿</span>
+        <span>業務：${d.業務||''}</span><span>客戶簽收：＿＿＿＿＿</span>
+      </div>
+    </div>`;
+  document.getElementById('previewModal').classList.add('show');
+}
+
+function closePreview(){document.getElementById('previewModal').classList.remove('show');}
+
+function showSuccessOverlay(serial){
+  const overlay=document.createElement('div');
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(45,106,79,0.96);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;';
+  overlay.innerHTML=`<div style="font-size:64px;margin-bottom:16px;">✅</div><div style="color:white;font-size:22px;font-weight:700;margin-bottom:8px;">報刀單送出成功！</div><div style="color:rgba(255,255,255,0.8);font-size:16px;">流水號：<span style="font-family:'JetBrains Mono',monospace;font-weight:700;">${serial}</span></div><div style="color:rgba(255,255,255,0.5);font-size:13px;margin-top:16px;">點擊任意處關閉</div>`;
+  overlay.onclick=()=>document.body.removeChild(overlay);
+  document.body.appendChild(overlay);
+  setTimeout(()=>{if(document.body.contains(overlay))document.body.removeChild(overlay);},4000);
+}
+
+function renderInfoGrid(){
+  const el=document.getElementById('infoGrid');
+  if(!el)return;
+  const fields=[
+    {label:'日期',val:getDateStr()},
+    {label:'業務',val:currentSales},
+    {label:'醫院',val:selectedHospital},
+    {label:'醫師',val:getDoctor()},
+    {label:'病人',val:document.getElementById('patientInput')?.value||''},
+    {label:'病歷號',val:document.getElementById('patientIdInput')?.value||''},
+    {label:'庫別',val:currentWarehouse},
+  ];
+  el.innerHTML=fields.map(f=>`
+    <div class="info-item">
+      <div class="info-item-label">${f.label}</div>
+      <div class="info-item-value">${f.val||'—'}</div>
+    </div>`).join('');
+}
+
+function confirmSubmit(){showToast('確認送出功能開發中','');}
 
 // ── 釘盤 ──────────────────────────────────
 function genLengths(rules) {
