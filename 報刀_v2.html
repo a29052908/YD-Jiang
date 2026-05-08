@@ -269,7 +269,22 @@ function tandryLogout() {
         </div>
       </div>
     </div>
-    <div id="previewContent" style="padding:16px;background:white;overflow-x:auto;overflow-y:auto;max-height:70vh;"></div>
+    <!-- 組件 / 工具 / 備註 輸入欄位 -->
+    <div style="padding:12px 16px;background:var(--bg);border-bottom:1px solid var(--border);">
+      <div style="margin-bottom:10px;">
+        <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:1px;margin-bottom:4px;">🔧 組件</div>
+        <textarea class="text-area" id="componentInput" placeholder="例：3.5 L=14×正&#10;2.4 L: 10×T" style="min-height:100px;"></textarea>
+      </div>
+      <div style="margin-bottom:10px;">
+        <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:1px;margin-bottom:4px;">🛠 工具</div>
+        <textarea class="text-area" id="toolInput" placeholder="例：拉：0.8 guide pin×2"></textarea>
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:1px;margin-bottom:4px;">📝 備註</div>
+        <textarea class="text-area" id="remarkInput" placeholder="備註事項"></textarea>
+      </div>
+    </div>
+    <div id="previewContent" style="padding:16px;background:white;overflow-x:auto;overflow-y:auto;max-height:50vh;"></div>
     <div class="preview-actions">
       <button class="preview-action-btn btn-cancel" onclick="closePreview()">返回修改</button>
       <button class="preview-action-btn" style="background:#065A82;color:white;" onclick="window.print()">🖨️ 列印</button>
@@ -362,22 +377,6 @@ function tandryLogout() {
       </div>
     </div>
     <div id="screwBoards"></div>
-    <div style="margin-top:12px;border-top:1px solid var(--border);padding-top:12px;">
-      <div class="card-label" style="margin-bottom:6px;">🔧 組件</div>
-      <textarea class="text-area" id="componentInput" placeholder="例：3.5 L=14×正&#10;2.4 L: 10×T" style="min-height:120px;"></textarea>
-    </div>
-  </div>
-
-  <!-- 工具 -->
-  <div class="card">
-    <div class="card-label">🛠 工具</div>
-    <textarea class="text-area" id="toolInput" placeholder="例：拉：0.8 guide pin×2"></textarea>
-  </div>
-
-  <!-- 備註 -->
-  <div class="card">
-    <div class="card-label">📝 備註</div>
-    <textarea class="text-area" id="remarkInput" placeholder="備註事項"></textarea>
   </div>
 
   <!-- 院內碼 -->
