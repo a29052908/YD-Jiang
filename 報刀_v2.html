@@ -168,6 +168,12 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', s
 
 @keyframes fadeIn{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:translateY(0);}}
 
+/* ── 文字輸入區 ── */
+.type-btn { padding: 10px 18px; border-radius: 10px; border: 2px solid var(--border); background: var(--bg); font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.15s; color: var(--text); font-family: 'Noto Sans TC', sans-serif; }
+.type-btn.selected { border-color: var(--accent); background: var(--accent); color: white; }
+.text-area { width: 100%; padding: 12px 14px; border: 2px solid var(--border); border-radius: 10px; font-size: 15px; font-family: 'Noto Sans TC', 'JetBrains Mono', monospace; background: var(--bg); color: var(--text); outline: none; resize: vertical; min-height: 80px; transition: border-color 0.2s; white-space: pre-wrap; word-break: break-all; box-sizing: border-box; }
+.text-area:focus { border-color: var(--accent); }
+
 /* ── 預覽 Modal ── */
 .preview-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200; display: none; align-items: flex-start; justify-content: center; overflow-y: auto; padding: 20px 0; }
 .preview-overlay.show { display: flex; }
@@ -212,6 +218,7 @@ function tandryLogout() {
   window.location.href = 'login.html';
 }
 </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
 
@@ -355,7 +362,22 @@ function tandryLogout() {
       </div>
     </div>
     <div id="screwBoards"></div>
-    <textarea id="componentInput" style="display:none;"></textarea>
+    <div style="margin-top:12px;border-top:1px solid var(--border);padding-top:12px;">
+      <div class="card-label" style="margin-bottom:6px;">🔧 組件</div>
+      <textarea class="text-area" id="componentInput" placeholder="例：3.5 L=14×正&#10;2.4 L: 10×T" style="min-height:120px;"></textarea>
+    </div>
+  </div>
+
+  <!-- 工具 -->
+  <div class="card">
+    <div class="card-label">🛠 工具</div>
+    <textarea class="text-area" id="toolInput" placeholder="例：拉：0.8 guide pin×2"></textarea>
+  </div>
+
+  <!-- 備註 -->
+  <div class="card">
+    <div class="card-label">📝 備註</div>
+    <textarea class="text-area" id="remarkInput" placeholder="備註事項"></textarea>
   </div>
 
   <!-- 院內碼 -->
@@ -393,6 +415,7 @@ function tandryLogout() {
 </div>
 
 <script>
+const WEBHOOK_URL = 'https://ydj.zeabur.app/webhook/manual-baodao';
 const WEEKDAYS = ['日','一','二','三','四','五','六'];
 let currentDate = new Date();
 let selectedHospital = '', innerCode = '';
@@ -1727,7 +1750,80 @@ function renderInfoGrid(){
     </div>`).join('');
 }
 
-function confirmSubmit(){showToast('確認送出功能開發中','');}
+async function confirmSubmit(){
+  const btn=document.getElementById('confirmBtn');
+  btn.disabled=true; btn.textContent='處理中...';
+  const patient=document.getElementById('patientInput')?.value||'';
+  const patientId=document.getElementById('patientIdInput')?.value||'';
+  const doctor=getDoctor();
+  const dateStr=getDateStr();
+  const items=productItems.length>0?productItems:[];
+  if(!items.length){showToast('請先加入產品','error');btn.disabled=false;btn.textContent='✅ 確認送出';return;}
+  let serialNo='';
+  for(const item of items){
+    const codeOut=item.另洽?(item.innerCode||'')+'（另洽）':(item.innerCode||'');
+    const isFirst=items.indexOf(item)===0;
+    const row={
+      流水號:serialNo,
+      日期:dateStr, 業務:currentSales, 庫別:currentWarehouse,
+      大區:item.大區||'', 負責業務:item.負責業務||currentSales,
+      醫院:selectedHospital, 醫師:doctor,
+      部位:item.buwei||'', 規格:item.spec||'', 品號:item.品號||'',
+      數量:item.qty||1, 病人:patient, 病歷號:patientId,
+      院內碼:codeOut, 費用類型:item.payNote||'',
+      另洽:item.另洽?'是':'', DHS組件:item.dhsNote||'',
+      組件:isFirst?document.getElementById('componentInput')?.value||'':'',
+      工具:isFirst?document.getElementById('toolInput')?.value||'':'',
+      備註:isFirst?document.getElementById('remarkInput')?.value||'':'',
+      單據類型:isFirst?selectedType:'',
+    };
+    try{
+      const ctrl=new AbortController();
+      const t=setTimeout(()=>ctrl.abort(),8000);
+      const res=await fetch(WEBHOOK_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(row),signal:ctrl.signal});
+      clearTimeout(t);
+      if(isFirst){try{const json=await res.json();serialNo=json.serialNo||json.流水號||'';}catch(e){}}
+    }catch(e){console.error('報刀資料送出失敗',e);}
+  }
+  // 截圖 → 下載 + 上傳 Drive
+  try{
+    const previewEl=document.getElementById('previewContent');
+    const prevMaxHeight=previewEl.style.maxHeight;
+    const prevOverflow=previewEl.style.overflow;
+    previewEl.style.maxHeight='none';
+    previewEl.style.overflow='visible';
+    previewEl.style.width='780px';
+    await new Promise(r=>setTimeout(r,100));
+    const canvas=await html2canvas(previewEl,{
+      scale:2,useCORS:true,backgroundColor:'#ffffff',logging:false,
+      scrollX:0,scrollY:0,windowWidth:800,
+      windowHeight:previewEl.scrollHeight,
+      width:previewEl.scrollWidth,height:previewEl.scrollHeight,
+    });
+    previewEl.style.maxHeight=prevMaxHeight;
+    previewEl.style.overflow=prevOverflow;
+    previewEl.style.width='';
+    const jpgDataUrl=canvas.toDataURL('image/jpeg',0.92);
+    const base64=jpgDataUrl.split(',')[1];
+    const filename=`報刀單_${serialNo}_${selectedHospital}_${patient}.jpg`;
+    const a=document.createElement('a');
+    a.href=jpgDataUrl; a.download=filename; a.click();
+    const DRIVE_WEBHOOK='https://ydj.zeabur.app/webhook/baodao-image';
+    try{
+      const ctrl2=new AbortController();
+      const t2=setTimeout(()=>ctrl2.abort(),15000);
+      await fetch(DRIVE_WEBHOOK,{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({流水號:serialNo,檔名:filename,日期:dateStr,業務:currentSales,醫院:selectedHospital,病人:patient,image:base64}),
+        signal:ctrl2.signal
+      });
+      clearTimeout(t2);
+    }catch(e){console.error('Drive上傳失敗',e);}
+  }catch(e){console.error('截圖失敗',e);}
+  closePreview();
+  showSuccessOverlay(serialNo);
+  btn.disabled=false; btn.textContent='✅ 確認送出';
+}
 
 // ── 釘盤 ──────────────────────────────────
 function genLengths(rules) {
