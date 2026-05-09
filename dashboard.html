@@ -23,10 +23,15 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', s
 .topbar-left { display: flex; align-items: center; gap: 12px; }
 .topbar-logo { background: var(--accent2); border-radius: 8px; padding: 6px 8px; font-weight: 700; font-size: 11px; letter-spacing: -0.5px; }
 .topbar h1 { font-size: 17px; font-weight: 600; white-space: nowrap; }
-.topbar-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
-.nav-btn { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 6px 12px; border-radius: 8px; font-size: 12px; cursor: pointer; font-family: 'Noto Sans TC', sans-serif; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
-.nav-btn:hover { background: rgba(255,255,255,0.2); }
-.nav-btn.active { background: rgba(255,255,255,0.25); }
+.topbar-right { position: relative; flex-shrink: 0; }
+.hamburger-btn { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); color: white; width: 36px; height: 36px; border-radius: 8px; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.hamburger-btn:hover { background: rgba(255,255,255,0.22); }
+.hamburger-menu { display: none; position: absolute; top: calc(100% + 8px); right: 0; background: var(--accent); border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.3); min-width: 160px; overflow: hidden; z-index: 300; }
+.hamburger-menu.open { display: block; }
+.menu-item { display: flex; align-items: center; gap: 8px; padding: 13px 16px; font-size: 13px; font-weight: 500; color: white; text-decoration: none; background: none; border: none; width: 100%; cursor: pointer; font-family: 'Noto Sans TC', sans-serif; white-space: nowrap; transition: background 0.15s; }
+.menu-item:hover { background: rgba(255,255,255,0.12); }
+.menu-item + .menu-item { border-top: 1px solid rgba(255,255,255,0.08); }
+.menu-item.danger { color: #ff8a8a; }
 
 /* content */
 .content { padding: 16px; max-width: 900px; margin: 0 auto; }
@@ -127,11 +132,14 @@ tr:hover td { background: #faf9f7; cursor: pointer; }
     <h1>報刀總表</h1>
   </div>
   <div class="topbar-right">
-    <a href="報刀_v2.html" class="nav-btn">✏️ 報刀</a>
-    <a href="track.html" id="trackBtn" style="display:none;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.25);color:white;padding:6px 11px;border-radius:8px;font-size:12px;text-decoration:none;font-family:'Noto Sans TC',sans-serif;white-space:nowrap;">📌 追蹤</a>
-    <a href="edit-request.html" id="editRequestBtn" style="display:none;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.25);color:white;padding:6px 11px;border-radius:8px;font-size:12px;text-decoration:none;font-family:'Noto Sans TC',sans-serif;white-space:nowrap;">✏️ 變更申請</a>
-    <a href="review.html" id="reviewBtn" style="display:none;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.25);color:white;padding:6px 11px;border-radius:8px;font-size:12px;text-decoration:none;font-family:'Noto Sans TC',sans-serif;white-space:nowrap;">🔍 審核</a>
-    <button onclick="tandryLogout()" class="nav-btn">登出</button>
+    <button class="hamburger-btn" onclick="toggleMenu(event)" aria-label="選單">☰</button>
+    <div class="hamburger-menu" id="hamburgerMenu">
+      <a href="報刀_v2.html" class="menu-item">✏️ 報刀</a>
+      <a href="track.html" class="menu-item" id="trackBtn" style="display:none;">📌 追蹤</a>
+      <a href="edit-request.html" class="menu-item" id="editRequestBtn" style="display:none;">✏️ 變更申請</a>
+      <a href="review.html" class="menu-item" id="reviewBtn" style="display:none;">🔍 審核</a>
+      <button class="menu-item danger" onclick="tandryLogout()">登出</button>
+    </div>
   </div>
 </div>
 
@@ -217,13 +225,19 @@ const IS_SALES = USER.role === 'sales';
 const IS_ADMIN = USER.role === 'admin' || USER.role === 'manager';
 
 if (USER.role === 'admin' || USER.role === 'manager') {
-  const trackBtn = document.getElementById('trackBtn');
-  if (trackBtn) trackBtn.style.display = 'inline-flex';
-  const editRequestBtn = document.getElementById('editRequestBtn');
-  if (editRequestBtn) editRequestBtn.style.display = 'inline-flex';
-  const reviewBtn = document.getElementById('reviewBtn');
-  if (reviewBtn) reviewBtn.style.display = 'inline-flex';
+  ['trackBtn','editRequestBtn','reviewBtn'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'flex';
+  });
 }
+
+function toggleMenu(e) {
+  e.stopPropagation();
+  document.getElementById('hamburgerMenu').classList.toggle('open');
+}
+document.addEventListener('click', () => {
+  document.getElementById('hamburgerMenu').classList.remove('open');
+});
 
 // ── 狀態 ──────────────────────────────────────
 let allData = [];
