@@ -316,6 +316,7 @@ async function loadHistory() {
       body: JSON.stringify({ role: USER.role, username: USER.username })
     });
     const data = await res.json();
+    console.log('response:', data);
     if (data.success) renderHistory(data.data || []);
     else document.getElementById('historyList').innerHTML = `<div class="empty"><div class="icon">⚠️</div><p>載入失敗</p></div>`;
   } catch(e) {
