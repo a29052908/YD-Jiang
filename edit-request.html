@@ -176,6 +176,12 @@ const USER = window.TANDRY_USER || {};
 
 let selectedFields = [];
 
+const urlParams = new URLSearchParams(window.location.search);
+const serialFromUrl = urlParams.get('serial');
+if (serialFromUrl) {
+  document.getElementById('serialInput').value = serialFromUrl;
+}
+
 // ── Tab 切換 ─────────────────────────────────
 function switchTab(tab) {
   document.getElementById('applyTab').style.display = tab === 'apply' ? 'block' : 'none';

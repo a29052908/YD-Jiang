@@ -450,8 +450,7 @@ function closeDrawer() {
 }
 
 function requestEdit(index) {
-  // 之後階段三實作
-  showToast('⏳ 變更申請功能即將上線');
+  window.location.href = `edit-request.html?serial=${filteredData[index]['流水號']}`;
 }
 
 // ── 狀態顯示 ──────────────────────────────────
