@@ -214,9 +214,10 @@ function renderList() {
     const badgeText = r['狀態'] === '已核准' ? '✅ 已核准' : r['狀態'] === '已拒絕' ? '❌ 已拒絕' : '⏳ 待審核';
     const isPending = r['狀態'] === '待審核';
 
-    const fields = (r['變更欄位'] || '').split('、');
-    const origVals = (r['原始值'] || '').split('|');
-    const newVals = (r['新值'] || '').split('|');
+    const toArr = (v, sep) => Array.isArray(v) ? v : String(v ?? '').split(sep);
+    const fields   = toArr(r['變更欄位'], '、');
+    const origVals = toArr(r['原始值'],   '|');
+    const newVals  = toArr(r['新值'],     '|');
     const detail = fields.map((f, i) => `<b>${f}</b>：${origVals[i] || '-'} → <span style="color:var(--blue);font-weight:600;">${newVals[i] || '-'}</span>`).join('<br>');
 
     return `
