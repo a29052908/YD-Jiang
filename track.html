@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>案件追蹤</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f5f4f0; --card: #ffffff; --border: #e0ddd6;
+  --accent: #1a1a2e; --red: #e63946;
+  --green: #2d6a4f; --green-light: #d8f3dc;
+  --blue: #3a5bd9; --blue-light: #e8ecff;
+  --yellow: #f4a261; --yellow-light: #fff3e0;
+  --text: #1a1a2e; --muted: #888680;
+  --radius: 12px; --shadow: 0 2px 12px rgba(0,0,0,0.08);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', sans-serif; min-height: 100vh; padding-bottom: 40px; }
+
+.topbar { background: var(--accent); color: white; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+.topbar-left { display: flex; align-items: center; gap: 10px; }
+.logo { background: var(--red); border-radius: 6px; padding: 5px 7px; font-weight: 700; font-size: 10px; }
+.topbar h1 { font-size: 16px; font-weight: 600; }
+.nav-btn { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 6px 12px; border-radius: 8px; font-size: 12px; cursor: pointer; font-family: 'Noto Sans TC', sans-serif; text-decoration: none; }
+
+.content { padding: 16px; max-width: 600px; margin: 0 auto; }
+
+/* 篩選 */
+.filter-row { display: flex; gap: 6px; margin-bottom: 14px; overflow-x: auto; padding-bottom: 4px; -webkit-overflow-scrolling: touch; }
+.filter-chip { padding: 7px 14px; border-radius: 20px; border: 1.5px solid var(--border); font-size: 12px; font-weight: 500; white-space: nowrap; cursor: pointer; background: var(--card); font-family: 'Noto Sans TC', sans-serif; transition: all 0.15s; flex-shrink: 0; }
+.filter-chip.active { background: var(--accent); border-color: var(--accent); color: white; }
+
+/* 指派任務（admin） */
+.assign-card { background: var(--yellow-light); border: 1.5px solid #f4a261; border-radius: var(--radius); padding: 16px; margin-bottom: 14px; }
+.assign-title { font-size: 13px; font-weight: 700; color: var(--accent); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+.assign-select, .assign-textarea, .assign-input { width: 100%; border: 1.5px solid var(--border); border-radius: 8px; padding: 9px 12px; font-size: 13px; font-family: 'Noto Sans TC', sans-serif; margin-bottom: 8px; outline: none; background: white; }
+.assign-textarea { resize: none; }
+.assign-btn { width: 100%; padding: 11px; background: var(--accent); color: white; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'Noto Sans TC', sans-serif; }
+
+/* 追蹤卡片 */
+.track-card { background: var(--card); border-radius: var(--radius); border: 1px solid var(--border); padding: 14px; margin-bottom: 10px; box-shadow: var(--shadow); }
+.track-card.resolved { opacity: 0.55; }
+.track-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.track-serial { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--muted); }
+.track-info { font-size: 14px; font-weight: 500; margin-bottom: 6px; }
+.track-note { font-size: 12px; color: var(--muted); line-height: 1.7; background: var(--bg); border-radius: 6px; padding: 8px 10px; margin-bottom: 8px; }
+.track-meta { font-size: 11px; color: var(--muted); font-family: 'JetBrains Mono', monospace; margin-bottom: 10px; }
+.track-actions { display: flex; gap: 8px; }
+.track-btn { padding: 7px 14px; border-radius: 8px; border: none; font-size: 12px; font-weight: 600; cursor: pointer; font-family: 'Noto Sans TC', sans-serif; }
+.btn-resolve { background: var(--green-light); color: var(--green); }
+.btn-assign { background: var(--yellow-light); color: var(--yellow); }
+
+/* badge */
+.badge { padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+.badge-tracking { background: #fff0f1; color: var(--red); }
+.badge-task { background: var(--yellow-light); color: var(--yellow); }
+.badge-done { background: var(--green-light); color: var(--green); }
+
+/* 結案 modal */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; display: none; align-items: flex-end; justify-content: center; }
+.modal-overlay.show { display: flex; }
+.modal-sheet { background: white; border-radius: 16px 16px 0 0; padding: 20px; width: 100%; max-width: 600px; }
+.modal-title { font-size: 15px; font-weight: 700; margin-bottom: 12px; }
+.modal-textarea { width: 100%; border: 1.5px solid var(--border); border-radius: 8px; padding: 10px 12px; font-size: 13px; font-family: 'Noto Sans TC', sans-serif; resize: none; outline: none; margin-bottom: 10px; }
+.modal-btns { display: flex; gap: 8px; }
+.modal-btn { flex: 1; padding: 12px; border-radius: 10px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; font-family: 'Noto Sans TC', sans-serif; }
+.modal-cancel { background: var(--bg); color: var(--muted); }
+.modal-confirm { background: var(--green); color: white; }
+
+/* 空狀態 */
+.empty { text-align: center; padding: 48px 20px; color: var(--muted); }
+.empty .icon { font-size: 36px; margin-bottom: 10px; }
+
+/* spinner */
+.spinner { width: 24px; height: 24px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 32px auto; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* toast */
+.toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--accent); color: white; padding: 11px 20px; border-radius: 24px; font-size: 13px; font-weight: 500; opacity: 0; transition: all 0.3s; z-index: 999; white-space: nowrap; pointer-events: none; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="logo">Tandry</div>
+    <h1>案件追蹤</h1>
+  </div>
+  <div style="display:flex;gap:8px;">
+    <a href="dashboard.html" class="nav-btn">📋 總表</a>
+    <button onclick="tandryLogout()" class="nav-btn">登出</button>
+  </div>
+</div>
+
+<!-- 結案 Modal -->
+<div class="modal-overlay" id="resolveModal">
+  <div class="modal-sheet">
+    <div class="modal-title">✅ 結案</div>
+    <textarea class="modal-textarea" id="resolveNote" rows="4" placeholder="描述追蹤結果、醫師回饋、後續注意事項..."></textarea>
+    <div class="modal-btns">
+      <button class="modal-btn modal-cancel" onclick="closeResolveModal()">取消</button>
+      <button class="modal-btn modal-confirm" onclick="confirmResolve()">確認結案</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="content">
+  <!-- 指派任務（admin only） -->
+  <div id="assignSection" style="display:none;">
+    <div class="assign-card">
+      <div class="assign-title">📋 指派追蹤任務</div>
+      <input class="assign-input" id="assignSerial" placeholder="輸入流水號（如 IV26050801）">
+      <select class="assign-select" id="assignTo">
+        <option value="">指派給業務...</option>
+        <option>Ivan</option>
+        <option>Dino</option>
+        <option>Henry</option>
+        <option>Vincent</option>
+        <option>Kaley</option>
+        <option>Tan</option>
+        <option>Eddie</option>
+        <option>Bruce</option>
+      </select>
+      <select class="assign-select" id="assignType">
+        <option value="主管任務">📋 主管任務</option>
+        <option value="特殊版型">🔬 特殊版型</option>
+        <option value="狀況刀">⚠️ 狀況刀</option>
+        <option value="醫師回饋">💬 醫師回饋</option>
+      </select>
+      <textarea class="assign-textarea" id="assignNote" rows="2" placeholder="追蹤任務說明..."></textarea>
+      <button class="assign-btn" onclick="submitAssign()">📤 指派任務</button>
+    </div>
+  </div>
+
+  <!-- 篩選 -->
+  <div class="filter-row" id="filterRow">
+    <div class="filter-chip active" onclick="setFilter('全部')">全部</div>
+    <div class="filter-chip" onclick="setFilter('追蹤中')">🔴 追蹤中</div>
+    <div class="filter-chip" onclick="setFilter('已結案')">✅ 已結案</div>
+    <div class="filter-chip" onclick="setTypeFilter('主管任務')">📋 主管任務</div>
+    <div class="filter-chip" onclick="setTypeFilter('特殊版型')">🔬 特殊版型</div>
+    <div class="filter-chip" onclick="setTypeFilter('狀況刀')">⚠️ 狀況刀</div>
+    <div class="filter-chip" onclick="setTypeFilter('醫師回饋')">💬 醫師回饋</div>
+  </div>
+
+  <!-- 列表 -->
+  <div id="trackList">
+    <div class="spinner"></div>
+  </div>
+</div>
+
+<script>
+// ── Token 驗證 ──────────────────────────────
+(function() {
+  const token = localStorage.getItem('tandry_token');
+  const exp = parseInt(localStorage.getItem('tandry_token_exp') || '0');
+  if (!token || Date.now() >= exp) {
+    localStorage.removeItem('tandry_token');
+    localStorage.removeItem('tandry_token_exp');
+    localStorage.removeItem('tandry_user');
+    window.location.href = 'login.html';
+    return;
+  }
+  try { window.TANDRY_USER = JSON.parse(localStorage.getItem('tandry_user') || '{}'); }
+  catch(e) { window.TANDRY_USER = {}; }
+
+  // 只有 admin / manager 可進入
+  const role = window.TANDRY_USER?.role;
+  if (role !== 'admin' && role !== 'manager') {
+    window.location.href = 'login.html';
+    return;
+  }
+
+  // admin 顯示指派區塊
+  if (role === 'admin') {
+    document.getElementById('assignSection').style.display = 'block';
+  }
+})();
+
+function tandryLogout() {
+  localStorage.removeItem('tandry_token');
+  localStorage.removeItem('tandry_token_exp');
+  localStorage.removeItem('tandry_user');
+  window.location.href = 'login.html';
+}
+
+// ── 常數 ────────────────────────────────────
+const WEBHOOK_SUBMIT = 'https://ydj.zeabur.app/webhook/submit-track';
+const WEBHOOK_GET    = 'https://ydj.zeabur.app/webhook/get-tracks';
+const WEBHOOK_RESOLVE= 'https://ydj.zeabur.app/webhook/resolve-track';
+const USER = window.TANDRY_USER || {};
+
+let allTracks = [];
+let currentFilter = '全部';
+let currentTypeFilter = '';
+let resolveTarget = '';
+
+// ── 載入 ────────────────────────────────────
+window.addEventListener('DOMContentLoaded', loadTracks);
+
+async function loadTracks() {
+  document.getElementById('trackList').innerHTML = '<div class="spinner"></div>';
+  try {
+    const res = await fetch(WEBHOOK_GET, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: localStorage.getItem('tandry_token'), role: USER.role, username: USER.username })
+    });
+    const data = await res.json();
+    if (data.success) {
+      allTracks = data.data || [];
+      renderList();
+    } else {
+      showError(data.message || '載入失敗');
+    }
+  } catch(e) {
+    showError('無法連線');
+  }
+}
+
+// ── 篩選 ────────────────────────────────────
+function setFilter(f) {
+  currentFilter = f;
+  currentTypeFilter = '';
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  event.target.classList.add('active');
+  renderList();
+}
+
+function setTypeFilter(t) {
+  currentTypeFilter = t;
+  currentFilter = '全部';
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  event.target.classList.add('active');
+  renderList();
+}
+
+// ── 渲染 ────────────────────────────────────
+function renderList() {
+  let list = allTracks;
+  if (currentFilter !== '全部') {
+    list = list.filter(t => t['狀態'] === currentFilter);
+  }
+  if (currentTypeFilter) {
+    list = list.filter(t => t['追蹤類型'] === currentTypeFilter);
+  }
+
+  const el = document.getElementById('trackList');
+  if (list.length === 0) {
+    el.innerHTML = `<div class="empty"><div class="icon">📭</div><p>沒有符合的追蹤記錄</p></div>`;
+    return;
+  }
+
+  el.innerHTML = list.map(t => {
+    const isDone = t['狀態'] === '已結案';
+    const badgeClass = t['狀態'] === '已結案' ? 'badge-done' : t['追蹤類型'] === '主管任務' ? 'badge-task' : 'badge-tracking';
+    const badgeText = t['狀態'] === '已結案' ? '✅ 已結案' : t['追蹤類型'] === '主管任務' ? '🟡 主管任務' : '🔴 追蹤中';
+    const typeIcon = { '特殊版型': '🔬', '狀況刀': '⚠️', '醫師回饋': '💬', '主管任務': '📋' }[t['追蹤類型']] || '📌';
+
+    return `
+    <div class="track-card ${isDone ? 'resolved' : ''}">
+      <div class="track-header">
+        <div class="track-serial">${t['流水號'] || ''}</div>
+        <span class="badge ${badgeClass}">${badgeText}</span>
+      </div>
+      <div class="track-info">${typeIcon} ${t['追蹤類型'] || ''}</div>
+      <div class="track-note">${t['追蹤備註'] || '-'}</div>
+      ${t['指派對象'] ? `<div class="track-note" style="background:var(--yellow-light);">👤 指派對象：${t['指派對象']}</div>` : ''}
+      ${isDone && t['結案備註'] ? `<div class="track-note" style="background:var(--green-light);">✅ 結案備註：${t['結案備註']}</div>` : ''}
+      <div class="track-meta">
+        ${t['建立者'] || ''} · ${t['建立時間'] || ''}
+        ${isDone && t['結案時間'] ? ` → 結案 ${t['結案時間']}` : ''}
+      </div>
+      ${!isDone ? `
+      <div class="track-actions">
+        <button class="track-btn btn-resolve" onclick="openResolveModal('${t['流水號']}')">✅ 結案</button>
+      </div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+// ── 結案 ────────────────────────────────────
+function openResolveModal(serial) {
+  resolveTarget = serial;
+  document.getElementById('resolveNote').value = '';
+  document.getElementById('resolveModal').classList.add('show');
+}
+
+function closeResolveModal() {
+  document.getElementById('resolveModal').classList.remove('show');
+  resolveTarget = '';
+}
+
+async function confirmResolve() {
+  const note = document.getElementById('resolveNote').value.trim();
+  if (!resolveTarget) return;
+  try {
+    const res = await fetch(WEBHOOK_RESOLVE, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 流水號: resolveTarget, 結案備註: note, role: USER.role })
+    });
+    const data = await res.json();
+    if (data.success) {
+      closeResolveModal();
+      showToast('✅ 已結案');
+      await loadTracks();
+    } else {
+      showToast('❌ 結案失敗');
+    }
+  } catch(e) {
+    showToast('❌ 無法連線');
+  }
+}
+
+// ── 指派任務 ─────────────────────────────────
+async function submitAssign() {
+  const serial = document.getElementById('assignSerial').value.trim();
+  const assignTo = document.getElementById('assignTo').value;
+  const type = document.getElementById('assignType').value;
+  const note = document.getElementById('assignNote').value.trim();
+
+  if (!serial) { showToast('❌ 請填寫流水號'); return; }
+  if (!assignTo) { showToast('❌ 請選擇指派對象'); return; }
+
+  try {
+    const res = await fetch(WEBHOOK_SUBMIT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        流水號: serial, 追蹤類型: type, 追蹤備註: note,
+        建立者: USER.displayName || USER.username,
+        指派對象: assignTo
+      })
+    });
+    const data = await res.json();
+    if (data.success) {
+      document.getElementById('assignSerial').value = '';
+      document.getElementById('assignNote').value = '';
+      document.getElementById('assignTo').value = '';
+      showToast('✅ 任務已指派');
+      await loadTracks();
+    } else {
+      showToast('❌ 指派失敗');
+    }
+  } catch(e) {
+    showToast('❌ 無法連線');
+  }
+}
+
+// ── 工具函數 ─────────────────────────────────
+function showError(msg) {
+  document.getElementById('trackList').innerHTML = `<div class="empty"><div class="icon">⚠️</div><p>${msg}</p></div>`;
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+</script>
+</body>
+</html>
