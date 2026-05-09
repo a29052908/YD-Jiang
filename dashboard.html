@@ -450,7 +450,17 @@ function closeDrawer() {
 }
 
 function requestEdit(index) {
-  window.location.href = `edit-request.html?serial=${filteredData[index]['流水號']}`;
+  const row = filteredData[index];
+  localStorage.setItem('tandry_edit_target', JSON.stringify({
+    流水號: row['流水號'],
+    日期:   row['日期'],
+    醫院:   row['醫院'],
+    醫師:   row['醫師'],
+    病人:   row['病人'],
+    病歷號: row['病歷號'],
+    品項:   row['品項'],
+  }));
+  window.location.href = `edit-request.html?serial=${row['流水號']}`;
 }
 
 // ── 狀態顯示 ──────────────────────────────────

@@ -182,6 +182,26 @@ if (serialFromUrl) {
   document.getElementById('serialInput').value = serialFromUrl;
 }
 
+let editTarget = null;
+try {
+  const raw = localStorage.getItem('tandry_edit_target');
+  if (raw) editTarget = JSON.parse(raw);
+} catch(e) {}
+
+function getOrigValue(field) {
+  if (!editTarget) return '';
+  const map = {
+    日期: editTarget['日期'] || '',
+    醫院: editTarget['醫院'] || '',
+    醫師: editTarget['醫師'] || '',
+    病人: editTarget['病人'] || '',
+    病歷號: editTarget['病歷號'] || '',
+    品號: editTarget['品項']?.[0]?.['品號'] || '',
+    數量: String(editTarget['品項']?.[0]?.['數量'] ?? ''),
+  };
+  return map[field] ?? '';
+}
+
 // ── Tab 切換 ─────────────────────────────────
 function switchTab(tab) {
   document.getElementById('applyTab').style.display = tab === 'apply' ? 'block' : 'none';
@@ -225,6 +245,10 @@ function renderChangeItems() {
       </div>
     </div>
   `).join('');
+  selectedFields.forEach(field => {
+    const orig = document.getElementById(`orig_${field}`);
+    if (orig) orig.value = getOrigValue(field);
+  });
 }
 
 // ── 送出申請 ─────────────────────────────────
