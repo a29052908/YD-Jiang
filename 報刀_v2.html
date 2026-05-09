@@ -339,6 +339,15 @@ function tandryLogout() {
     </div>
   </div>
 
+  <!-- 院內碼 -->
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <div class="card-label" style="margin-bottom:0;">🔖 院內碼</div>
+      <button class="negotiate-btn" id="negotiateBtn" onclick="toggleNegotiate()">另洽</button>
+    </div>
+    <input class="inner-code-input-main" id="innerCodeInput" type="text" placeholder="選擇醫院與部位後自動帶入" oninput="innerCode=this.value">
+  </div>
+
   <!-- 釘盤 -->
   <div class="card" id="screwCard">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
@@ -380,15 +389,6 @@ function tandryLogout() {
   <div class="card">
     <div class="card-label">📝 備註</div>
     <textarea class="text-area" id="remarkInput" placeholder="備註事項"></textarea>
-  </div>
-
-  <!-- 院內碼 -->
-  <div class="card">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-      <div class="card-label" style="margin-bottom:0;">🔖 院內碼</div>
-      <button class="negotiate-btn" id="negotiateBtn" onclick="toggleNegotiate()">另洽</button>
-    </div>
-    <input class="inner-code-input-main" id="innerCodeInput" type="text" placeholder="選擇醫院與部位後自動帶入" oninput="innerCode=this.value">
   </div>
 
   <!-- 病人資料 -->
