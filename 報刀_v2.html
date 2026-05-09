@@ -1778,13 +1778,17 @@ function renderInfoGrid(){
 async function confirmSubmit(){
   const btn=document.getElementById('confirmBtn');
   btn.disabled=true; btn.textContent='處理中...';
-  const patient=document.getElementById('patientInput')?.value||'';
-  const patientId=document.getElementById('patientIdInput')?.value||'';
+  const patient=document.getElementById('patientInput')?.value?.trim()||'';
+  const patientId=document.getElementById('patientIdInput')?.value?.trim()||'';
   const doctor=getDoctor();
   const dateStr=getDateStr();
   const items=productItems.length>0?productItems:[];
+  if(!selectedHospital){showToast('請選擇醫院','error');btn.disabled=false;btn.textContent='✅ 確認送出';return;}
   if(!items.length){showToast('請先加入產品','error');btn.disabled=false;btn.textContent='✅ 確認送出';return;}
+  if(!patient){showToast('請輸入病人姓名','error');btn.disabled=false;btn.textContent='✅ 確認送出';return;}
+  if(!patientId){showToast('請輸入病歷號','error');btn.disabled=false;btn.textContent='✅ 確認送出';return;}
   let serialNo='';
+  let anyFailed=false;
   for(const item of items){
     const codeOut=item.另洽?(item.innerCode||'')+'（另洽）':(item.innerCode||'');
     const isFirst=items.indexOf(item)===0;
@@ -1802,19 +1806,18 @@ async function confirmSubmit(){
       備註:isFirst?document.getElementById('remarkInput')?.value||'':'',
       單據類型:isFirst?selectedType:'',
     };
-    if(isFirst){
-      console.log('[confirmSubmit] 組件:', row.組件);
-      console.log('[confirmSubmit] 工具:', row.工具);
-      console.log('[confirmSubmit] 備註:', row.備註);
-    }
+    console.log('[confirmSubmit] sending row:', JSON.stringify(row));
     try{
       const ctrl=new AbortController();
       const t=setTimeout(()=>ctrl.abort(),8000);
       const res=await fetch(WEBHOOK_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(row),signal:ctrl.signal});
       clearTimeout(t);
-      if(isFirst){try{const json=await res.json();serialNo=json.serialNo||json.流水號||'';}catch(e){}}
-    }catch(e){console.error('報刀資料送出失敗',e);}
+      console.log('[confirmSubmit] response status:', res.status);
+      if(!res.ok){console.error('[confirmSubmit] HTTP error:', res.status); anyFailed=true;}
+      if(isFirst){try{const json=await res.json();serialNo=json.serialNo||json.流水號||'';console.log('[confirmSubmit] serialNo:', serialNo);}catch(e){console.warn('[confirmSubmit] parse json failed:', e);}}
+    }catch(e){console.error('報刀資料送出失敗',e);anyFailed=true;}
   }
+  if(anyFailed){showToast('部分資料送出失敗，請檢查網路','error');btn.disabled=false;btn.textContent='✅ 確認送出';return;}
   // 截圖 → 下載 + 上傳 Drive
   try{
     const previewEl=document.getElementById('previewContent');
