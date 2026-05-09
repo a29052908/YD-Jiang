@@ -1838,7 +1838,7 @@ async function confirmSubmit(){
     previewEl.style.width='';
     const jpgDataUrl=canvas.toDataURL('image/jpeg',0.92);
     const base64=jpgDataUrl.split(',')[1];
-    const filename=`報刀單_${serialNo}_${selectedHospital}_${patient}.jpg`;
+    const filename=`${serialNo}_${selectedHospital}_${patient}_${patientId}.jpg`;
     const a=document.createElement('a');
     a.href=jpgDataUrl; a.download=filename;
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
