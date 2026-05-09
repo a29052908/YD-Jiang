@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>變更審核</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f5f4f0; --card: #ffffff; --border: #e0ddd6;
+  --accent: #1a1a2e; --red: #e63946;
+  --green: #2d6a4f; --green-light: #d8f3dc;
+  --blue: #3a5bd9; --blue-light: #e8ecff;
+  --yellow: #f4a261; --yellow-light: #fff3e0;
+  --text: #1a1a2e; --muted: #888680;
+  --radius: 12px; --shadow: 0 2px 12px rgba(0,0,0,0.08);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', sans-serif; min-height: 100vh; padding-bottom: 40px; }
+
+.topbar { background: var(--accent); color: white; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+.topbar-left { display: flex; align-items: center; gap: 10px; }
+.logo { background: var(--red); border-radius: 6px; padding: 5px 7px; font-weight: 700; font-size: 10px; }
+.topbar h1 { font-size: 16px; font-weight: 600; }
+.nav-btn { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 6px 12px; border-radius: 8px; font-size: 12px; cursor: pointer; font-family: 'Noto Sans TC', sans-serif; text-decoration: none; }
+
+.content { padding: 16px; max-width: 600px; margin: 0 auto; }
+
+/* 篩選 */
+.filter-row { display: flex; gap: 6px; margin-bottom: 14px; overflow-x: auto; padding-bottom: 4px; -webkit-overflow-scrolling: touch; }
+.filter-chip { padding: 7px 14px; border-radius: 20px; border: 1.5px solid var(--border); font-size: 12px; font-weight: 500; white-space: nowrap; cursor: pointer; background: var(--card); font-family: 'Noto Sans TC', sans-serif; transition: all 0.15s; flex-shrink: 0; }
+.filter-chip.active { background: var(--accent); border-color: var(--accent); color: white; }
+
+/* 統計 */
+.stats-row { display: flex; gap: 8px; margin-bottom: 14px; }
+.stat-chip { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 6px 14px; font-size: 12px; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+.stat-chip strong { color: var(--text); }
+
+/* 申請卡片 */
+.req-card { background: var(--card); border-radius: var(--radius); border: 1px solid var(--border); padding: 14px; margin-bottom: 10px; box-shadow: var(--shadow); }
+.req-card.pending { border-left: 3px solid var(--yellow); }
+.req-card.approved { border-left: 3px solid var(--green); opacity: 0.7; }
+.req-card.rejected { border-left: 3px solid var(--red); opacity: 0.7; }
+.req-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.req-serial { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--muted); }
+.req-applicant { font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+.req-fields { font-size: 13px; font-weight: 500; margin-bottom: 6px; color: var(--blue); }
+.req-detail { font-size: 12px; color: var(--muted); line-height: 1.8; background: var(--bg); border-radius: 6px; padding: 10px 12px; margin-bottom: 8px; }
+.req-reason { font-size: 12px; color: var(--muted); line-height: 1.6; background: var(--yellow-light); border-radius: 6px; padding: 8px 10px; margin-bottom: 8px; }
+.req-meta { font-size: 11px; color: var(--muted); font-family: 'JetBrains Mono', monospace; margin-bottom: 10px; }
+.req-actions { display: flex; gap: 8px; }
+.req-btn { flex: 1; padding: 10px; border-radius: 9px; border: none; font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'Noto Sans TC', sans-serif; transition: all 0.15s; }
+.btn-approve { background: var(--green-light); color: var(--green); }
+.btn-approve:hover { background: var(--green); color: white; }
+.btn-reject { background: #fff0f1; color: var(--red); }
+.btn-reject:hover { background: var(--red); color: white; }
+
+.badge { padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+.badge-pending { background: var(--yellow-light); color: var(--yellow); }
+.badge-approved { background: var(--green-light); color: var(--green); }
+.badge-rejected { background: #fff0f1; color: var(--red); }
+
+/* 審核 Modal */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; display: none; align-items: flex-end; justify-content: center; }
+.modal-overlay.show { display: flex; }
+.modal-sheet { background: white; border-radius: 16px 16px 0 0; padding: 20px; width: 100%; max-width: 600px; }
+.modal-title { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+.modal-subtitle { font-size: 12px; color: var(--muted); margin-bottom: 12px; font-family: 'JetBrains Mono', monospace; }
+.modal-textarea { width: 100%; border: 1.5px solid var(--border); border-radius: 8px; padding: 10px 12px; font-size: 13px; font-family: 'Noto Sans TC', sans-serif; resize: none; outline: none; margin-bottom: 10px; }
+.modal-btns { display: flex; gap: 8px; }
+.modal-btn { flex: 1; padding: 12px; border-radius: 10px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; font-family: 'Noto Sans TC', sans-serif; }
+.modal-cancel { background: var(--bg); color: var(--muted); }
+.modal-approve { background: var(--green); color: white; }
+.modal-reject { background: var(--red); color: white; }
+
+.spinner { width: 24px; height: 24px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 32px auto; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.empty { text-align: center; padding: 48px 20px; color: var(--muted); }
+.empty .icon { font-size: 36px; margin-bottom: 10px; }
+
+.toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--accent); color: white; padding: 11px 20px; border-radius: 24px; font-size: 13px; font-weight: 500; opacity: 0; transition: all 0.3s; z-index: 999; white-space: nowrap; pointer-events: none; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="logo">Tandry</div>
+    <h1>變更審核</h1>
+  </div>
+  <div style="display:flex;gap:8px;">
+    <a href="dashboard.html" class="nav-btn">📋 總表</a>
+    <button onclick="tandryLogout()" class="nav-btn">登出</button>
+  </div>
+</div>
+
+<!-- 審核 Modal -->
+<div class="modal-overlay" id="reviewModal">
+  <div class="modal-sheet">
+    <div class="modal-title" id="modalTitle">審核申請</div>
+    <div class="modal-subtitle" id="modalSubtitle"></div>
+    <textarea class="modal-textarea" id="reviewNote" rows="3" placeholder="審核意見（選填）..."></textarea>
+    <div class="modal-btns" id="modalBtns"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="content">
+  <div class="filter-row">
+    <div class="filter-chip active" onclick="setFilter('全部')">全部</div>
+    <div class="filter-chip" onclick="setFilter('待審核')">⏳ 待審核</div>
+    <div class="filter-chip" onclick="setFilter('已核准')">✅ 已核准</div>
+    <div class="filter-chip" onclick="setFilter('已拒絕')">❌ 已拒絕</div>
+  </div>
+
+  <div class="stats-row" id="statsRow"></div>
+
+  <div id="reqList"><div class="spinner"></div></div>
+</div>
+
+<script>
+// ── Token 驗證（只限 admin/manager）────────────
+(function() {
+  const token = localStorage.getItem('tandry_token');
+  const exp = parseInt(localStorage.getItem('tandry_token_exp') || '0');
+  if (!token || Date.now() >= exp) {
+    localStorage.removeItem('tandry_token');
+    localStorage.removeItem('tandry_token_exp');
+    localStorage.removeItem('tandry_user');
+    window.location.href = 'login.html';
+    return;
+  }
+  try { window.TANDRY_USER = JSON.parse(localStorage.getItem('tandry_user') || '{}'); }
+  catch(e) { window.TANDRY_USER = {}; }
+  const role = window.TANDRY_USER?.role;
+  if (role !== 'admin' && role !== 'manager') {
+    window.location.href = 'login.html';
+  }
+})();
+
+function tandryLogout() {
+  localStorage.removeItem('tandry_token');
+  localStorage.removeItem('tandry_token_exp');
+  localStorage.removeItem('tandry_user');
+  window.location.href = 'login.html';
+}
+
+const WEBHOOK_GET    = 'https://ydj.zeabur.app/webhook/get-edit-requests';
+const WEBHOOK_REVIEW = 'https://ydj.zeabur.app/webhook/review-edit';
+const USER = window.TANDRY_USER || {};
+
+let allRequests = [];
+let currentFilter = '全部';
+let pendingAction = null;
+
+window.addEventListener('DOMContentLoaded', loadRequests);
+
+async function loadRequests() {
+  document.getElementById('reqList').innerHTML = '<div class="spinner"></div>';
+  try {
+    const res = await fetch(WEBHOOK_GET, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ role: USER.role, username: USER.username })
+    });
+    const data = await res.json();
+    if (data.success) {
+      allRequests = data.data || [];
+      renderStats();
+      renderList();
+    } else {
+      showError('載入失敗');
+    }
+  } catch(e) {
+    showError('無法連線');
+  }
+}
+
+function setFilter(f) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  event.target.classList.add('active');
+  renderList();
+}
+
+function renderStats() {
+  const pending = allRequests.filter(r => r['狀態'] === '待審核').length;
+  const approved = allRequests.filter(r => r['狀態'] === '已核准').length;
+  const rejected = allRequests.filter(r => r['狀態'] === '已拒絕').length;
+  document.getElementById('statsRow').innerHTML = `
+    <div class="stat-chip">待審核 <strong>${pending}</strong></div>
+    <div class="stat-chip">已核准 <strong>${approved}</strong></div>
+    <div class="stat-chip">已拒絕 <strong>${rejected}</strong></div>
+  `;
+}
+
+function renderList() {
+  let list = allRequests;
+  if (currentFilter !== '全部') {
+    list = list.filter(r => r['狀態'] === currentFilter);
+  }
+
+  const el = document.getElementById('reqList');
+  if (list.length === 0) {
+    el.innerHTML = `<div class="empty"><div class="icon">📭</div><p>沒有${currentFilter === '全部' ? '' : currentFilter}的申請</p></div>`;
+    return;
+  }
+
+  el.innerHTML = list.map(r => {
+    const statusClass = r['狀態'] === '已核准' ? 'approved' : r['狀態'] === '已拒絕' ? 'rejected' : 'pending';
+    const badgeClass = r['狀態'] === '已核准' ? 'badge-approved' : r['狀態'] === '已拒絕' ? 'badge-rejected' : 'badge-pending';
+    const badgeText = r['狀態'] === '已核准' ? '✅ 已核准' : r['狀態'] === '已拒絕' ? '❌ 已拒絕' : '⏳ 待審核';
+    const isPending = r['狀態'] === '待審核';
+
+    const fields = (r['變更欄位'] || '').split('、');
+    const origVals = (r['原始值'] || '').split('|');
+    const newVals = (r['新值'] || '').split('|');
+    const detail = fields.map((f, i) => `<b>${f}</b>：${origVals[i] || '-'} → <span style="color:var(--blue);font-weight:600;">${newVals[i] || '-'}</span>`).join('<br>');
+
+    return `
+    <div class="req-card ${statusClass}">
+      <div class="req-header">
+        <div class="req-serial">${r['流水號'] || ''}</div>
+        <span class="badge ${badgeClass}">${badgeText}</span>
+      </div>
+      <div class="req-applicant">申請人：${r['申請者'] || ''}</div>
+      <div class="req-fields">變更欄位：${r['變更欄位'] || ''}</div>
+      <div class="req-detail">${detail}</div>
+      ${r['申請原因'] ? `<div class="req-reason">📝 申請原因：${r['申請原因']}</div>` : ''}
+      ${r['審核備註'] ? `<div class="req-detail" style="background:${r['狀態']==='已核准'?'var(--green-light)':'#fff0f1'};">審核意見：${r['審核備註']}</div>` : ''}
+      <div class="req-meta">${r['申請時間'] || ''}${r['審核時間'] ? ` → 審核 ${r['審核時間']}` : ''}</div>
+      ${isPending ? `
+      <div class="req-actions">
+        <button class="req-btn btn-approve" onclick="openReview('${r['流水號']}','${r['申請時間']}','approve')">✅ 核准</button>
+        <button class="req-btn btn-reject" onclick="openReview('${r['流水號']}','${r['申請時間']}','reject')">❌ 拒絕</button>
+      </div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+// ── 審核 Modal ───────────────────────────────
+function openReview(serial, applyTime, action) {
+  pendingAction = { serial, applyTime, action };
+  const isApprove = action === 'approve';
+  document.getElementById('modalTitle').textContent = isApprove ? '✅ 核准申請' : '❌ 拒絕申請';
+  document.getElementById('modalSubtitle').textContent = `${serial} · ${applyTime}`;
+  document.getElementById('reviewNote').value = '';
+  document.getElementById('reviewNote').placeholder = isApprove ? '審核意見（選填）...' : '請說明拒絕原因...';
+  document.getElementById('modalBtns').innerHTML = `
+    <button class="modal-btn modal-cancel" onclick="closeReviewModal()">取消</button>
+    <button class="modal-btn ${isApprove ? 'modal-approve' : 'modal-reject'}" onclick="confirmReview()">
+      ${isApprove ? '✅ 確認核准' : '❌ 確認拒絕'}
+    </button>
+  `;
+  document.getElementById('reviewModal').classList.add('show');
+}
+
+function closeReviewModal() {
+  document.getElementById('reviewModal').classList.remove('show');
+  pendingAction = null;
+}
+
+async function confirmReview() {
+  if (!pendingAction) return;
+  const note = document.getElementById('reviewNote').value.trim();
+  const { serial, applyTime, action } = pendingAction;
+
+  try {
+    const res = await fetch(WEBHOOK_REVIEW, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        流水號: serial,
+        申請時間: applyTime,
+        審核結果: action === 'approve' ? '核准' : '拒絕',
+        審核者: USER.displayName || USER.username,
+        審核備註: note,
+        role: USER.role
+      })
+    });
+    const data = await res.json();
+    if (data.success) {
+      closeReviewModal();
+      showToast(action === 'approve' ? '✅ 已核准' : '❌ 已拒絕');
+      await loadRequests();
+    } else {
+      showToast('❌ 審核失敗：' + (data.message || ''));
+    }
+  } catch(e) {
+    showToast('❌ 無法連線');
+  }
+}
+
+function showError(msg) {
+  document.getElementById('reqList').innerHTML = `<div class="empty"><div class="icon">⚠️</div><p>${msg}</p></div>`;
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+</script>
+</body>
+</html>
