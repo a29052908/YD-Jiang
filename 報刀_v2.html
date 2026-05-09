@@ -272,7 +272,6 @@ function tandryLogout() {
     <div id="previewContent" style="padding:16px;background:white;overflow-x:auto;overflow-y:auto;max-height:70vh;"></div>
     <div class="preview-actions">
       <button class="preview-action-btn btn-cancel" onclick="closePreview()">返回修改</button>
-      <button class="preview-action-btn" style="background:#065A82;color:white;" onclick="window.print()">🖨️ 列印</button>
       <button class="preview-action-btn btn-confirm" id="confirmBtn" onclick="confirmSubmit()">✅ 確認送出</button>
     </div>
   </div>
@@ -410,9 +409,8 @@ function tandryLogout() {
   </div>
 
   <div class="submit-area" style="display:flex;gap:8px;padding:12px 16px;flex-wrap:wrap;">
-    <button class="submit-btn" onclick="showDebug()" style="flex:1;font-size:14px;padding:12px 8px;background:#555;min-width:80px;"><span>🔍</span><span>資料預覽</span></button>
+    <button class="submit-btn" onclick="clearForm()" style="flex:1;font-size:14px;padding:14px 8px;background:#888;"><span>🔄</span><span>清除重填</span></button>
     <button class="submit-btn" id="submitBtn" onclick="showPreview()" style="flex:2;font-size:15px;padding:14px 8px;"><span>✅</span><span>確認報刀</span></button>
-    <button class="submit-btn" style="flex:2;background:var(--green);font-size:15px;padding:14px 8px;" onclick="goToReport()"><span>📋</span><span>進入報刀單</span></button>
   </div>
 </div>
 
@@ -1594,6 +1592,30 @@ function showDebug() {
 }
 
 function showToast(msg,type=''){const t=document.getElementById('toast');t.textContent=msg;t.className=`toast show ${type}`;setTimeout(()=>t.className='toast',3000);}
+
+function clearForm(){
+  // 病人資料
+  document.getElementById('patientInput').value='';
+  document.getElementById('patientIdInput').value='';
+  // 產品清單
+  productItems=[];
+  renderItemList();
+  // 螺絲板
+  activeScrewBoards=[];
+  screwState={};
+  renderAllScrewBoards();
+  // 組件 / 工具 / 備註
+  document.getElementById('componentInput').value='';
+  document.getElementById('toolInput').value='';
+  document.getElementById('remarkInput').value='';
+  // 醫師下拉重設
+  const doctorSel=document.getElementById('doctorSelect');
+  if(doctorSel) doctorSel.selectedIndex=0;
+  document.getElementById('doctorManualInput').style.display='none';
+  // 摘要更新
+  updateSummary();
+  showToast('已清除重填');
+}
 
 // ── 預覽 Modal ──────────────────────────────────
 let selectedType = '出貨';
