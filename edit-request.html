@@ -307,6 +307,8 @@ async function submitRequest() {
 // ── 我的申請 ─────────────────────────────────
 async function loadHistory() {
   document.getElementById('historyList').innerHTML = '<div class="spinner"></div>';
+  console.log('calling webhook:', WEBHOOK_GET);
+  console.log('payload:', { role: USER.role, username: USER.username });
   try {
     const res = await fetch(WEBHOOK_GET, {
       method: 'POST',
