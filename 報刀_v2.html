@@ -1643,7 +1643,8 @@ function buildPayload(){
     單據類型:selectedType,
     釘子明細:buildScrewText(),
     組件:document.getElementById('componentInput')?.value||'',
-    工具:'', 備註:'',
+    工具:document.getElementById('toolInput')?.value||'',
+    備註:document.getElementById('remarkInput')?.value||'',
   };
 }
 
