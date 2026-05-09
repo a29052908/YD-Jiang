@@ -320,6 +320,7 @@ async function loadHistory() {
     if (data.success) renderHistory(data.data || []);
     else document.getElementById('historyList').innerHTML = `<div class="empty"><div class="icon">⚠️</div><p>載入失敗</p></div>`;
   } catch(e) {
+    console.error('loadHistory error:', e);
     document.getElementById('historyList').innerHTML = `<div class="empty"><div class="icon">⚠️</div><p>無法連線</p></div>`;
   }
 }
