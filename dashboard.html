@@ -22,9 +22,9 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', s
 .topbar { background: var(--accent); color: white; padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
 .topbar-left { display: flex; align-items: center; gap: 12px; }
 .topbar-logo { background: var(--accent2); border-radius: 8px; padding: 6px 8px; font-weight: 700; font-size: 11px; letter-spacing: -0.5px; }
-.topbar h1 { font-size: 17px; font-weight: 600; }
-.topbar-right { display: flex; align-items: center; gap: 8px; }
-.nav-btn { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 6px 12px; border-radius: 8px; font-size: 12px; cursor: pointer; font-family: 'Noto Sans TC', sans-serif; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; }
+.topbar h1 { font-size: 17px; font-weight: 600; white-space: nowrap; }
+.topbar-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.nav-btn { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 6px 12px; border-radius: 8px; font-size: 12px; cursor: pointer; font-family: 'Noto Sans TC', sans-serif; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
 .nav-btn:hover { background: rgba(255,255,255,0.2); }
 .nav-btn.active { background: rgba(255,255,255,0.25); }
 
@@ -128,9 +128,9 @@ tr:hover td { background: #faf9f7; cursor: pointer; }
   </div>
   <div class="topbar-right">
     <a href="報刀_v2.html" class="nav-btn">✏️ 報刀</a>
-    <a href="track.html" id="trackBtn" style="display:none;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.25);color:white;padding:6px 11px;border-radius:8px;font-size:12px;text-decoration:none;font-family:'Noto Sans TC',sans-serif;">📌 追蹤</a>
-    <a href="edit-request.html" id="editRequestBtn" style="display:none;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.25);color:white;padding:6px 11px;border-radius:8px;font-size:12px;text-decoration:none;font-family:'Noto Sans TC',sans-serif;">✏️ 變更申請</a>
-    <a href="review.html" id="reviewBtn" style="display:none;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.25);color:white;padding:6px 11px;border-radius:8px;font-size:12px;text-decoration:none;font-family:'Noto Sans TC',sans-serif;">🔍 審核</a>
+    <a href="track.html" id="trackBtn" style="display:none;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.25);color:white;padding:6px 11px;border-radius:8px;font-size:12px;text-decoration:none;font-family:'Noto Sans TC',sans-serif;white-space:nowrap;">📌 追蹤</a>
+    <a href="edit-request.html" id="editRequestBtn" style="display:none;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.25);color:white;padding:6px 11px;border-radius:8px;font-size:12px;text-decoration:none;font-family:'Noto Sans TC',sans-serif;white-space:nowrap;">✏️ 變更申請</a>
+    <a href="review.html" id="reviewBtn" style="display:none;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.25);color:white;padding:6px 11px;border-radius:8px;font-size:12px;text-decoration:none;font-family:'Noto Sans TC',sans-serif;white-space:nowrap;">🔍 審核</a>
     <button onclick="tandryLogout()" class="nav-btn">登出</button>
   </div>
 </div>
