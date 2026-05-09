@@ -334,9 +334,9 @@ function renderHistory(list) {
   el.innerHTML = list.map(r => {
     const badgeClass = r['狀態'] === '已核准' ? 'badge-approved' : r['狀態'] === '已拒絕' ? 'badge-rejected' : 'badge-pending';
     const badgeText = r['狀態'] === '已核准' ? '✅ 已核准' : r['狀態'] === '已拒絕' ? '❌ 已拒絕' : '⏳ 待審核';
-    const fields = (r['變更欄位'] || '').split('、');
-    const origVals = (r['原始值'] || '').split('|');
-    const newVals = (r['新值'] || '').split('|');
+    const fields   = Array.isArray(r['變更欄位']) ? r['變更欄位'] : (r['變更欄位'] || '').split('、');
+    const origVals = Array.isArray(r['原始值'])   ? r['原始值']   : (r['原始值']   || '').split('|');
+    const newVals  = Array.isArray(r['新值'])     ? r['新值']     : (r['新值']     || '').split('|');
     const detail = fields.map((f, i) => `${f}：${origVals[i] || '-'} → ${newVals[i] || '-'}`).join('<br>');
 
     return `
