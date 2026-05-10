@@ -138,6 +138,7 @@ tr:hover td { background: #faf9f7; cursor: pointer; }
       <a href="track.html" class="menu-item" id="trackBtn" style="display:none;">📌 追蹤</a>
       <a href="edit-request.html" class="menu-item" id="editRequestBtn" style="display:none;">✏️ 變更申請</a>
       <a href="review.html" class="menu-item" id="reviewBtn" style="display:none;">🔍 審核</a>
+      <a href="pickup.html" class="menu-item" id="pickupBtn" style="display:none;">📦 抓貨管理</a>
       <button class="menu-item danger" onclick="tandryLogout()">登出</button>
     </div>
   </div>
@@ -225,7 +226,7 @@ const IS_SALES = USER.role === 'sales';
 const IS_ADMIN = USER.role === 'admin' || USER.role === 'manager';
 
 if (USER.role === 'admin' || USER.role === 'manager') {
-  ['trackBtn','editRequestBtn','reviewBtn'].forEach(id => {
+  ['trackBtn','editRequestBtn','reviewBtn','pickupBtn'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.style.display = 'flex';
   });
