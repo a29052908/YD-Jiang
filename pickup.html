@@ -246,6 +246,8 @@ function applyFilter() {
     filteredData = [...allData];
   }
   filteredData = filteredData.filter(r => !currentWarehouse || r['庫別'] === currentWarehouse);
+  console.log('庫別篩選:', currentWarehouse);
+  console.log('資料樣本:', filteredData[0]);
   renderStats();
   renderList();
 }
