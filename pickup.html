@@ -332,6 +332,7 @@ async function markOne(serial, idx) {
 }
 
 async function unmarkOne(serial, idx) {
+  console.log('[unmarkOne] serial:', serial, 'idx:', idx);
   if (!serial) { showToast('❌ 此案件無流水號，無法取消'); return; }
   await markSerial(serial, '');
 }
@@ -355,13 +356,16 @@ async function batchMark() {
 
 // ── 送出標記 ──────────────────────────────────
 async function markSerial(serial, status) {
+  console.log('[markSerial] serial:', serial, 'status:', JSON.stringify(status));
   try {
     const res = await fetch(WEBHOOK_MARK, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 流水號: serial, 狀態: status, role: USER.role })
     });
+    console.log('[markSerial] response status:', res.status);
     const data = await res.json();
+    console.log('[markSerial] response data:', data);
     if (data.success) {
       showToast(status === '已處理' ? '✅ 已標記完成' : '↩ 已取消標記');
       await loadData();
