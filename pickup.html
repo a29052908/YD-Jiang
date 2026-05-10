@@ -375,6 +375,7 @@ async function markSerial(serial, status) {
       showToast('❌ 標記失敗：' + (data.message || ''));
     }
   } catch(e) {
+    console.error('[markSerial] catch error:', e);
     showToast('❌ 無法連線');
   }
 }
