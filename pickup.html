@@ -228,7 +228,7 @@ async function loadData() {
 
 function applyFilter() {
   if (currentStatus === '未處理') {
-    filteredData = allData.filter(r => !r['抓貨狀態'] || r['抓貨狀態'].trim() === '');
+    filteredData = allData.filter(r => !r['抓貨狀態'] || r['抓貨狀態'].trim() === '' || r['抓貨狀態'] === '未處理');
   } else if (currentStatus === '已處理') {
     filteredData = allData.filter(r => r['抓貨狀態'] === '已處理');
   } else {
