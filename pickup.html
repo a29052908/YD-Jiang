@@ -402,7 +402,14 @@ async function generatePickupPDF(rows) {
     const doctorSurname = (row['醫師'] || '').charAt(0) || '';
     const patientSurname = (row['病人'] || '').charAt(0) || '';
     const items = row['品項'] || [];
-    const itemLines = items.map(it => `${it['部位'] || ''} ${it['規格'] ? it['規格']+' ' : ''}${it['品號'] || it['院內碼'] || ''}`).join('\n');
+    const itemLines = items.map(it => {
+      const code = it['品號'] || it['院內碼'] || '';
+      return `${it['部位'] || ''} ${it['規格'] ? it['規格']+' ' : ''}${code ? '('+code+')' : ''}`;
+    }).join('\n');
+    const componentLines = (row['組件'] || '').split(/(?=\d+\.\d+ [LC]:)/g).filter(Boolean);
+    const componentHtml = componentLines.length
+      ? componentLines.map(l => `<div>${l.trim()}</div>`).join('')
+      : '';
 
     const block = document.createElement('div');
     block.style.cssText = 'width:375px;min-height:170px;border:1px solid black;padding:10px;box-sizing:border-box;display:flex;flex-direction:column;';
@@ -412,7 +419,7 @@ async function generatePickupPDF(rows) {
         <span style="flex-shrink:0;margin-left:8px;">${row['庫別']||''}</span>
       </div>
       <div style="font-size:16px;font-weight:bold;white-space:pre-line;line-height:1.5;margin-bottom:6px;flex:1;">${itemLines}</div>
-      <div style="font-size:12px;color:#444;margin-bottom:4px;">${row['組件'] ? '組件：'+row['組件'] : ''}</div>
+      <div style="font-size:12px;color:#444;margin-bottom:4px;line-height:1.6;">${componentHtml}</div>
       <div style="font-size:13px;text-align:right;">${row['業務']||''}</div>
     `;
     grid.appendChild(block);
