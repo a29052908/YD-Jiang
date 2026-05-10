@@ -245,7 +245,9 @@ function applyFilter() {
   } else {
     filteredData = [...allData];
   }
-  filteredData = filteredData.filter(r => !currentWarehouse || r['庫別'] === currentWarehouse);
+  if (currentWarehouse && currentWarehouse !== '全部') {
+    filteredData = filteredData.filter(r => r['庫別'] === currentWarehouse);
+  }
   console.log('庫別篩選:', currentWarehouse);
   console.log('資料樣本:', filteredData[0]);
   renderStats();
@@ -291,7 +293,7 @@ function renderList() {
       <div class="item-row">
         <div class="item-buwei">${item['部位'] || ''}</div>
         <div class="item-qty">×${item['數量'] || ''}</div>
-        <div class="item-code">${item['品號'] || item['院內碼'] || '-'}</div>
+        <div class="item-code">${item['規格'] ? item['規格'] + ' ' : ''}${item['品號'] || item['院內碼'] || '-'}</div>
       </div>
     `).join('');
 
@@ -301,7 +303,7 @@ function renderList() {
         ${!isDone ? `<input type="checkbox" class="card-checkbox" ${isSelected ? 'checked' : ''} onchange="toggleSelect('${key}', ${i}, this)">` : '<div style="width:20px;"></div>'}
         <div class="card-info">
           <div class="card-main">${row['醫院'] || ''} · ${row['病人'] || ''}</div>
-          <div class="card-sub">${row['醫師'] || ''} · ${row['日期'] || ''}</div>
+          <div class="card-sub">${row['醫師'] || ''} · ${row['日期'] || ''} · ${row['庫別'] || ''}</div>
         </div>
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
           <span class="badge ${isDone ? 'badge-done' : 'badge-pending'}">${isDone ? '✅ 已處理' : '🔴 未處理'}</span>
@@ -399,7 +401,7 @@ async function generatePickupPDF(rows) {
     const doctorSurname = (row['醫師'] || '').charAt(0) || '';
     const patientSurname = (row['病人'] || '').charAt(0) || '';
     const items = row['品項'] || [];
-    const itemLines = items.map(it => `${it['部位'] || ''} ${it['品號'] || it['院內碼'] || ''}`).join('\n');
+    const itemLines = items.map(it => `${it['部位'] || ''} ${it['規格'] ? it['規格']+' ' : ''}${it['品號'] || it['院內碼'] || ''}`).join('\n');
 
     const block = document.createElement('div');
     block.style.cssText = 'width:375px;min-height:170px;border:1px solid black;padding:10px;box-sizing:border-box;display:flex;flex-direction:column;';
