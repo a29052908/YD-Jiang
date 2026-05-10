@@ -109,6 +109,13 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', s
 <div class="toast" id="toast"></div>
 
 <div class="content">
+  <!-- 庫別篩選 -->
+  <div class="filter-row">
+    <div class="filter-chip active" onclick="setWarehouse('')">全部庫別</div>
+    <div class="filter-chip" onclick="setWarehouse('桃庫')">桃庫</div>
+    <div class="filter-chip" onclick="setWarehouse('北庫')">北庫</div>
+  </div>
+
   <!-- 月份 -->
   <div class="month-bar" id="monthBar"></div>
 
@@ -168,6 +175,7 @@ let filteredData = [];
 let currentMonth = new Date().getMonth() + 1;
 let currentYear = new Date().getFullYear();
 let currentStatus = '全部';
+let currentWarehouse = '';
 let selectedSerials = new Set();
 
 // ── 初始化 ────────────────────────────────────
@@ -213,7 +221,8 @@ async function loadData() {
       body: JSON.stringify({
         role: USER.role,
         month: currentMonth,
-        year: currentYear
+        year: currentYear,
+        warehouse: currentWarehouse
       })
     });
     const data = await res.json();
@@ -236,8 +245,19 @@ function applyFilter() {
   } else {
     filteredData = [...allData];
   }
+  filteredData = filteredData.filter(r => !currentWarehouse || r['庫別'] === currentWarehouse);
   renderStats();
   renderList();
+}
+
+function setWarehouse(w) {
+  currentWarehouse = w;
+  selectedSerials.clear();
+  document.querySelectorAll('.filter-row:first-child .filter-chip').forEach(c => {
+    c.classList.toggle('active', c.textContent.trim() === (w || '全部庫別'));
+  });
+  applyFilter();
+  updateBatchBar();
 }
 
 // ── 統計 ──────────────────────────────────────
