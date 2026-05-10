@@ -370,7 +370,7 @@ async function markSerial(serial, status) {
       showToast(status === '已處理' ? '✅ 已標記完成' : '↩ 已取消標記');
       const localIdx = allData.findIndex(r => r['流水號'] === serial);
       if (localIdx !== -1) allData[localIdx]['抓貨狀態'] = status;
-      applyFilter(); renderCards(); renderStats();
+      applyFilter(); renderList(); renderStats();
     } else {
       showToast('❌ 標記失敗：' + (data.message || ''));
     }
