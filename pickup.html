@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>抓貨管理</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 :root {
   --bg: #f5f4f0; --card: #ffffff; --border: #e0ddd6;
@@ -345,6 +347,7 @@ async function batchMark() {
     showToast('❌ 選取的案件沒有流水號');
     return;
   }
+  const selectedRows = filteredData.filter(r => selectedSerials.has(r['流水號']));
   for (const serial of serials) {
     await markSerial(serial, '已處理');
   }
@@ -352,6 +355,71 @@ async function batchMark() {
   updateBatchBar();
   showToast(`✅ 已標記 ${serials.length} 筆`);
   await loadData();
+  await generatePickupPDF(selectedRows);
+}
+
+// ── 產生抓貨 PDF ──────────────────────────────
+async function generatePickupPDF(rows) {
+  if (!rows || rows.length === 0) return;
+  const today = new Date();
+  const dateStr = `${today.getFullYear()}${String(today.getMonth()+1).padStart(2,'0')}${String(today.getDate()).padStart(2,'0')}`;
+
+  const container = document.createElement('div');
+  container.id = 'pdfPreview';
+  container.style.cssText = 'position:fixed;left:-9999px;top:0;width:794px;background:white;padding:16px;box-sizing:border-box;font-family:"Noto Sans TC",Arial,sans-serif;';
+
+  const grid = document.createElement('div');
+  grid.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:8px;';
+
+  rows.forEach(row => {
+    const dateParts = (row['日期'] || '').split('/');
+    const dateDisplay = dateParts.length >= 3 ? `${dateParts[1]}/${dateParts[2]}` : (row['日期'] || '');
+    const doctorSurname = (row['醫師'] || '').charAt(0) || '';
+    const patientSurname = (row['病人'] || '').charAt(0) || '';
+    const items = row['品項'] || [];
+    const itemLines = items.map(it => `${it['部位'] || ''} ${it['品號'] || it['院內碼'] || ''}`).join('\n');
+
+    const block = document.createElement('div');
+    block.style.cssText = 'width:375px;min-height:170px;border:1px solid black;padding:10px;box-sizing:border-box;display:flex;flex-direction:column;';
+    block.innerHTML = `
+      <div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:6px;">
+        <span>${dateDisplay} ${row['醫院']||''} Dr.${doctorSurname} Pt.${patientSurname}</span>
+        <span style="flex-shrink:0;margin-left:8px;">${row['庫別']||''}</span>
+      </div>
+      <div style="font-size:16px;font-weight:bold;white-space:pre-line;line-height:1.5;margin-bottom:6px;flex:1;">${itemLines}</div>
+      <div style="font-size:12px;color:#444;margin-bottom:4px;">${row['組件'] ? '組件：'+row['組件'] : ''}</div>
+      <div style="font-size:13px;text-align:right;">${row['業務']||''}</div>
+    `;
+    grid.appendChild(block);
+  });
+
+  container.appendChild(grid);
+  document.body.appendChild(container);
+
+  try {
+    const canvas = await html2canvas(container, {
+      scale: 2, useCORS: true, backgroundColor: '#ffffff', logging: false,
+      width: 794, windowWidth: 794, height: container.scrollHeight, windowHeight: container.scrollHeight,
+    });
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const pageW = 210, pageH = 297;
+    const imgW = pageW;
+    const imgH = (canvas.height / canvas.width) * pageW;
+    const imgData = canvas.toDataURL('image/jpeg', 0.92);
+    let yOffset = 0;
+    while (yOffset < imgH) {
+      if (yOffset > 0) pdf.addPage();
+      pdf.addImage(imgData, 'JPEG', 0, -yOffset, imgW, imgH);
+      yOffset += pageH;
+    }
+    pdf.save(`抓貨單_${dateStr}.pdf`);
+  } catch(e) {
+    console.error('PDF 產生失敗:', e);
+    showToast('❌ PDF 產生失敗');
+  } finally {
+    document.body.removeChild(container);
+  }
 }
 
 // ── 送出標記 ──────────────────────────────────
