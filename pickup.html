@@ -228,6 +228,7 @@ async function loadData() {
     const data = await res.json();
     if (data.success) {
       allData = data.data || [];
+      console.log('第一筆資料:', JSON.stringify(allData[0]));
       applyFilter();
     } else {
       showError('載入失敗');
