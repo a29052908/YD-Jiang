@@ -2,7 +2,8 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<link rel="icon" type="image/png" href="/YD-Jiang/icon-192.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>抓貨管理</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -16,80 +17,99 @@
   --text: #1a1a2e; --muted: #888680;
   --radius: 12px; --shadow: 0 2px 12px rgba(0,0,0,0.08);
 }
-* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', sans-serif; min-height: 100vh; padding-bottom: 40px; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', sans-serif; min-height: 100vh; padding-bottom: 80px; }
 
-.topbar { background: var(--accent); color: white; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+/* ── Topbar ── */
+.topbar { background: var(--accent); color: white; padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
 .topbar-left { display: flex; align-items: center; gap: 10px; }
 .logo { background: var(--red); border-radius: 6px; padding: 5px 7px; font-weight: 700; font-size: 10px; }
-.topbar h1 { font-size: 16px; font-weight: 600; }
-.nav-btn { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 6px 12px; border-radius: 8px; font-size: 12px; cursor: pointer; font-family: 'Noto Sans TC', sans-serif; text-decoration: none; white-space: nowrap; }
+.topbar h1 { font-size: 16px; font-weight: 600; white-space: nowrap; }
+.nav-btn { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 6px 14px; border-radius: 8px; font-size: 12px; cursor: pointer; font-family: 'Noto Sans TC', sans-serif; text-decoration: none; white-space: nowrap; }
 
-.content { padding: 16px; max-width: 600px; margin: 0 auto; }
+/* ── Content ── */
+.content { padding: 16px 20px; max-width: 1200px; margin: 0 auto; }
 
-/* 月份 */
-.month-bar { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; align-items: center; }
-.year-label { font-size: 12px; font-weight: 700; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
-.month-btn { padding: 7px 14px; border-radius: 20px; border: 1.5px solid var(--border); background: var(--card); font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.15s; color: var(--muted); font-family: 'Noto Sans TC', sans-serif; }
+/* ── Filter bar ── */
+.filter-bar { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 16px; margin-bottom: 10px; display: flex; align-items: center; gap: 20px; flex-wrap: wrap; box-shadow: var(--shadow); }
+.filter-group { display: flex; align-items: center; gap: 8px; }
+.filter-label { font-size: 11px; font-weight: 700; color: var(--muted); white-space: nowrap; text-transform: uppercase; letter-spacing: 0.5px; }
+.chip-group { display: flex; gap: 4px; }
+.chip { padding: 5px 13px; border-radius: 20px; border: 1.5px solid var(--border); background: var(--card); font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.15s; white-space: nowrap; color: var(--text); }
+.chip:hover { border-color: var(--accent); color: var(--accent); }
+.chip.active { background: var(--accent); border-color: var(--accent); color: white; font-weight: 600; }
+
+.stats-inline { margin-left: auto; display: flex; gap: 16px; font-size: 13px; color: var(--muted); align-items: center; }
+.stats-inline .stat-item { white-space: nowrap; }
+.stats-inline .stat-item strong { color: var(--text); font-family: 'JetBrains Mono', monospace; }
+
+/* ── Month bar ── */
+.month-bar { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 12px; align-items: center; }
+.year-label { font-size: 12px; font-weight: 700; color: var(--muted); font-family: 'JetBrains Mono', monospace; margin-right: 4px; }
+.month-btn { padding: 5px 11px; border-radius: 16px; border: 1.5px solid var(--border); background: var(--card); font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.15s; color: var(--muted); font-family: 'Noto Sans TC', sans-serif; }
 .month-btn:hover { border-color: var(--accent); color: var(--accent); }
 .month-btn.active { background: var(--accent); border-color: var(--accent); color: white; font-weight: 600; }
 
-/* 狀態篩選 */
-.filter-row { display: flex; gap: 6px; margin-bottom: 12px; }
-.filter-chip { flex: 1; padding: 9px; border-radius: 10px; border: 1.5px solid var(--border); font-size: 13px; font-weight: 500; cursor: pointer; background: var(--card); font-family: 'Noto Sans TC', sans-serif; transition: all 0.15s; text-align: center; }
-.filter-chip.active { background: var(--accent); border-color: var(--accent); color: white; font-weight: 600; }
+/* ── Table ── */
+.table-wrapper { background: var(--card); border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; box-shadow: var(--shadow); }
+.pickup-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.pickup-table thead tr { background: var(--accent); color: white; }
+.pickup-table th { padding: 11px 12px; text-align: left; font-size: 11px; font-weight: 600; white-space: nowrap; user-select: none; }
+.pickup-table th:first-child { width: 44px; text-align: center; }
+.pickup-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.pickup-table tbody tr.data-row { transition: background 0.1s; }
+.pickup-table tbody tr.data-row.row-alt { background: #fafaf8; }
+.pickup-table tbody tr.data-row:hover { background: var(--blue-light) !important; cursor: pointer; }
+.pickup-table tbody tr.data-row.row-done { opacity: 0.5; }
+.pickup-table tbody tr.data-row.row-selected { background: #e8ecff !important; }
+.pickup-table tbody tr.detail-row { background: #f5f4f0; }
+.pickup-table tbody tr.detail-row td { padding: 0; border-bottom: 1px solid var(--border); }
 
-/* 統計 */
-.stats-row { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
-.stat-chip { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 6px 14px; font-size: 12px; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
-.stat-chip strong { color: var(--text); }
+.col-check { width: 44px; text-align: center; }
+.col-date { white-space: nowrap; font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+.col-serial { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); }
+.col-count { text-align: center; font-family: 'JetBrains Mono', monospace; font-weight: 600; }
+.col-action { white-space: nowrap; }
 
-/* 批量操作 */
-.batch-bar { background: var(--accent); color: white; padding: 12px 16px; border-radius: var(--radius); margin-bottom: 12px; display: none; align-items: center; justify-content: space-between; }
-.batch-bar.show { display: flex; }
-.batch-info { font-size: 13px; font-weight: 500; }
-.batch-btn { padding: 8px 16px; border-radius: 8px; border: none; font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'Noto Sans TC', sans-serif; background: var(--green); color: white; }
+.row-checkbox { width: 16px; height: 16px; accent-color: var(--blue); cursor: pointer; display: block; margin: 0 auto; }
+.select-all-cb { width: 16px; height: 16px; accent-color: white; cursor: pointer; }
 
-/* 案件卡片 */
-.pickup-card { background: var(--card); border-radius: var(--radius); border: 1px solid var(--border); padding: 14px; margin-bottom: 10px; box-shadow: var(--shadow); transition: all 0.15s; }
-.pickup-card.done { opacity: 0.55; }
-.pickup-card.selected { border-color: var(--blue); box-shadow: 0 0 0 2px var(--blue-light); }
-.card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-.card-checkbox { width: 20px; height: 20px; accent-color: var(--blue); cursor: pointer; flex-shrink: 0; }
-.card-serial { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--muted); }
-.card-info { flex: 1; }
-.card-main { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
-.card-sub { font-size: 12px; color: var(--muted); }
+/* ── Detail expand ── */
+.detail-content { padding: 12px 20px 14px 56px; }
+.detail-items { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.detail-item { display: flex; gap: 8px; align-items: center; background: white; border: 1px solid var(--border); border-radius: 8px; padding: 6px 12px; font-size: 12px; }
+.detail-buwei { font-weight: 600; color: var(--accent); }
+.detail-qty { color: var(--blue); font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+.detail-code { color: var(--muted); font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+.detail-component { font-size: 12px; color: var(--muted); line-height: 1.7; }
 
+/* ── Badge ── */
 .badge { padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; white-space: nowrap; }
 .badge-pending { background: #fff0f1; color: var(--red); }
 .badge-done { background: var(--green-light); color: var(--green); }
 
-/* 品項清單 */
-.items-section { background: var(--bg); border-radius: 8px; padding: 10px 12px; margin-bottom: 10px; }
-.items-title { font-size: 10px; font-weight: 700; color: var(--muted); font-family: 'JetBrains Mono', monospace; margin-bottom: 6px; }
-.item-row { display: grid; grid-template-columns: 1fr 80px 1fr; gap: 6px; font-size: 12px; padding: 4px 0; border-bottom: 1px solid var(--border); }
-.item-row:last-child { border-bottom: none; }
-.item-buwei { font-weight: 600; color: var(--accent); }
-.item-qty { text-align: center; color: var(--blue); font-weight: 700; font-family: 'JetBrains Mono', monospace; }
-.item-code { color: var(--muted); font-family: 'JetBrains Mono', monospace; font-size: 11px; }
-
-/* 操作按鈕 */
-.card-actions { display: flex; gap: 8px; }
-.action-btn { padding: 8px 16px; border-radius: 8px; border: none; font-size: 12px; font-weight: 600; cursor: pointer; font-family: 'Noto Sans TC', sans-serif; transition: all 0.15s; }
+/* ── Action buttons ── */
+.action-btn { padding: 5px 12px; border-radius: 6px; border: none; font-size: 12px; font-weight: 600; cursor: pointer; font-family: 'Noto Sans TC', sans-serif; transition: all 0.15s; white-space: nowrap; }
 .btn-mark { background: var(--green-light); color: var(--green); }
 .btn-mark:hover { background: var(--green); color: white; }
 .btn-unmark { background: #fff0f1; color: var(--red); }
 .btn-unmark:hover { background: var(--red); color: white; }
 
-/* 空狀態/載入 */
+/* ── Bottom fixed batch bar ── */
+.bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--accent); color: white; padding: 14px 24px; display: none; align-items: center; justify-content: space-between; z-index: 200; box-shadow: 0 -4px 24px rgba(0,0,0,0.25); }
+.bottom-bar.show { display: flex; }
+.batch-info { font-size: 14px; font-weight: 500; }
+.batch-btn { padding: 9px 22px; border-radius: 8px; border: none; font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'Noto Sans TC', sans-serif; background: var(--green); color: white; transition: background 0.15s; }
+.batch-btn:hover { background: #235a3f; }
+
+/* ── Spinner / empty ── */
 .spinner { width: 24px; height: 24px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 32px auto; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .empty { text-align: center; padding: 48px 20px; color: var(--muted); }
 .empty .icon { font-size: 36px; margin-bottom: 10px; }
 
-/* toast */
-.toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--accent); color: white; padding: 11px 20px; border-radius: 24px; font-size: 13px; font-weight: 500; opacity: 0; transition: all 0.3s; z-index: 999; white-space: nowrap; pointer-events: none; }
+/* ── Toast ── */
+.toast { position: fixed; bottom: 72px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--accent); color: white; padding: 11px 20px; border-radius: 24px; font-size: 13px; font-weight: 500; opacity: 0; transition: all 0.3s; z-index: 999; white-space: nowrap; pointer-events: none; }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 </style>
 </head>
@@ -109,34 +129,61 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', s
 <div class="toast" id="toast"></div>
 
 <div class="content">
-  <!-- 庫別篩選 -->
-  <div class="filter-row">
-    <div class="filter-chip active" onclick="setWarehouse('')">全部庫別</div>
-    <div class="filter-chip" onclick="setWarehouse('桃庫')">桃庫</div>
-    <div class="filter-chip" onclick="setWarehouse('北庫')">北庫</div>
+
+  <!-- 篩選列 -->
+  <div class="filter-bar">
+    <div class="filter-group">
+      <span class="filter-label">庫別</span>
+      <div class="chip-group" id="warehouseChips">
+        <div class="chip active" data-val="" onclick="setWarehouse('')">全部</div>
+        <div class="chip" data-val="桃庫" onclick="setWarehouse('桃庫')">桃庫</div>
+        <div class="chip" data-val="北庫" onclick="setWarehouse('北庫')">北庫</div>
+      </div>
+    </div>
+    <div class="filter-group">
+      <span class="filter-label">狀態</span>
+      <div class="chip-group" id="statusChips">
+        <div class="chip active" data-val="全部" onclick="setStatus('全部')">全部</div>
+        <div class="chip" data-val="未處理" onclick="setStatus('未處理')">🔴 未處理</div>
+        <div class="chip" data-val="已處理" onclick="setStatus('已處理')">✅ 已處理</div>
+      </div>
+    </div>
+    <div class="stats-inline" id="statsRow"></div>
   </div>
 
   <!-- 月份 -->
   <div class="month-bar" id="monthBar"></div>
 
-  <!-- 狀態篩選 -->
-  <div class="filter-row">
-    <div class="filter-chip active" onclick="setStatus('全部')">全部</div>
-    <div class="filter-chip" onclick="setStatus('未處理')">🔴 未處理</div>
-    <div class="filter-chip" onclick="setStatus('已處理')">✅ 已處理</div>
+  <!-- 表格 -->
+  <div class="table-wrapper">
+    <table class="pickup-table">
+      <thead>
+        <tr>
+          <th class="col-check"><input type="checkbox" class="select-all-cb" id="selectAll" onchange="toggleSelectAll(this)"></th>
+          <th>日期</th>
+          <th>流水號</th>
+          <th>業務</th>
+          <th>醫院</th>
+          <th>醫師</th>
+          <th>病人</th>
+          <th>品項數</th>
+          <th>庫別</th>
+          <th>狀態</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody id="pickupList">
+        <tr><td colspan="11" style="text-align:center;padding:40px;"><div class="spinner" style="margin:0 auto;"></div></td></tr>
+      </tbody>
+    </table>
   </div>
 
-  <!-- 統計 -->
-  <div class="stats-row" id="statsRow"></div>
+</div>
 
-  <!-- 批量操作 -->
-  <div class="batch-bar" id="batchBar">
-    <div class="batch-info" id="batchInfo">已選 0 筆</div>
-    <button class="batch-btn" onclick="batchMark()">✅ 批量標記已處理</button>
-  </div>
-
-  <!-- 列表 -->
-  <div id="pickupList"><div class="spinner"></div></div>
+<!-- 底部批量操作列 -->
+<div class="bottom-bar" id="batchBar">
+  <div class="batch-info" id="batchInfo">已選 0 筆</div>
+  <button class="batch-btn" onclick="batchMark()">✅ 批量標記已處理 + 列印PDF</button>
 </div>
 
 <script>
@@ -203,8 +250,18 @@ function selectMonth(m) {
 function setStatus(s) {
   currentStatus = s;
   selectedSerials.clear();
-  document.querySelectorAll('.filter-chip').forEach((c, i) => {
-    c.classList.toggle('active', ['全部','未處理','已處理'][i] === s);
+  document.querySelectorAll('#statusChips .chip').forEach(c => {
+    c.classList.toggle('active', c.getAttribute('data-val') === s);
+  });
+  applyFilter();
+  updateBatchBar();
+}
+
+function setWarehouse(w) {
+  currentWarehouse = w;
+  selectedSerials.clear();
+  document.querySelectorAll('#warehouseChips .chip').forEach(c => {
+    c.classList.toggle('active', c.getAttribute('data-val') === w);
   });
   applyFilter();
   updateBatchBar();
@@ -212,7 +269,7 @@ function setStatus(s) {
 
 // ── 載入 ──────────────────────────────────────
 async function loadData() {
-  document.getElementById('pickupList').innerHTML = '<div class="spinner"></div>';
+  document.getElementById('pickupList').innerHTML = '<tr><td colspan="11" style="text-align:center;padding:40px;"><div class="spinner" style="margin:0 auto;"></div></td></tr>';
   document.getElementById('statsRow').innerHTML = '';
   try {
     const res = await fetch(WEBHOOK_GET, {
@@ -255,89 +312,105 @@ function applyFilter() {
   renderList();
 }
 
-function setWarehouse(w) {
-  currentWarehouse = w;
-  selectedSerials.clear();
-  document.querySelectorAll('.filter-row:first-child .filter-chip').forEach(c => {
-    c.classList.toggle('active', c.textContent.trim() === (w || '全部庫別'));
-  });
-  applyFilter();
-  updateBatchBar();
-}
-
 // ── 統計 ──────────────────────────────────────
 function renderStats() {
   const total = allData.length;
   const pending = allData.filter(r => !r['抓貨狀態'] || r['抓貨狀態'].trim() === '').length;
   const done = allData.filter(r => r['抓貨狀態'] === '已處理').length;
   document.getElementById('statsRow').innerHTML = `
-    <div class="stat-chip">共 <strong>${total}</strong> 筆</div>
-    <div class="stat-chip">🔴 未處理 <strong>${pending}</strong></div>
-    <div class="stat-chip">✅ 已處理 <strong>${done}</strong></div>
+    <span class="stat-item">共 <strong>${total}</strong> 筆</span>
+    <span class="stat-item">🔴 未處理 <strong>${pending}</strong></span>
+    <span class="stat-item">✅ 已處理 <strong>${done}</strong></span>
   `;
 }
 
-// ── 列表 ──────────────────────────────────────
+// ── 表格渲染 ──────────────────────────────────
 function renderList() {
-  const el = document.getElementById('pickupList');
+  const tbody = document.getElementById('pickupList');
   if (filteredData.length === 0) {
-    el.innerHTML = `<div class="empty"><div class="icon">📭</div><p>${currentMonth}月 沒有資料</p></div>`;
+    tbody.innerHTML = `<tr><td colspan="11"><div class="empty"><div class="icon">📭</div><p>${currentMonth}月 沒有資料</p></div></td></tr>`;
     return;
   }
 
-  el.innerHTML = filteredData.map((row, i) => {
+  tbody.innerHTML = filteredData.map((row, i) => {
     const isDone = row['抓貨狀態'] === '已處理';
-    const isSelected = selectedSerials.has(row['流水號'] || i);
     const key = row['流水號'] || `idx_${i}`;
+    const isSelected = selectedSerials.has(key);
+    const itemCount = (row['品項'] || []).length;
 
-    const items = (row['品項'] || []).map(item => `
-      <div class="item-row">
-        <div class="item-buwei">${item['部位'] || ''}</div>
-        <div class="item-qty">×${item['數量'] || ''}</div>
-        <div class="item-code">${item['規格'] ? item['規格'] + ' ' : ''}${item['品號'] || item['院內碼'] || '-'}</div>
+    const itemsHtml = (row['品項'] || []).map(item => `
+      <div class="detail-item">
+        <span class="detail-buwei">${item['部位'] || ''}</span>
+        <span class="detail-qty">×${item['數量'] || ''}</span>
+        <span class="detail-code">${item['規格'] ? item['規格'] + ' ' : ''}${item['品號'] || item['院內碼'] || '-'}</span>
       </div>
     `).join('');
 
+    const componentLines = (row['組件'] || '').split(/(?=\d+\.\d+ [LC]:)/g).filter(Boolean);
+    const componentHtml = componentLines.length
+      ? componentLines.map(l => `<div>${l.trim()}</div>`).join('')
+      : '';
+
     return `
-    <div class="pickup-card ${isDone ? 'done' : ''} ${isSelected ? 'selected' : ''}" id="card_${i}">
-      <div class="card-header">
-        ${!isDone ? `<input type="checkbox" class="card-checkbox" ${isSelected ? 'checked' : ''} onchange="toggleSelect('${key}', ${i}, this)">` : '<div style="width:20px;"></div>'}
-        <div class="card-info">
-          <div class="card-main">${row['醫院'] || ''} · ${row['病人'] || ''}</div>
-          <div class="card-sub">${row['醫師'] || ''} · ${row['日期'] || ''} · ${row['庫別'] || ''}</div>
-        </div>
-        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
-          <span class="badge ${isDone ? 'badge-done' : 'badge-pending'}">${isDone ? '✅ 已處理' : '🔴 未處理'}</span>
-          ${row['流水號'] ? `<span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);">${row['流水號']}</span>` : ''}
-        </div>
-      </div>
-
-      <div class="items-section">
-        <div class="items-title">品項明細（${(row['品項'] || []).length} 項）</div>
-        ${items}
-      </div>
-
-      ${row['組件'] ? `<div style="font-size:12px;color:var(--muted);margin-bottom:8px;line-height:1.6;">🔧 組件：${row['組件']}</div>` : ''}
-
-      <div class="card-actions">
-        ${!isDone
-          ? `<button class="action-btn btn-mark" onclick="markOne('${row['流水號']}', ${i})">✅ 標記已處理</button>`
-          : `<button class="action-btn btn-unmark" onclick="unmarkOne('${row['流水號']}', ${i})">↩ 取消標記</button>`
-        }
-      </div>
-    </div>`;
+      <tr class="data-row ${isDone ? 'row-done' : ''} ${isSelected ? 'row-selected' : ''} ${i % 2 === 1 ? 'row-alt' : ''}" onclick="toggleDetail(${i}, event)" id="row_${i}">
+        <td class="col-check" onclick="event.stopPropagation()">
+          ${!isDone ? `<input type="checkbox" class="row-checkbox" ${isSelected ? 'checked' : ''} onchange="toggleSelect('${key}', ${i}, this)">` : ''}
+        </td>
+        <td class="col-date">${row['日期'] || ''}</td>
+        <td class="col-serial">${row['流水號'] || ''}</td>
+        <td>${row['業務'] || ''}</td>
+        <td>${row['醫院'] || ''}</td>
+        <td>${row['醫師'] || ''}</td>
+        <td>${row['病人'] || ''}</td>
+        <td class="col-count">${itemCount}</td>
+        <td>${row['庫別'] || ''}</td>
+        <td><span class="badge ${isDone ? 'badge-done' : 'badge-pending'}">${isDone ? '✅ 已處理' : '🔴 未處理'}</span></td>
+        <td class="col-action" onclick="event.stopPropagation()">
+          ${!isDone
+            ? `<button class="action-btn btn-mark" onclick="markOne('${row['流水號']}', ${i})">✅ 標記</button>`
+            : `<button class="action-btn btn-unmark" onclick="unmarkOne('${row['流水號']}', ${i})">↩ 取消</button>`
+          }
+        </td>
+      </tr>
+      <tr class="detail-row" id="detail_${i}" style="display:none;">
+        <td colspan="11">
+          <div class="detail-content">
+            <div class="detail-items">${itemsHtml || '<span style="color:var(--muted);font-size:12px;">無品項資料</span>'}</div>
+            ${componentHtml ? `<div class="detail-component" style="margin-top:8px;">🔧 組件：${componentHtml}</div>` : ''}
+          </div>
+        </td>
+      </tr>
+    `;
   }).join('');
+}
+
+function toggleDetail(i, event) {
+  const detail = document.getElementById(`detail_${i}`);
+  if (detail) {
+    detail.style.display = detail.style.display === 'none' ? 'table-row' : 'none';
+  }
 }
 
 // ── 勾選 ──────────────────────────────────────
 function toggleSelect(key, idx, checkbox) {
   if (checkbox.checked) {
     selectedSerials.add(key);
-    document.getElementById(`card_${idx}`)?.classList.add('selected');
+    document.getElementById(`row_${idx}`)?.classList.add('row-selected');
   } else {
     selectedSerials.delete(key);
-    document.getElementById(`card_${idx}`)?.classList.remove('selected');
+    document.getElementById(`row_${idx}`)?.classList.remove('row-selected');
   }
+  updateBatchBar();
+}
+
+function toggleSelectAll(cb) {
+  filteredData.forEach((row, i) => {
+    if (row['抓貨狀態'] === '已處理') return;
+    const key = row['流水號'] || `idx_${i}`;
+    if (cb.checked) selectedSerials.add(key);
+    else selectedSerials.delete(key);
+  });
+  renderList();
   updateBatchBar();
 }
 
@@ -470,7 +543,7 @@ async function markSerial(serial, status) {
       showToast(status === '已處理' ? '✅ 已標記完成' : '↩ 已取消標記');
       const localIdx = allData.findIndex(r => r['流水號'] === serial);
       if (localIdx !== -1) allData[localIdx]['抓貨狀態'] = status;
-      applyFilter(); renderList(); renderStats();
+      applyFilter(); renderStats();
     } else {
       showToast('❌ 標記失敗：' + (data.message || ''));
     }
@@ -481,7 +554,7 @@ async function markSerial(serial, status) {
 }
 
 function showError(msg) {
-  document.getElementById('pickupList').innerHTML = `<div class="empty"><div class="icon">⚠️</div><p>${msg}</p></div>`;
+  document.getElementById('pickupList').innerHTML = `<tr><td colspan="11"><div class="empty"><div class="icon">⚠️</div><p>${msg}</p></div></td></tr>`;
 }
 
 function showToast(msg) {
