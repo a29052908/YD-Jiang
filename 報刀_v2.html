@@ -1,7 +1,8 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
+<link rel="icon" type="image/png" href="/YD-Jiang/icon-192.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>報刀系統</title>
 <link rel="manifest" href="/YD-Jiang/manifest.json">
@@ -198,6 +199,20 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', s
 .screw-legend { display: flex; gap: 12px; margin-bottom: 12px; }
 .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--muted); }
 .legend-dot { width: 12px; height: 12px; border-radius: 50%; }
+
+/* ── 庫別確認 Modal ── */
+.wh-confirm-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 500; display: none; align-items: center; justify-content: center; }
+.wh-confirm-overlay.show { display: flex; }
+.wh-confirm-box { background: var(--card); border-radius: 16px; width: 320px; overflow: hidden; box-shadow: 0 12px 40px rgba(0,0,0,0.3); animation: fadeIn 0.2s ease; }
+@keyframes fadeIn { from { opacity:0; transform: scale(0.95); } to { opacity:1; transform: scale(1); } }
+.wh-confirm-header { background: var(--accent); color: white; padding: 14px 18px; font-size: 14px; font-weight: 600; }
+.wh-confirm-body { padding: 16px 18px; font-size: 13px; line-height: 1.8; color: var(--text); }
+.wh-confirm-footer { display: flex; border-top: 1px solid var(--border); }
+.wh-confirm-footer button { flex: 1; padding: 13px; border: none; font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'Noto Sans TC', sans-serif; transition: background 0.15s; }
+.wh-confirm-footer button:first-child { background: var(--accent); color: white; border-right: 1px solid rgba(255,255,255,0.15); }
+.wh-confirm-footer button:first-child:hover { background: #2d2d4e; }
+.wh-confirm-footer button:last-child { background: var(--card); color: var(--muted); }
+.wh-confirm-footer button:last-child:hover { background: var(--bg); }
 </style>
 <script>
 (function() {
@@ -463,6 +478,7 @@ let currentWarehouse = localStorage.getItem('tandry_warehouse_current') || '';
 let salesWarehouseMap = JSON.parse(localStorage.getItem('tandry_sales_warehouse_map') || '{}');
 let supportMode = false, selectedZone = '';
 let negotiateMode = false;
+let _bypassWarehouseCheck = false;
 
 // ── innerCodeDb ──────────────────────────────────────────────
 const innerCodeDb = [
@@ -1669,7 +1685,34 @@ function buildPayload(){
   };
 }
 
+function _showWarehouseConfirm(zone, defaultWarehouse) {
+  document.getElementById('whConfirmBody').innerHTML =
+    `目前庫別為「${currentWarehouse}」<br>${zone} 的預設庫別為「${defaultWarehouse}」<br>是否改為當區補貨（${defaultWarehouse}）？`;
+  document.getElementById('whConfirmSwitchBtn').textContent = `改為${defaultWarehouse}`;
+  document.getElementById('whConfirmKeepBtn').textContent = `維持${currentWarehouse}繼續`;
+  document.getElementById('whConfirmSwitchBtn').onclick = () => {
+    document.getElementById('whConfirmModal').classList.remove('show');
+    selectWarehouse(defaultWarehouse);
+    showPreview();
+  };
+  document.getElementById('whConfirmKeepBtn').onclick = () => {
+    document.getElementById('whConfirmModal').classList.remove('show');
+    _bypassWarehouseCheck = true;
+    showPreview();
+  };
+  document.getElementById('whConfirmModal').classList.add('show');
+}
+
 function showPreview(){
+  const ZONE_DEFAULT_WAREHOUSE = { '桃竹苗': '桃庫', '北區': '北庫' };
+  const zone = productItems[0]?.大區 || '';
+  const defaultWarehouse = ZONE_DEFAULT_WAREHOUSE[zone];
+  if (!_bypassWarehouseCheck && defaultWarehouse && currentWarehouse !== defaultWarehouse) {
+    _showWarehouseConfirm(zone, defaultWarehouse);
+    return;
+  }
+  _bypassWarehouseCheck = false;
+
   const d=buildPayload();
   const serial=d.流水號||'';
   const dateParts=(d.日期||'').split('/');
@@ -2037,5 +2080,17 @@ if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/YD-Jiang/sw.js');
 }
 </script>
+
+<!-- 庫別確認 Modal -->
+<div class="wh-confirm-overlay" id="whConfirmModal">
+  <div class="wh-confirm-box">
+    <div class="wh-confirm-header">⚠️ 庫別提醒</div>
+    <div class="wh-confirm-body" id="whConfirmBody"></div>
+    <div class="wh-confirm-footer">
+      <button id="whConfirmSwitchBtn"></button>
+      <button id="whConfirmKeepBtn"></button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
