@@ -1739,11 +1739,11 @@ function buildComponentTable(text) {
   const c = letter => COLORS[letter] || { header:'#555', cell:'#f0f0f0', text:'#333' };
   return groups.map(g => {
     const col = c(g.letter);
-    const thStyle = `background:${col.header};color:white;padding:3px 10px;font-size:16px;border:1px solid #bbb;text-align:center;`;
-    const tdQtyStyle = `background:${col.cell};color:${col.text};font-weight:700;padding:3px 10px;font-size:16px;border:1px solid #bbb;text-align:center;`;
+    const thStyle = `background:${col.header};color:white;padding:3px 10px;font-size:14px;border:1px solid #bbb;text-align:center;`;
+    const tdQtyStyle = `background:${col.cell};color:${col.text};font-weight:700;padding:3px 10px;font-size:14px;border:1px solid #bbb;text-align:center;`;
     const lens = g.items.map(i => i.len);
-    let html = `<table style="border-collapse:collapse;font-size:16px;margin-bottom:4px;">`;
-    html += `<tr><th style="${thStyle}font-size:18px;" rowspan="2">${g.type}</th>${lens.map(l => `<th style="${thStyle}">${l}</th>`).join('')}</tr>`;
+    let html = `<table style="border-collapse:collapse;font-size:14px;margin-bottom:4px;">`;
+    html += `<tr><th style="${thStyle}font-size:14px;" rowspan="2">${g.type}</th>${lens.map(l => `<th style="${thStyle}">${l}</th>`).join('')}</tr>`;
     html += `<tr>${g.items.map(i => `<td style="${tdQtyStyle}">x${i.qty}</td>`).join('')}</tr>`;
     html += `</table>`;
     return html;
