@@ -1778,9 +1778,6 @@ function showPreview(){
   }
   _bypassWarehouseCheck = false;
 
-  const screwText = buildScrewText();
-  if (screwText) document.getElementById('toolInput').value = screwText;
-
   const d=buildPayload();
   const serial=d.流水號||'';
   const dateParts=(d.日期||'').split('/');
