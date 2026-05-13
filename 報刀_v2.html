@@ -414,35 +414,42 @@ function tandryLogout() {
     <textarea class="text-area" id="componentInput" placeholder="例：3.5 L=14×正&#10;2.4 L: 10×T" style="min-height:120px;"></textarea>
   </div>
 
-  <!-- 報損釘盤 -->
+  <!-- 報損（收合） -->
   <div class="card" id="damageScrewCard">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-      <div class="card-label" style="margin-bottom:0;">🔧 報損釘子</div>
-      <button onclick="showAddDamageScrewBoard()" style="padding:5px 14px;border-radius:20px;border:1.5px solid var(--accent);background:white;color:var(--accent);font-size:12px;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;">＋ 新增釘盤</button>
+    <div style="display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;" onclick="toggleDamageSection()">
+      <span id="damageSectionArrow" style="font-size:11px;color:var(--muted);">▶</span>
+      <div class="card-label" style="margin-bottom:0;">🔧 報損</div>
+      <div id="damageSectionDot" style="width:8px;height:8px;border-radius:50%;background:#e63946;display:none;flex-shrink:0;"></div>
     </div>
-    <div class="screw-legend">
-      <div class="legend-item"><div class="legend-dot" style="background:#4CAF50"></div>L = Locking</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#FF9800"></div>C = Cortex</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#9C27B0"></div>VA-L</div>
-    </div>
-    <div id="addDamageScrewPanel" style="display:none;margin-bottom:12px;padding:12px;background:var(--bg);border-radius:10px;border:1px solid var(--border);">
-      <div style="font-size:11px;color:var(--muted);margin-bottom:8px;font-family:'JetBrains Mono',monospace;">選擇釘子直徑</div>
-      <div style="display:flex;flex-wrap:wrap;gap:8px;">
-        <button class="type-btn" onclick="addDamageScrewBoard('1.5')">1.5 mm</button>
-        <button class="type-btn" onclick="addDamageScrewBoard('2.0')">2.0 mm</button>
-        <button class="type-btn" onclick="addDamageScrewBoard('2.4')">2.4 mm</button>
-        <button class="type-btn" onclick="addDamageScrewBoard('3.5')">3.5 mm</button>
-        <button class="type-btn" onclick="addDamageScrewBoard('5.0')">5.0 mm</button>
-        <button class="type-btn" onclick="addDamageScrewBoard('VA')">VA</button>
+    <div id="damageSectionBody" style="display:none;margin-top:12px;">
+      <!-- 釘盤 -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;">報損釘盤</div>
+        <button onclick="showAddDamageScrewBoard()" style="padding:5px 14px;border-radius:20px;border:1.5px solid var(--accent);background:white;color:var(--accent);font-size:12px;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;">＋ 新增釘盤</button>
+      </div>
+      <div class="screw-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#4CAF50"></div>L = Locking</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#FF9800"></div>C = Cortex</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#9C27B0"></div>VA-L</div>
+      </div>
+      <div id="addDamageScrewPanel" style="display:none;margin-bottom:12px;padding:12px;background:var(--bg);border-radius:10px;border:1px solid var(--border);">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:8px;font-family:'JetBrains Mono',monospace;">選擇釘子直徑</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;">
+          <button class="type-btn" onclick="addDamageScrewBoard('1.5')">1.5 mm</button>
+          <button class="type-btn" onclick="addDamageScrewBoard('2.0')">2.0 mm</button>
+          <button class="type-btn" onclick="addDamageScrewBoard('2.4')">2.4 mm</button>
+          <button class="type-btn" onclick="addDamageScrewBoard('3.5')">3.5 mm</button>
+          <button class="type-btn" onclick="addDamageScrewBoard('5.0')">5.0 mm</button>
+          <button class="type-btn" onclick="addDamageScrewBoard('VA')">VA</button>
+        </div>
+      </div>
+      <div id="damageScrewBoards"></div>
+      <!-- 備註 -->
+      <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);">
+        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">報損備註</div>
+        <textarea class="text-area" id="toolInput" placeholder="報損備註（選填）" oninput="updateDamageIndicator()"></textarea>
       </div>
     </div>
-    <div id="damageScrewBoards"></div>
-  </div>
-
-  <!-- 報損備註 -->
-  <div class="card">
-    <div class="card-label">🛠 報損備註</div>
-    <textarea class="text-area" id="toolInput" placeholder="報損備註（選填）"></textarea>
   </div>
 
   <!-- 備註 -->
@@ -1696,6 +1703,7 @@ function clearForm(){
   activeDamageScrewBoards=[];
   damageScrewState={};
   renderAllDamageScrewBoards();
+  updateDamageIndicator();
   // 組件 / 工具 / 備註
   document.getElementById('componentInput').value='';
   document.getElementById('toolInput').value='';
@@ -2086,12 +2094,16 @@ function addScrewBoard(dia){if(activeScrewBoards.find(b=>b.dia===dia)){showToast
 function removeScrewBoard(id){activeScrewBoards=activeScrewBoards.filter(b=>b.id!==id);Object.keys(screwState).filter(k=>k.startsWith(id+'_')).forEach(k=>delete screwState[k]);renderAllScrewBoards();updateComponentFromScrews();}
 function toggleScrewBoard(id){const body=document.getElementById(`body_${id}`);const arrow=document.getElementById(`arrow_${id}`);const isOpen=body.style.display!=='none';body.style.display=isOpen?'none':'block';arrow.textContent=isOpen?'▶':'▼';}
 
+function toggleDamageSection(){const body=document.getElementById('damageSectionBody');const arrow=document.getElementById('damageSectionArrow');const isOpen=body.style.display!=='none';body.style.display=isOpen?'none':'block';arrow.textContent=isOpen?'▶':'▼';}
+function updateDamageIndicator(){const hasScrews=activeDamageScrewBoards.length>0&&Object.values(damageScrewState).some(v=>v>0);const hasNote=(document.getElementById('toolInput')?.value||'').trim().length>0;const dot=document.getElementById('damageSectionDot');if(dot)dot.style.display=(hasScrews||hasNote)?'inline-block':'none';}
+
 function showAddDamageScrewBoard(){const p=document.getElementById('addDamageScrewPanel');p.style.display=p.style.display==='none'?'block':'none';}
 function addDamageScrewBoard(dia){if(activeDamageScrewBoards.find(b=>b.dia===dia)){showToast(`已有 ${dia} mm 釘盤`,'error');document.getElementById('addDamageScrewPanel').style.display='none';return;}const id=`dmg_${dia}_${Date.now()}`;activeDamageScrewBoards.push({dia,id});document.getElementById('addDamageScrewPanel').style.display='none';renderAllDamageScrewBoards();}
 function removeDamageScrewBoard(id){activeDamageScrewBoards=activeDamageScrewBoards.filter(b=>b.id!==id);Object.keys(damageScrewState).filter(k=>k.startsWith(id+'_')).forEach(k=>delete damageScrewState[k]);renderAllDamageScrewBoards();}
 function toggleDamageScrewBoard(id){const body=document.getElementById(`body_${id}`);const arrow=document.getElementById(`arrow_${id}`);const isOpen=body.style.display!=='none';body.style.display=isOpen?'none':'block';arrow.textContent=isOpen?'▶':'▼';}
 
 function renderAllDamageScrewBoards(){
+  updateDamageIndicator();
   const container=document.getElementById('damageScrewBoards');
   if(!activeDamageScrewBoards.length){container.innerHTML='<div style="color:var(--muted);font-size:13px;padding:8px 0;">尚未新增釘盤，點「＋ 新增釘盤」開始</div>';return;}
   container.innerHTML=activeDamageScrewBoards.map(({dia,id})=>{
@@ -2118,8 +2130,8 @@ function renderAllDamageScrewBoards(){
   Object.keys(damageScrewState).forEach(key=>{const cnt=damageScrewState[key];if(!cnt)return;const lastUnd2=key.lastIndexOf('_',key.lastIndexOf('_')-1);const boardId=key.substring(0,lastUnd2);const rest=key.substring(lastUnd2+1).split('_');const type=rest[0],len=rest[1];const dot=document.getElementById(`dot_${boardId}_${type}_${len}`);if(!dot)return;const board=activeDamageScrewBoards.find(b=>b.id===boardId);if(!board)return;const def=screwBoardDefs[board.dia];if(!def)return;const t=def.types.find(t=>t.type===type);if(!t)return;updateDot(dot,cnt,t.color,t.dark);});
 }
 
-function toggleDamageScrew(id,type,len,color,dark){const key=`${id}_${type}_${len}`;const dot=document.getElementById(`dot_${id}_${type}_${len}`);const cur=damageScrewState[key]||0;const next=cur>=99?0:cur+1;damageScrewState[key]=next;updateDot(dot,next,color,dark);}
-function decreaseDamageScrew(id,type,len,color,dark){const key=`${id}_${type}_${len}`;const dot=document.getElementById(`dot_${id}_${type}_${len}`);const cur=damageScrewState[key]||0;const next=Math.max(0,cur-1);damageScrewState[key]=next;updateDot(dot,next,color,dark);}
+function toggleDamageScrew(id,type,len,color,dark){const key=`${id}_${type}_${len}`;const dot=document.getElementById(`dot_${id}_${type}_${len}`);const cur=damageScrewState[key]||0;const next=cur>=99?0:cur+1;damageScrewState[key]=next;updateDot(dot,next,color,dark);updateDamageIndicator();}
+function decreaseDamageScrew(id,type,len,color,dark){const key=`${id}_${type}_${len}`;const dot=document.getElementById(`dot_${id}_${type}_${len}`);const cur=damageScrewState[key]||0;const next=Math.max(0,cur-1);damageScrewState[key]=next;updateDot(dot,next,color,dark);updateDamageIndicator();}
 
 function renderAllScrewBoards(){
   const container=document.getElementById('screwBoards');
