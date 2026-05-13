@@ -1797,6 +1797,10 @@ function _showWarehouseConfirm(zone, defaultWarehouse) {
 }
 
 function showPreview(){
+  const damageText = buildDamageScrewText();
+  if (damageText) {
+    document.getElementById('toolInput').value = damageText;
+  }
   const ZONE_DEFAULT_WAREHOUSE = { '桃竹苗': '桃庫', '北區': '北庫' };
   const zone = productItems[0]?.大區 || '';
   const defaultWarehouse = ZONE_DEFAULT_WAREHOUSE[zone];
@@ -1816,8 +1820,6 @@ function showPreview(){
   const component=d.組件;
   const remark=d.備註;
   const damageNote=document.getElementById('toolInput')?.value||'';
-  const damageScrewStr=buildDamageScrewText();
-  const damageText=[damageNote,damageScrewStr].filter(Boolean).join('\n');
 
   let implantLines=[];
   let innerCodeLines=[];
@@ -1891,8 +1893,7 @@ function showPreview(){
             </div>
             <div style="padding:8px;min-height:60px;">
               <div style="font-weight:700;font-size:11px;margin-bottom:4px;">報損：</div>
-              ${damageNote ? `<div style="font-size:12px;white-space:pre-wrap;line-height:1.8;margin-bottom:4px;">${damageNote}</div>` : ''}
-              ${buildComponentTable(damageScrewStr)}
+              ${buildComponentTable(damageNote)}
             </div>
           </td>
         </tr>
