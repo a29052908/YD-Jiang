@@ -1712,6 +1712,42 @@ function buildPayload(){
   };
 }
 
+function buildComponentTable(text) {
+  if (!text || !text.trim()) return '';
+  const CIRCLES = {'①':1,'②':2,'③':3,'④':4,'⑤':5,'⑥':6,'⑦':7,'⑧':8,'⑨':9,'⑩':10};
+  const parts = text.split(/(\d+\.?\d*\s*[LC]:)/);
+  const groups = [];
+  for (let i = 1; i < parts.length; i += 2) {
+    const type = parts[i].replace(':', '').trim();
+    const content = parts[i + 1] || '';
+    const items = [];
+    for (const m of content.matchAll(/(\d+)[x×]([①②③④⑤⑥⑦⑧⑨⑩]|\d+)/g)) {
+      const len = parseInt(m[1]);
+      const qs = m[2];
+      const qty = CIRCLES[qs] !== undefined ? CIRCLES[qs] : parseInt(qs);
+      items.push({ len, qty });
+    }
+    if (items.length) groups.push({ type, items });
+  }
+  if (!groups.length) return `<pre style="font-family:'Noto Sans TC',monospace;font-size:12px;line-height:2;white-space:pre-wrap;margin:0;">${text}</pre>`;
+  const allLens = [...new Set(groups.flatMap(g => g.items.map(i => i.len)))].sort((a,b) => a-b);
+  const th = s => `<th style="background:#1a1a2e;color:white;padding:3px 8px;font-size:11px;border:1px solid #bbb;text-align:center;">${s}</th>`;
+  let html = `<table style="border-collapse:collapse;width:auto;margin-top:4px;font-size:12px;">`;
+  html += `<tr>${th('釘種')}${allLens.map(l => th(l)).join('')}</tr>`;
+  groups.forEach(g => {
+    html += `<tr><td style="background:#f5f4f0;font-weight:700;padding:3px 8px;border:1px solid #bbb;white-space:nowrap;">${g.type}</td>`;
+    allLens.forEach(len => {
+      const item = g.items.find(i => i.len === len);
+      html += item
+        ? `<td style="background:#e8ecff;color:#3a5bd9;font-weight:700;padding:3px 8px;border:1px solid #bbb;text-align:center;">×${item.qty}</td>`
+        : `<td style="color:#ccc;padding:3px 8px;border:1px solid #bbb;text-align:center;">—</td>`;
+    });
+    html += `</tr>`;
+  });
+  html += `</table>`;
+  return html;
+}
+
 function _showWarehouseConfirm(zone, defaultWarehouse) {
   document.getElementById('whConfirmBody').innerHTML =
     `目前庫別為「${currentWarehouse}」<br>${zone} 的預設庫別為「${defaultWarehouse}」<br>是否改為當區補貨（${defaultWarehouse}）？`;
@@ -1819,7 +1855,7 @@ function showPreview(){
             </div>
             <div style="border-bottom:1px solid #000;padding:8px;">
               <div style="font-weight:700;font-size:12px;margin-bottom:4px;">組件：</div>
-              <pre style="font-family:'Noto Sans TC','JetBrains Mono',monospace;font-size:14px;line-height:2;white-space:pre-wrap;word-break:break-all;margin:0;">${component}</pre>
+              ${buildComponentTable(component)}
             </div>
             <div style="padding:8px;min-height:60px;">
               <div style="font-weight:700;font-size:12px;margin-bottom:4px;">工具：</div>
