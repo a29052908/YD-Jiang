@@ -1715,10 +1715,16 @@ function buildPayload(){
 function buildComponentTable(text) {
   if (!text || !text.trim()) return '';
   const CIRCLES = {'①':1,'②':2,'③':3,'④':4,'⑤':5,'⑥':6,'⑦':7,'⑧':8,'⑨':9,'⑩':10};
-  const parts = text.split(/(\d+\.?\d*\s*[LC]:)/);
+  const COLORS = {
+    L: { header:'#2d6a4f', cell:'#d8f3dc', text:'#1b4332' },
+    C: { header:'#b07d00', cell:'#fff9c4', text:'#7a5500' },
+    Q: { header:'#5e35b1', cell:'#ede7f6', text:'#4527a0' },
+  };
+  const parts = text.split(/(\d+\.?\d*\s*[LCQ]:)/);
   const groups = [];
   for (let i = 1; i < parts.length; i += 2) {
     const type = parts[i].replace(':', '').trim();
+    const letter = type.match(/[LCQ]$/)?.[0] || '';
     const content = parts[i + 1] || '';
     const items = [];
     for (const m of content.matchAll(/(\d+)[x×]([①②③④⑤⑥⑦⑧⑨⑩]|\d+)/g)) {
@@ -1727,25 +1733,21 @@ function buildComponentTable(text) {
       const qty = CIRCLES[qs] !== undefined ? CIRCLES[qs] : parseInt(qs);
       items.push({ len, qty });
     }
-    if (items.length) groups.push({ type, items });
+    if (items.length) groups.push({ type, letter, items });
   }
   if (!groups.length) return `<pre style="font-family:'Noto Sans TC',monospace;font-size:12px;line-height:2;white-space:pre-wrap;margin:0;">${text}</pre>`;
-  const allLens = [...new Set(groups.flatMap(g => g.items.map(i => i.len)))].sort((a,b) => a-b);
-  const th = s => `<th style="background:#1a1a2e;color:white;padding:3px 8px;font-size:11px;border:1px solid #bbb;text-align:center;">${s}</th>`;
-  let html = `<table style="border-collapse:collapse;width:auto;margin-top:4px;font-size:12px;">`;
-  html += `<tr>${th('釘種')}${allLens.map(l => th(l)).join('')}</tr>`;
-  groups.forEach(g => {
-    html += `<tr><td style="background:#f5f4f0;font-weight:700;padding:3px 8px;border:1px solid #bbb;white-space:nowrap;">${g.type}</td>`;
-    allLens.forEach(len => {
-      const item = g.items.find(i => i.len === len);
-      html += item
-        ? `<td style="background:#e8ecff;color:#3a5bd9;font-weight:700;padding:3px 8px;border:1px solid #bbb;text-align:center;">×${item.qty}</td>`
-        : `<td style="color:#ccc;padding:3px 8px;border:1px solid #bbb;text-align:center;">—</td>`;
-    });
-    html += `</tr>`;
-  });
-  html += `</table>`;
-  return html;
+  const c = letter => COLORS[letter] || { header:'#555', cell:'#f0f0f0', text:'#333' };
+  return groups.map(g => {
+    const col = c(g.letter);
+    const thStyle = `background:${col.header};color:white;padding:3px 10px;font-size:16px;border:1px solid #bbb;text-align:center;`;
+    const tdQtyStyle = `background:${col.cell};color:${col.text};font-weight:700;padding:3px 10px;font-size:16px;border:1px solid #bbb;text-align:center;`;
+    const lens = g.items.map(i => i.len);
+    let html = `<table style="border-collapse:collapse;font-size:16px;margin-bottom:4px;">`;
+    html += `<tr><th style="${thStyle}font-size:18px;" rowspan="2">${g.type}</th>${lens.map(l => `<th style="${thStyle}">${l}</th>`).join('')}</tr>`;
+    html += `<tr>${g.items.map(i => `<td style="${tdQtyStyle}">x${i.qty}</td>`).join('')}</tr>`;
+    html += `</table>`;
+    return html;
+  }).join('');
 }
 
 function _showWarehouseConfirm(zone, defaultWarehouse) {
@@ -1820,29 +1822,29 @@ function showPreview(){
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
           <img src="圖片1.png" style="height:72px;object-fit:contain;" alt="Tandry">
           <div style="text-align:center;flex:1;padding:0 8px;">
-            <div style="font-size:16px;font-weight:700;letter-spacing:2px;white-space:nowrap;">星 泓 股 份 有 限 公 司</div>
+            <div style="font-size:15px;font-weight:700;letter-spacing:2px;white-space:nowrap;">星 泓 股 份 有 限 公 司</div>
             <div style="font-size:11px;color:#333;word-break:break-all;line-height:1.5;">地址：114台北市內湖區瑞光路76巷65號2樓<br>電話：(02) 2796-2677　傳真：(02) 2796-2611</div>
           </div>
           <div style="color:#e63946;font-size:16px;font-weight:700;font-family:monospace;white-space:nowrap;">${serial}</div>
         </div>
-        <div style="display:flex;align-items:center;justify-content:space-between;font-size:13px;border-top:1px solid #eee;padding-top:4px;flex-wrap:wrap;gap:4px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;font-size:11px;border-top:1px solid #eee;padding-top:4px;flex-wrap:wrap;gap:4px;">
           <div style="display:flex;gap:12px;">
             <span>${cb('出貨')} 出貨</span><span>${cb('借貨')} 借貨</span><span>${cb('換貨')} 換貨</span><span>${cb('還貨')} 還貨</span>
           </div>
-          <span style="font-weight:600;">日期：${yr} ${mo} ${dy}</span>
+          <span style="font-weight:600;font-size:15px;">日期：${yr} ${mo} ${dy}</span>
         </div>
       </div>
       <table style="width:100%;border-collapse:collapse;border:1px solid #000;">
         <tr>
           <td style="width:28%;border-right:1px solid #000;padding:0;vertical-align:top;">
             <table style="width:100%;border-collapse:collapse;">
-              <tr><td style="width:65px;background:#f9f9f9;border-bottom:1px solid #000;border-right:1px solid #000;padding:4px;text-align:center;font-size:11px;letter-spacing:1px;">客戶名稱</td><td style="border-bottom:1px solid #000;padding:4px 8px;">${d.醫院||''}</td></tr>
-              <tr><td style="width:65px;background:#f9f9f9;border-bottom:1px solid #000;border-right:1px solid #000;padding:4px;text-align:center;font-size:11px;letter-spacing:1px;">醫　　師</td><td style="border-bottom:1px solid #000;padding:4px 8px;">${d.醫師||''}</td></tr>
-              <tr><td style="width:65px;background:#f9f9f9;border-bottom:1px solid #000;border-right:1px solid #000;padding:4px;text-align:center;font-size:11px;letter-spacing:1px;">院 內 碼</td><td style="border-bottom:1px solid #000;padding:4px 8px;font-size:11px;white-space:pre-wrap;">${innerCodeDisplay}</td></tr>
-              <tr><td style="width:65px;background:#f9f9f9;border-bottom:1px solid #000;border-right:1px solid #000;padding:4px;text-align:center;font-size:11px;letter-spacing:1px;">病人姓名</td><td style="border-bottom:1px solid #000;padding:4px 8px;">${d.病人||''}</td></tr>
-              <tr><td style="width:65px;background:#f9f9f9;border-bottom:1px solid #000;border-right:1px solid #000;padding:4px;text-align:center;font-size:11px;letter-spacing:1px;">病歷號碼</td><td style="border-bottom:1px solid #000;padding:4px 8px;font-size:11px;">${d.病歷號||''}</td></tr>
-              <tr><td style="width:65px;background:#f9f9f9;border-bottom:1px solid #000;border-right:1px solid #000;padding:4px;text-align:center;font-size:11px;letter-spacing:1px;">業務人員</td><td style="border-bottom:1px solid #000;padding:4px 8px;">${d.業務||''}</td></tr>
-              <tr><td style="width:65px;background:#f9f9f9;border-bottom:1px solid #000;border-right:1px solid #000;padding:4px;text-align:center;font-size:11px;letter-spacing:1px;">庫　　別</td><td style="border-bottom:1px solid #000;padding:4px 8px;">${d.庫別||''}</td></tr>
+              <tr><td style="width:65px;background:#f9f9f9;border-bottom:1px solid #000;border-right:1px solid #000;padding:4px;text-align:center;font-size:11px;letter-spacing:1px;">客戶名稱</td><td style="border-bottom:1px solid #000;padding:4px 8px;font-size:15px;">${d.醫院||''}</td></tr>
+              <tr><td style="width:65px;background:#f9f9f9;border-bottom:1px solid #000;border-right:1px solid #000;padding:4px;text-align:center;font-size:11px;letter-spacing:1px;">醫　　師</td><td style="border-bottom:1px solid #000;padding:4px 8px;font-size:15px;">${d.醫師||''}</td></tr>
+              <tr><td style="width:65px;background:#f9f9f9;border-bottom:1px solid #000;border-right:1px solid #000;padding:4px;text-align:center;font-size:11px;letter-spacing:1px;">院 內 碼</td><td style="border-bottom:1px solid #000;padding:4px 8px;font-size:15px;white-space:pre-wrap;">${innerCodeDisplay}</td></tr>
+              <tr><td style="width:65px;background:#f9f9f9;border-bottom:1px solid #000;border-right:1px solid #000;padding:4px;text-align:center;font-size:11px;letter-spacing:1px;">病人姓名</td><td style="border-bottom:1px solid #000;padding:4px 8px;font-size:15px;">${d.病人||''}</td></tr>
+              <tr><td style="width:65px;background:#f9f9f9;border-bottom:1px solid #000;border-right:1px solid #000;padding:4px;text-align:center;font-size:11px;letter-spacing:1px;">病歷號碼</td><td style="border-bottom:1px solid #000;padding:4px 8px;font-size:15px;">${d.病歷號||''}</td></tr>
+              <tr><td style="width:65px;background:#f9f9f9;border-bottom:1px solid #000;border-right:1px solid #000;padding:4px;text-align:center;font-size:11px;letter-spacing:1px;">業務人員</td><td style="border-bottom:1px solid #000;padding:4px 8px;font-size:15px;">${d.業務||''}</td></tr>
+              <tr><td style="width:65px;background:#f9f9f9;border-bottom:1px solid #000;border-right:1px solid #000;padding:4px;text-align:center;font-size:11px;letter-spacing:1px;">庫　　別</td><td style="border-bottom:1px solid #000;padding:4px 8px;font-size:15px;">${d.庫別||''}</td></tr>
               <tr><td colspan="2" style="text-align:center;background:#f9f9f9;border-bottom:1px solid #000;padding:4px;font-size:11px;letter-spacing:3px;">備　　註</td></tr>
               <tr><td colspan="2" style="padding:6px;min-height:50px;font-size:12px;">${remark}</td></tr>
             </table>
@@ -1851,20 +1853,20 @@ function showPreview(){
             <div style="border-bottom:1px solid #000;padding:2px 8px;font-size:10px;display:flex;justify-content:space-between;"><span>品</span><span>名</span></div>
             <div style="border-bottom:1px solid #000;padding:8px;min-height:100px;">
               <div style="font-weight:700;font-size:12px;margin-bottom:4px;">植入物：</div>
-              <div style="font-family:monospace;font-size:12px;white-space:pre-wrap;line-height:1.8;">${implant}</div>
+              <div style="font-family:monospace;font-size:15px;white-space:pre-wrap;line-height:1.8;">${implant}</div>
             </div>
             <div style="border-bottom:1px solid #000;padding:8px;">
-              <div style="font-weight:700;font-size:12px;margin-bottom:4px;">組件：</div>
+              <div style="font-weight:700;font-size:11px;margin-bottom:4px;">組件：</div>
               ${buildComponentTable(component)}
             </div>
             <div style="padding:8px;min-height:60px;">
-              <div style="font-weight:700;font-size:12px;margin-bottom:4px;">工具：</div>
+              <div style="font-weight:700;font-size:11px;margin-bottom:4px;">工具：</div>
               <div style="font-family:monospace;font-size:12px;white-space:pre-wrap;line-height:1.8;">${tool}</div>
             </div>
           </td>
         </tr>
       </table>
-      <div style="display:flex;justify-content:space-around;align-items:center;margin-top:10px;font-size:11px;border-top:1px solid #000;padding-top:8px;">
+      <div style="display:flex;justify-content:space-around;align-items:center;margin-top:10px;font-size:13px;border-top:1px solid #000;padding-top:8px;">
         <span>主管：＿＿＿＿</span><span>會計：＿＿＿＿</span><span>倉管：＿＿＿＿</span>
         <span>業務：${d.業務||''}</span><span>客戶簽收：＿＿＿＿＿</span>
       </div>
