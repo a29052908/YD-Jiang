@@ -414,10 +414,10 @@ function tandryLogout() {
     <textarea class="text-area" id="componentInput" placeholder="例：3.5 L=14×正&#10;2.4 L: 10×T" style="min-height:120px;"></textarea>
   </div>
 
-  <!-- 工具 -->
+  <!-- 報損 -->
   <div class="card">
-    <div class="card-label">🛠 工具</div>
-    <textarea class="text-area" id="toolInput" placeholder="例：拉：0.8 guide pin×2"></textarea>
+    <div class="card-label">🛠 報損</div>
+    <textarea class="text-area" id="toolInput" placeholder="報損"></textarea>
   </div>
 
   <!-- 備註 -->
@@ -1778,6 +1778,9 @@ function showPreview(){
   }
   _bypassWarehouseCheck = false;
 
+  const screwText = buildScrewText();
+  if (screwText) document.getElementById('toolInput').value = screwText;
+
   const d=buildPayload();
   const serial=d.流水號||'';
   const dateParts=(d.日期||'').split('/');
@@ -1860,7 +1863,7 @@ function showPreview(){
               ${buildComponentTable(component)}
             </div>
             <div style="padding:8px;min-height:60px;">
-              <div style="font-weight:700;font-size:11px;margin-bottom:4px;">工具：</div>
+              <div style="font-weight:700;font-size:11px;margin-bottom:4px;">報損：</div>
               <div style="font-family:monospace;font-size:12px;white-space:pre-wrap;line-height:1.8;">${tool}</div>
             </div>
           </td>
