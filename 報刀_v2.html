@@ -208,7 +208,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', s
 .screw-legend { display: flex; gap: 12px; margin-bottom: 12px; }
 /* ── 正字記數 ── */
 .zheng-group { display: inline-flex; align-items: center; gap: 3px; line-height: 1; }
-.zheng-char { font-size: 22px; color: #145f56; line-height: 1; display: inline-block; }
+.zheng-char { font-size: 11px; color: #145f56; line-height: 1; display: inline-block; }
 .zheng-num { font-size: 12px; color: #7a7468; margin-left: 4px; font-variant-numeric: tabular-nums; }
 .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--muted); }
 .legend-dot { width: 12px; height: 12px; border-radius: 50%; }
@@ -2239,12 +2239,12 @@ function renderZheng(n) {
   if (rem > 0) {
     html += `<span class="zheng-char">${svgPartialZheng(rem)}</span>`;
   }
-  html += `<span class="zheng-num">${n}</span></span>`;
+  html += `</span>`;
   return html;
 }
 
 function svgPartialZheng(strokes) {
-  const W = 28, H = 30;
+  const W = 12, H = 13;
   const strokeDefs = [
     `<line x1="3"  y1="5"  x2="25" y2="5"  stroke-width="2.5" stroke-linecap="round"/>`,
     `<line x1="14" y1="5"  x2="14" y2="27" stroke-width="2.5" stroke-linecap="round"/>`,
