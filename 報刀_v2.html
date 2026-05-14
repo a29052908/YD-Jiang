@@ -2249,7 +2249,7 @@ function svgPartialZheng(strokes) {
 
 function toZheng(n){
   if(n<=0)return'';
-  const parts=['','𝍲','𝍳','𝍴','𝍵'];
+  const parts=['','一','二','三','四'];
   return'正'.repeat(Math.floor(n/5))+parts[n%5];
 }
 
