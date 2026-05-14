@@ -441,7 +441,8 @@ document.addEventListener('click', () => {
   <!-- 組件 -->
   <div class="card">
     <div class="card-label">🔧 組件</div>
-    <textarea class="text-area" id="componentInput" placeholder="例：3.5 L=14×正&#10;2.4 L: 10×T" style="min-height:120px;"></textarea>
+    <div class="text-area" id="componentDisplay" style="min-height:120px;line-height:2.4;cursor:default;"></div>
+    <textarea id="componentInput" style="display:none;"></textarea>
   </div>
 
   <!-- 報損（收合） -->
@@ -477,7 +478,8 @@ document.addEventListener('click', () => {
       <!-- 備註 -->
       <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);">
         <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">報損備註</div>
-        <textarea class="text-area" id="toolInput" placeholder="報損備註（選填）" oninput="updateDamageIndicator()"></textarea>
+        <div class="text-area" id="toolDisplay" style="min-height:48px;line-height:2.4;cursor:default;"></div>
+        <textarea id="toolInput" style="display:none;" oninput="updateDamageIndicator()"></textarea>
       </div>
     </div>
   </div>
@@ -1739,6 +1741,8 @@ function clearForm(){
   // 組件 / 工具 / 備註
   document.getElementById('componentInput').value='';
   document.getElementById('toolInput').value='';
+  const cd=document.getElementById('componentDisplay');if(cd)cd.innerHTML='';
+  const td=document.getElementById('toolDisplay');if(td)td.innerHTML='';
   document.getElementById('remarkInput').value='';
   // 醫師下拉重設
   const doctorSel=document.getElementById('doctorSelect');
@@ -1841,6 +1845,9 @@ function showPreview(){
   if (damageText) {
     document.getElementById('toolInput').value = damageText;
   }
+  const td=document.getElementById('toolDisplay');
+  if(td){const h=buildDamageScrewHTML();td.innerHTML=h||'';}
+
   const ZONE_DEFAULT_WAREHOUSE = { '桃竹苗': '桃庫', '北區': '北庫' };
   const zone = productItems[0]?.大區 || '';
   const defaultWarehouse = ZONE_DEFAULT_WAREHOUSE[zone];
@@ -1929,11 +1936,11 @@ function showPreview(){
             </div>
             <div style="border-bottom:1px solid #000;padding:8px;">
               <div style="font-weight:700;font-size:11px;margin-bottom:4px;">組件：</div>
-              <div style="font-family:monospace;font-size:14px;white-space:pre-wrap;line-height:2;">${component}</div>
+              <div style="line-height:2.2;">${buildScrewHTML()||component}</div>
             </div>
             <div style="padding:8px;min-height:60px;">
               <div style="font-weight:700;font-size:11px;margin-bottom:4px;">報損：</div>
-              <div style="font-family:monospace;font-size:14px;white-space:pre-wrap;line-height:2;">${damageNote}</div>
+              <div style="line-height:2.2;">${buildDamageScrewHTML()||damageNote}</div>
             </div>
           </td>
         </tr>
@@ -2217,6 +2224,8 @@ function updateComponentFromScrews(){
     if(diaLines.length>0) groups.push(diaLines.join('\n'));
   }
   document.getElementById('componentInput').value=groups.join('\n');
+  const cd=document.getElementById('componentDisplay');
+  if(cd){const h=buildScrewHTML();cd.innerHTML=h||'<span style="color:var(--muted);font-size:13px;">尚無釘盤資料</span>';}
 }
 
 function renderZheng(n) {
@@ -2296,6 +2305,34 @@ function buildDamageScrewText(){
   }
   return groups.join('\n');
 }
+
+function _buildZhengHTML(boards, state){
+  const TYPECOLOR={L:'#2d6a4f',C:'#b07d00',Q:'#5e35b1'};
+  const groups=[];
+  for(const{dia,id}of boards){
+    const def=screwBoardDefs[dia];if(!def)continue;
+    const diaLines=[];
+    for(const{type,color}of def.types){
+      const lengths=dia==='5.0'?(type==='L'?def.lengthsL:def.lengthsC):def.lengths;
+      const entries=[];
+      for(const len of lengths){
+        const cnt=state[`${id}_${type}_${len}`]||0;
+        if(cnt>0)entries.push(`<span style="font-family:'JetBrains Mono',monospace;font-size:13px;">${len}</span>×${renderZheng(cnt)}`);
+      }
+      if(entries.length>0){
+        const c=color||TYPECOLOR[type]||'#555';
+        const label=`<span style="font-weight:700;color:${c};font-family:'JetBrains Mono',monospace;">${dia} ${type}:</span> `;
+        const rows=[];
+        for(let i=0;i<entries.length;i+=6){rows.push(entries.slice(i,i+6).join('<span style="color:var(--muted);margin:0 3px;">·</span>'));}
+        diaLines.push(label+rows.join('<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'));
+      }
+    }
+    if(diaLines.length>0)groups.push(diaLines.join('<br>'));
+  }
+  return groups.join('<br>');
+}
+function buildScrewHTML(){ return _buildZhengHTML(activeScrewBoards, screwState); }
+function buildDamageScrewHTML(){ return _buildZhengHTML(activeDamageScrewBoards, damageScrewState); }
 </script>
 <script>
 if ('serviceWorker' in navigator) {
