@@ -208,7 +208,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', s
 .screw-legend { display: flex; gap: 12px; margin-bottom: 12px; }
 /* ── 正字記數 ── */
 .zheng-group { display: inline-flex; align-items: center; gap: 3px; line-height: 1; }
-.zheng-char { font-size: 11px; color: #145f56; line-height: 1; display: inline-block; }
+.zheng-char { font-size: 16px; line-height: 1; display: inline-block; }
 .zheng-num { font-size: 12px; color: #7a7468; margin-left: 4px; font-variant-numeric: tabular-nums; }
 .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--muted); }
 .legend-dot { width: 12px; height: 12px; border-radius: 50%; }
@@ -2228,32 +2228,32 @@ function updateComponentFromScrews(){
   if(cd){const h=buildScrewHTML();cd.innerHTML=h||'<span style="color:var(--muted);font-size:13px;">尚無釘盤資料</span>';}
 }
 
-function renderZheng(n) {
+function renderZheng(n, color='#145f56') {
   if (n <= 0) return '<span style="color:#c8c2b8;font-size:14px;">—</span>';
   const full = Math.floor(n / 5);
   const rem  = n % 5;
   let html = '<span class="zheng-group">';
   for (let i = 0; i < full; i++) {
-    html += `<span class="zheng-char" title="${(i+1)*5}">正</span>`;
+    html += `<span class="zheng-char" style="color:${color};">正</span>`;
   }
   if (rem > 0) {
-    html += `<span class="zheng-char">${svgPartialZheng(rem)}</span>`;
+    html += `<span class="zheng-char">${svgPartialZheng(rem, color)}</span>`;
   }
   html += `</span>`;
   return html;
 }
 
-function svgPartialZheng(strokes) {
-  const W = 12, H = 13;
+function svgPartialZheng(strokes, color='#145f56') {
+  const W = 19, H = 16;
   const strokeDefs = [
-    `<line x1="3"  y1="5"  x2="25" y2="5"  stroke-width="2.5" stroke-linecap="round"/>`,
-    `<line x1="14" y1="5"  x2="14" y2="27" stroke-width="2.5" stroke-linecap="round"/>`,
-    `<line x1="14" y1="16" x2="25" y2="16" stroke-width="2.5" stroke-linecap="round"/>`,
-    `<line x1="3"  y1="16" x2="3"  y2="27" stroke-width="2.5" stroke-linecap="round"/>`,
+    `<line x1="3"  y1="5"  x2="25" y2="5"  stroke-width="4" stroke-linecap="round"/>`,
+    `<line x1="14" y1="5"  x2="14" y2="27" stroke-width="4" stroke-linecap="round"/>`,
+    `<line x1="14" y1="16" x2="25" y2="16" stroke-width="4" stroke-linecap="round"/>`,
+    `<line x1="3"  y1="16" x2="3"  y2="27" stroke-width="4" stroke-linecap="round"/>`,
   ];
   let paths = '';
   for (let i = 0; i < strokes; i++) paths += strokeDefs[i];
-  return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="display:inline-block;vertical-align:middle" stroke="#145f56" fill="none">${paths}</svg>`;
+  return `<svg width="${W}" height="${H}" viewBox="0 0 28 30" style="display:inline-block;vertical-align:middle" stroke="${color}" fill="none">${paths}</svg>`;
 }
 
 function toZheng(n){
@@ -2317,7 +2317,7 @@ function _buildZhengHTML(boards, state){
       const entries=[];
       for(const len of lengths){
         const cnt=state[`${id}_${type}_${len}`]||0;
-        if(cnt>0)entries.push(`<span style="font-family:'JetBrains Mono',monospace;font-size:13px;">${len}</span>×${renderZheng(cnt)}`);
+        if(cnt>0)entries.push(`<span style="font-family:'JetBrains Mono',monospace;font-size:13px;">${len}</span>×${renderZheng(cnt,color||TYPECOLOR[type]||'#555')}`);
       }
       if(entries.length>0){
         const c=color||TYPECOLOR[type]||'#555';
