@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>正字記數 Demo</title>
+<style>
+body { font-family: 'Noto Sans TC', sans-serif; background: #f5f4f0; padding: 24px; color: #1a1a2e; }
+h2 { margin-bottom: 16px; font-size: 16px; }
+.controls { background: white; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-end; }
+.ctrl { display: flex; flex-direction: column; gap: 6px; }
+.ctrl label { font-size: 11px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+.ctrl input[type=range] { width: 180px; }
+.ctrl input[type=number] { width: 70px; padding: 6px 10px; border: 1.5px solid #e0ddd6; border-radius: 8px; font-size: 14px; font-weight: 700; text-align: center; }
+.val { font-size: 13px; font-weight: 700; color: #1a1a2e; text-align: center; }
+
+.demo-box { background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+.demo-row { display: flex; align-items: center; gap: 16px; padding: 10px 0; border-bottom: 1px solid #f0ede8; }
+.demo-row:last-child { border-bottom: none; }
+.demo-label { font-size: 12px; color: #888; font-family: monospace; width: 60px; flex-shrink: 0; }
+.demo-symbol { display: flex; align-items: center; gap: 4px; }
+
+.context-demo { margin-top: 20px; background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+.context-demo h3 { font-size: 12px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+.context-line { font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 2.2; }
+</style>
+</head>
+<body>
+
+<h2>正字記數 大小調整</h2>
+
+<div class="controls">
+  <div class="ctrl">
+    <label>SVG 寬 (W)</label>
+    <input type="range" id="wSlider" min="6" max="60" value="28" oninput="update()">
+    <div class="val" id="wVal">28</div>
+  </div>
+  <div class="ctrl">
+    <label>SVG 高 (H)</label>
+    <input type="range" id="hSlider" min="6" max="65" value="30" oninput="update()">
+    <div class="val" id="hVal">30</div>
+  </div>
+  <div class="ctrl">
+    <label>正 字體大小</label>
+    <input type="range" id="fsSlider" min="6" max="40" value="22" oninput="update()">
+    <div class="val" id="fsVal">22px</div>
+  </div>
+  <div class="ctrl">
+    <label>筆畫粗細</label>
+    <input type="range" id="swSlider" min="0.5" max="6" step="0.5" value="2.5" oninput="update()">
+    <div class="val" id="swVal">2.5</div>
+  </div>
+  <div class="ctrl">
+    <label>顏色</label>
+    <input type="color" id="colorPicker" value="#145f56" oninput="update()">
+  </div>
+</div>
+
+<div class="demo-box">
+  <div class="demo-row"><div class="demo-label">n=1</div><div class="demo-symbol" id="s1"></div></div>
+  <div class="demo-row"><div class="demo-label">n=2</div><div class="demo-symbol" id="s2"></div></div>
+  <div class="demo-row"><div class="demo-label">n=3</div><div class="demo-symbol" id="s3"></div></div>
+  <div class="demo-row"><div class="demo-label">n=4</div><div class="demo-symbol" id="s4"></div></div>
+  <div class="demo-row"><div class="demo-label">n=5</div><div class="demo-symbol" id="s5"></div></div>
+  <div class="demo-row"><div class="demo-label">n=6</div><div class="demo-symbol" id="s6"></div></div>
+  <div class="demo-row"><div class="demo-label">n=9</div><div class="demo-symbol" id="s9"></div></div>
+  <div class="demo-row"><div class="demo-label">n=13</div><div class="demo-symbol" id="s13"></div></div>
+</div>
+
+<div class="context-demo">
+  <h3>組件欄情境預覽</h3>
+  <div class="context-line" id="contextLine"></div>
+</div>
+
+<script>
+function svgPartialZheng(strokes, W, H, sw, color) {
+  const strokeDefs = [
+    `<line x1="3"  y1="5"  x2="25" y2="5"  stroke-width="${sw}" stroke-linecap="round"/>`,
+    `<line x1="14" y1="5"  x2="14" y2="27" stroke-width="${sw}" stroke-linecap="round"/>`,
+    `<line x1="14" y1="16" x2="25" y2="16" stroke-width="${sw}" stroke-linecap="round"/>`,
+    `<line x1="3"  y1="16" x2="3"  y2="27" stroke-width="${sw}" stroke-linecap="round"/>`,
+  ];
+  let paths = '';
+  for (let i = 0; i < strokes; i++) paths += strokeDefs[i];
+  return `<svg width="${W}" height="${H}" viewBox="0 0 28 30" style="display:inline-block;vertical-align:middle" stroke="${color}" fill="none">${paths}</svg>`;
+}
+
+function renderZheng(n, W, H, fs, sw, color) {
+  if (n <= 0) return '<span style="color:#c8c2b8;font-size:14px;">—</span>';
+  const full = Math.floor(n / 5);
+  const rem  = n % 5;
+  let html = '<span style="display:inline-flex;align-items:center;gap:2px;line-height:1;">';
+  for (let i = 0; i < full; i++) {
+    html += `<span style="font-size:${fs}px;color:${color};line-height:1;display:inline-block;">正</span>`;
+  }
+  if (rem > 0) {
+    html += svgPartialZheng(rem, W, H, sw, color);
+  }
+  html += `</span>`;
+  return html;
+}
+
+function update() {
+  const W  = parseInt(document.getElementById('wSlider').value);
+  const H  = parseInt(document.getElementById('hSlider').value);
+  const fs = parseInt(document.getElementById('fsSlider').value);
+  const sw = parseFloat(document.getElementById('swSlider').value);
+  const color = document.getElementById('colorPicker').value;
+
+  document.getElementById('wVal').textContent = W;
+  document.getElementById('hVal').textContent = H;
+  document.getElementById('fsVal').textContent = fs + 'px';
+  document.getElementById('swVal').textContent = sw;
+
+  [1,2,3,4,5,6,9,13].forEach(n => {
+    document.getElementById('s'+n).innerHTML = renderZheng(n, W, H, fs, sw, color);
+  });
+
+  // 情境預覽
+  const ctx = document.getElementById('contextLine');
+  ctx.innerHTML =
+    `<span style="font-weight:700;color:#2d6a4f;font-family:'JetBrains Mono',monospace;">2.4 L:</span> ` +
+    `<span style="font-family:'JetBrains Mono',monospace;font-size:13px;">16</span>×${renderZheng(1,W,H,fs,sw,color)} · ` +
+    `<span style="font-family:'JetBrains Mono',monospace;font-size:13px;">18</span>×${renderZheng(4,W,H,fs,sw,color)} · ` +
+    `<span style="font-family:'JetBrains Mono',monospace;font-size:13px;">20</span>×${renderZheng(3,W,H,fs,sw,color)} · ` +
+    `<span style="font-family:'JetBrains Mono',monospace;font-size:13px;">22</span>×${renderZheng(6,W,H,fs,sw,color)}`;
+}
+
+update();
+</script>
+</body>
+</html>
