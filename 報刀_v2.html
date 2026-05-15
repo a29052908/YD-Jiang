@@ -475,12 +475,11 @@ document.addEventListener('click', () => {
         </div>
       </div>
       <div id="damageScrewBoards"></div>
-      <!-- 報損正字顯示 -->
-      <div id="toolDisplay" style="line-height:2.4;margin-top:8px;"></div>
       <!-- 備註 -->
-      <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);">
+      <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);">
         <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">報損備註</div>
-        <textarea class="text-area" id="toolInput" placeholder="報損備註（選填）" oninput="updateDamageIndicator()"></textarea>
+        <div class="text-area" id="toolDisplay" style="min-height:48px;line-height:2.4;cursor:default;"></div>
+        <textarea id="toolInput" style="display:none;" oninput="updateDamageIndicator()"></textarea>
       </div>
     </div>
   </div>
@@ -1742,9 +1741,9 @@ function clearForm(){
   // 組件 / 工具 / 備註
   document.getElementById('componentInput').value='';
   document.getElementById('toolInput').value='';
-  document.getElementById('remarkInput').value='';
   const cd=document.getElementById('componentDisplay');if(cd)cd.innerHTML='';
   const td=document.getElementById('toolDisplay');if(td)td.innerHTML='';
+  document.getElementById('remarkInput').value='';
   // 醫師下拉重設
   const doctorSel=document.getElementById('doctorSelect');
   if(doctorSel) doctorSel.selectedIndex=0;
@@ -1842,6 +1841,13 @@ function _showWarehouseConfirm(zone, defaultWarehouse) {
 }
 
 function showPreview(){
+  const damageText = buildDamageScrewText();
+  if (damageText) {
+    document.getElementById('toolInput').value = damageText;
+  }
+  const td=document.getElementById('toolDisplay');
+  if(td){const h=buildDamageScrewHTML();td.innerHTML=h||'';}
+
   const ZONE_DEFAULT_WAREHOUSE = { '桃竹苗': '桃庫', '北區': '北庫' };
   const zone = productItems[0]?.大區 || '';
   const defaultWarehouse = ZONE_DEFAULT_WAREHOUSE[zone];
@@ -1930,12 +1936,11 @@ function showPreview(){
             </div>
             <div style="border-bottom:1px solid #000;padding:8px;">
               <div style="font-weight:700;font-size:11px;margin-bottom:4px;">組件：</div>
-              <div style="line-height:2.2;">${buildScrewHTML()||`<span style="font-family:monospace;font-size:14px;white-space:pre-wrap;">${component}</span>`}</div>
+              <div style="line-height:2.2;">${buildScrewHTML()||component}</div>
             </div>
             <div style="padding:8px;min-height:60px;">
               <div style="font-weight:700;font-size:11px;margin-bottom:4px;">報損：</div>
-              <div style="line-height:2.2;">${buildDamageScrewHTML()}</div>
-              ${damageNote?`<div style="font-size:12px;white-space:pre-wrap;margin-top:4px;color:#555;">${damageNote}</div>`:''}
+              <div style="line-height:2.2;">${buildDamageScrewHTML()||damageNote}</div>
             </div>
           </td>
         </tr>
@@ -2164,7 +2169,7 @@ function renderAllDamageScrewBoards(){
   Object.keys(damageScrewState).forEach(key=>{const cnt=damageScrewState[key];if(!cnt)return;const lastUnd2=key.lastIndexOf('_',key.lastIndexOf('_')-1);const boardId=key.substring(0,lastUnd2);const rest=key.substring(lastUnd2+1).split('_');const type=rest[0],len=rest[1];const dot=document.getElementById(`dot_${boardId}_${type}_${len}`);if(!dot)return;const board=activeDamageScrewBoards.find(b=>b.id===boardId);if(!board)return;const def=screwBoardDefs[board.dia];if(!def)return;const t=def.types.find(t=>t.type===type);if(!t)return;updateDot(dot,cnt,t.color,t.dark);});
 }
 
-function _updateToolDisplay(){const td=document.getElementById('toolDisplay');if(td){td.innerHTML=buildDamageScrewHTML();}}
+function _updateToolDisplay(){const td=document.getElementById('toolDisplay');if(td)td.innerHTML=buildDamageScrewHTML();}
 function toggleDamageScrew(id,type,len,color,dark){const key=`${id}_${type}_${len}`;const dot=document.getElementById(`dot_${id}_${type}_${len}`);const cur=damageScrewState[key]||0;const next=cur>=99?0:cur+1;damageScrewState[key]=next;updateDot(dot,next,color,dark);updateDamageIndicator();_updateToolDisplay();}
 function decreaseDamageScrew(id,type,len,color,dark){const key=`${id}_${type}_${len}`;const dot=document.getElementById(`dot_${id}_${type}_${len}`);const cur=damageScrewState[key]||0;const next=Math.max(0,cur-1);damageScrewState[key]=next;updateDot(dot,next,color,dark);updateDamageIndicator();_updateToolDisplay();}
 
@@ -2230,12 +2235,12 @@ function renderZheng(n, color='#145f56') {
   const rem  = n % 5;
   let html = '<span class="zheng-group">';
   for (let i = 0; i < full; i++) {
-    html += `<span class="zheng-char" style="color:${color};">正</span>`;
+    html += `<span class="zheng-char" style="color:${color};font-weight:700;">正</span>`;
   }
   if (rem > 0) {
-    html += svgPartialZheng(rem, color);
+    html += `<span class="zheng-char">${svgPartialZheng(rem, color)}</span>`;
   }
-  html += '</span>';
+  html += `</span>`;
   return html;
 }
 
@@ -2256,41 +2261,6 @@ function toZheng(n){
   if(n<=0)return'';
   return String(n);
 }
-
-function _buildZhengHTML(boards, state){
-  function hex2rgb(hex){const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);return[r,g,b];}
-  const TYPECOLOR={L:'#4CAF50',C:'#FF9800',Q:'#9C27B0'};
-  const groups=[];
-  for(const{dia,id}of boards){
-    const def=screwBoardDefs[dia];if(!def)continue;
-    const diaLines=[];
-    for(const{type,color}of def.types){
-      const lengths=dia==='5.0'?(type==='L'?def.lengthsL:def.lengthsC):def.lengths;
-      const tc=color||TYPECOLOR[type]||'#555';
-      const [r2,g2,b2]=hex2rgb(tc);
-      const bg=`rgba(${r2},${g2},${b2},0.19)`;
-      const entries=[];
-      for(const len of lengths){
-        const cnt=state[`${id}_${type}_${len}`]||0;
-        if(cnt>0){
-          const sym=renderZheng(cnt,tc);
-          const sepX=`<span style="font-size:15px;color:#999;margin:0 2px;">×</span>`;
-          entries.push(`<span style="white-space:nowrap;display:inline-block;background:${bg};border-radius:7px;padding:0 4px;"><span style="font-family:'JetBrains Mono',monospace;font-size:13px;">${len}</span>${sepX}${sym}</span>`);
-        }
-      }
-      if(entries.length>0){
-        const label=`<span style="font-weight:700;color:${tc};font-family:'JetBrains Mono',monospace;">${dia} ${type}:</span>`;
-        const sep=`<span style="font-size:13px;color:#bbb;margin:0 4px;">/</span>`;
-        const tagged=entries.map((e,i)=>i<entries.length-1?e+sep:e).join('');
-        diaLines.push(`<div style="display:block;line-height:2.2;">${label} ${tagged}</div>`);
-      }
-    }
-    if(diaLines.length>0)groups.push(diaLines.join(''));
-  }
-  return groups.join('');
-}
-function buildScrewHTML(){ return _buildZhengHTML(activeScrewBoards, screwState); }
-function buildDamageScrewHTML(){ return _buildZhengHTML(activeDamageScrewBoards, damageScrewState); }
 
 function buildScrewText(){
   const groups=[];
@@ -2335,6 +2305,41 @@ function buildDamageScrewText(){
   }
   return groups.join('\n');
 }
+
+function _buildZhengHTML(boards, state){
+  function hex2rgb(hex){const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);return[r,g,b];}
+  const TYPECOLOR={L:'#4CAF50',C:'#FF9800',Q:'#9C27B0'};
+  const groups=[];
+  for(const{dia,id}of boards){
+    const def=screwBoardDefs[dia];if(!def)continue;
+    const diaLines=[];
+    for(const{type,color}of def.types){
+      const lengths=dia==='5.0'?(type==='L'?def.lengthsL:def.lengthsC):def.lengths;
+      const tc=color||TYPECOLOR[type]||'#555';
+      const [r2,g2,b2]=hex2rgb(tc);
+      const bg=`rgba(${r2},${g2},${b2},0.19)`;
+      const entries=[];
+      for(const len of lengths){
+        const cnt=state[`${id}_${type}_${len}`]||0;
+        if(cnt>0){
+          const sym=renderZheng(cnt,tc);
+          const sepX=`<span style="font-size:15px;color:#999;margin:0 2px;">×</span>`;
+          entries.push(`<span style="white-space:nowrap;display:inline-block;background:${bg};border-radius:7px;padding:0 4px;"><span style="font-family:'JetBrains Mono',monospace;font-size:13px;">${len}</span>${sepX}${sym}</span>`);
+        }
+      }
+      if(entries.length>0){
+        const label=`<span style="font-weight:700;color:${tc};font-family:'JetBrains Mono',monospace;">${dia} ${type}:</span>`;
+        const sep=`<span style="font-size:13px;color:#bbb;margin:0 4px;">/</span>`;
+        const tagged=entries.map((e,i)=>i<entries.length-1?e+sep:e).join('');
+        diaLines.push(`<div style="display:block;line-height:2.2;">${label} ${tagged}</div>`);
+      }
+    }
+    if(diaLines.length>0)groups.push(diaLines.join(''));
+  }
+  return groups.join('');
+}
+function buildScrewHTML(){ return _buildZhengHTML(activeScrewBoards, screwState); }
+function buildDamageScrewHTML(){ return _buildZhengHTML(activeDamageScrewBoards, damageScrewState); }
 </script>
 <script>
 if ('serviceWorker' in navigator) {
