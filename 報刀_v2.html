@@ -1841,10 +1841,7 @@ function _showWarehouseConfirm(zone, defaultWarehouse) {
 }
 
 function showPreview(){
-  const damageText = buildDamageScrewText();
-  if (damageText) {
-    document.getElementById('toolInput').value = damageText;
-  }
+  _updateToolDisplay();
   const td=document.getElementById('toolDisplay');
   if(td){const h=buildDamageScrewHTML();td.innerHTML=h||'';}
 
@@ -2028,7 +2025,7 @@ async function confirmSubmit(){
       院內碼:codeOut, 費用類型:item.payNote||'',
       另洽:item.另洽?'是':'', DHS組件:item.dhsNote||'',
       組件:isFirst?document.getElementById('componentInput')?.value||'':'',
-      報損:isFirst?[document.getElementById('toolInput')?.value||'',buildDamageScrewText()].filter(Boolean).join('\n'):'',
+      報損:isFirst?buildDamageScrewText():'',
       備註:isFirst?document.getElementById('remarkInput')?.value||'':'',
       單據類型:isFirst?selectedType:'',
     };
