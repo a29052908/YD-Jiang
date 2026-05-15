@@ -46,15 +46,28 @@
 例：IV26050801
 業務代碼：IV=Ivan, DI=Dino, HE=Henry, VI=Vincent, KA=Kaley, TA=Tan, ED=Eddie, BR=Bruce
 
-## 正字記數系統（已實作於 報刀_v2.html）
+## 正字記數系統
+### 報刀_v2.html（已完成）
 - `renderZheng(n, color)` → HTML 正字符號（5的倍數=粗體「正」，1-4=SVG筆畫）
 - `svgPartialZheng(strokes, color)` → SVG 局部正字，W=17 H=14 sw=4.5 viewBox="0 0 28 30"
-- `_buildZhengHTML(boards, state)` → 產生整個釘盤的正字 HTML（底色19%透明、br=7、×分隔、/組間）
+- `_buildZhengHTML(boards, state)` → 釘盤正字 HTML（底色19%透明、br=7、×分隔、/組間）
 - `buildScrewHTML()` / `buildDamageScrewHTML()` → 呼叫 _buildZhengHTML
 - `toZheng(n)` → 純數字字串（給 n8n / Google Sheets 用）
-- 介面：componentDisplay div（HTML）+ componentInput textarea（隱藏，存純文字）
-- 待移植：Baodao.html（架構已確認，可參考 報刀_v2.html 直接抄）
-- 待移植：pickup.html（品項數量＋組件欄位正字顯示，PDF維持純數字）
+- `_updateToolDisplay()` → 報損釘盤即時更新 toolDisplay div
+- componentDisplay div（HTML顯示）+ componentInput textarea（隱藏，存純文字給n8n）
+- toolDisplay div（HTML顯示）+ toolInput textarea（隱藏）
+- **送出 payload**：組件用 `componentInput.value`，報損用 `buildDamageScrewText()`，不重複合併
+
+### pickup.html（已完成）
+- `renderZheng` / `svgPartialZheng` 已複製
+- `parseComponentForPDF(text)` → 解析 "2.4 L: 14x3" 文字成正字 HTML，跨行保留顏色
+- PDF 小卡：品項顯示數量（qty>1才顯示）、組件顯示正字SVG（L綠/C橙）
+- PDF 末頁：`buildSummaryBlock(rows)` 植入物+釘子彙整表，含日期/時間/製表人
+
+### Baodao.html（待移植）
+- 架構已確認，參考 報刀_v2.html 直接抄
+- 無 damageScrewState，跳過 toolDisplay 相關
+- 重點：替換 componentInput textarea → display div、更新 updateComponentFromScrews、showPreview
 
 ## 漢堡選單（已實作）
 所有頁面（報刀_v2、track、edit-request、review）右上角統一有 ☰ 選單
@@ -67,3 +80,4 @@
 - 修改完 commit push
 - 中文繁體
 - push 前先 git fetch，確認遠端有無新 commit，避免衝突
+- 每次交接同時更新 CLAUDE.md
