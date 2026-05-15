@@ -496,9 +496,15 @@ function buildSummaryBlock(rows) {
   const TYPECOLOR = { L: '#2d6a4f', C: '#8b5e00' };
   const cell = (s, bold) => `<td style="padding:4px 10px;border:1px solid #ccc;${bold ? 'font-weight:bold;' : ''}white-space:nowrap;">${s}</td>`;
 
+  const now = new Date();
+  const dateStr = `${now.getFullYear()}/${String(now.getMonth()+1).padStart(2,'0')}/${String(now.getDate()).padStart(2,'0')}`;
+  const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  const maker = USER.name || USER.username || USER.role || '';
+
   let html = `<div style="margin-top:20px;border-top:2px solid #333;padding-top:14px;">
-    <div style="font-size:15px;font-weight:bold;text-align:center;margin-bottom:12px;">
-      本次抓貨彙整（共 ${rows.length} 筆）
+    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px;">
+      <div style="font-size:15px;font-weight:bold;">本次抓貨彙整（共 ${rows.length} 筆）</div>
+      <div style="font-size:12px;color:#555;">${dateStr} ${timeStr}　製表：${maker}</div>
     </div>`;
 
   // 植入物
@@ -565,7 +571,8 @@ async function generatePickupPDF(rows) {
     const items = row['品項'] || [];
     const itemLines = items.map(it => {
       const code = it['品號'] || it['院內碼'] || '';
-      return `${it['部位'] || ''} ${it['規格'] ? it['規格']+' ' : ''}${code ? '('+code+')' : ''}`;
+      const qty = parseInt(it['數量'] || 1);
+      return `${it['部位'] || ''} ${it['規格'] ? it['規格']+' ' : ''}${code ? '('+code+')' : ''}${qty > 1 ? ' ×'+qty : ''}`;
     }).join('\n');
     const componentHtml = parseComponentForPDF(row['組件'] || '');
 
@@ -675,9 +682,11 @@ function renderZheng(n, color='#1a1a2e') {
 function parseComponentForPDF(text) {
   if (!text) return '';
   const TYPECOLOR = { L: '#4CAF50', C: '#FF9800' };
+  let currentColor = '#1a1a2e';
   return text.split('\n').filter(Boolean).map(line => {
     const tm = line.match(/\b([LC]):/);
-    const color = tm ? (TYPECOLOR[tm[1]] || '#1a1a2e') : '#1a1a2e';
+    if (tm) currentColor = TYPECOLOR[tm[1]] || '#1a1a2e';
+    const color = currentColor;
     const converted = line.replace(/(\d+(?:\.\d+)?)x(\d+)/g, (_, len, cnt) => {
       return `<span style="white-space:nowrap;display:inline-block;">`
         + `<span style="font-family:'JetBrains Mono',monospace;font-size:12px;">${len}</span>`
