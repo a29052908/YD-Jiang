@@ -459,6 +459,91 @@ async function batchMark() {
   await generatePickupPDF(selectedRows);
 }
 
+// ── 抓貨彙整 ─────────────────────────────────
+function buildSummaryBlock(rows) {
+  // 1. 植入物加總（依 部位+規格+品號）
+  const itemMap = {};
+  rows.forEach(row => {
+    (row['品項'] || []).forEach(it => {
+      const key = [it['部位'], it['規格'], it['品號'] || it['院內碼']].filter(Boolean).join(' ');
+      if (!key) return;
+      itemMap[key] = (itemMap[key] || 0) + parseInt(it['數量'] || 1);
+    });
+  });
+
+  // 2. 釘子加總（依 直徑_型別_長度）
+  const screwMap = {}; // "dia_type" → { dia, type, lengths:{len:cnt} }
+  function parseEntries(text, lengths) {
+    for (const m of text.matchAll(/(\d+)x(\d+)/g)) {
+      lengths[m[1]] = (lengths[m[1]] || 0) + parseInt(m[2]);
+    }
+  }
+  rows.forEach(row => {
+    let currentKey = null;
+    (row['組件'] || '').split('\n').forEach(line => {
+      const hm = line.match(/^(\d+\.?\d*)\s+([LC]):/);
+      if (hm) {
+        currentKey = `${hm[1]}_${hm[2]}`;
+        if (!screwMap[currentKey]) screwMap[currentKey] = { dia: hm[1], type: hm[2], lengths: {} };
+        parseEntries(line.slice(hm[0].length), screwMap[currentKey].lengths);
+      } else if (currentKey && line.trim()) {
+        parseEntries(line, screwMap[currentKey].lengths);
+      }
+    });
+  });
+
+  // 3. 組裝 HTML
+  const TYPECOLOR = { L: '#2d6a4f', C: '#8b5e00' };
+  const cell = (s, bold) => `<td style="padding:4px 10px;border:1px solid #ccc;${bold ? 'font-weight:bold;' : ''}white-space:nowrap;">${s}</td>`;
+
+  let html = `<div style="margin-top:20px;border-top:2px solid #333;padding-top:14px;">
+    <div style="font-size:15px;font-weight:bold;text-align:center;margin-bottom:12px;">
+      本次抓貨彙整（共 ${rows.length} 筆）
+    </div>`;
+
+  // 植入物
+  const itemEntries = Object.entries(itemMap);
+  if (itemEntries.length) {
+    html += `<div style="font-size:12px;font-weight:bold;margin-bottom:4px;color:#555;">▌ 植入物</div>
+    <table style="border-collapse:collapse;font-size:13px;margin-bottom:14px;width:100%;">
+      <tr style="background:#f5f5f5;">
+        <th style="padding:4px 10px;border:1px solid #ccc;text-align:left;">品名／規格</th>
+        <th style="padding:4px 10px;border:1px solid #ccc;text-align:center;width:60px;">數量</th>
+      </tr>`;
+    itemEntries.forEach(([name, qty]) => {
+      html += `<tr>${cell(name)}${cell('×' + qty, true)}</tr>`;
+    });
+    html += `</table>`;
+  }
+
+  // 釘子
+  const screwEntries = Object.entries(screwMap).sort((a, b) => {
+    const [ad, at] = a[0].split('_'), [bd, bt] = b[0].split('_');
+    return (parseFloat(ad) || 99) - (parseFloat(bd) || 99) || at.localeCompare(bt);
+  });
+  if (screwEntries.length) {
+    html += `<div style="font-size:12px;font-weight:bold;margin-bottom:4px;color:#555;">▌ 釘子</div>
+    <table style="border-collapse:collapse;font-size:13px;width:100%;">
+      <tr style="background:#f5f5f5;">
+        <th style="padding:4px 10px;border:1px solid #ccc;text-align:left;width:80px;">直徑/型</th>
+        <th style="padding:4px 10px;border:1px solid #ccc;text-align:left;">長度 × 數量</th>
+      </tr>`;
+    screwEntries.forEach(([, { dia, type, lengths }]) => {
+      const color = TYPECOLOR[type] || '#333';
+      const lenStr = Object.keys(lengths).sort((a,b)=>+a-+b)
+        .map(len => `${len}mm ×${lengths[len]}`).join('　');
+      html += `<tr>
+        <td style="padding:4px 10px;border:1px solid #ccc;font-weight:bold;color:${color};">⌀${dia} ${type}</td>
+        <td style="padding:4px 10px;border:1px solid #ccc;font-family:'JetBrains Mono',monospace;font-size:12px;">${lenStr}</td>
+      </tr>`;
+    });
+    html += `</table>`;
+  }
+
+  html += `</div>`;
+  return html;
+}
+
 // ── 產生抓貨 PDF ──────────────────────────────
 async function generatePickupPDF(rows) {
   if (!rows || rows.length === 0) return;
@@ -499,6 +584,12 @@ async function generatePickupPDF(rows) {
   });
 
   container.appendChild(grid);
+
+  // 彙整區（小卡下方）
+  const summaryDiv = document.createElement('div');
+  summaryDiv.innerHTML = buildSummaryBlock(rows);
+  container.appendChild(summaryDiv);
+
   document.body.appendChild(container);
 
   try {
