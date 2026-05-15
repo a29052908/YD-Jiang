@@ -111,6 +111,9 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', s
 /* ── Toast ── */
 .toast { position: fixed; bottom: 72px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--accent); color: white; padding: 11px 20px; border-radius: 24px; font-size: 13px; font-weight: 500; opacity: 0; transition: all 0.3s; z-index: 999; white-space: nowrap; pointer-events: none; }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+/* ── 正字記數 ── */
+.zheng-group { display: inline-flex; align-items: center; gap: 3px; line-height: 1; }
+.zheng-char { font-size: 13px; font-weight: 700; line-height: 1; display: inline-block; }
 </style>
 </head>
 <body>
@@ -479,10 +482,7 @@ async function generatePickupPDF(rows) {
       const code = it['品號'] || it['院內碼'] || '';
       return `${it['部位'] || ''} ${it['規格'] ? it['規格']+' ' : ''}${code ? '('+code+')' : ''}`;
     }).join('\n');
-    const componentLines = (row['組件'] || '').split(/(?=\d+\.\d+ [LC]:)/g).filter(Boolean);
-    const componentHtml = componentLines.length
-      ? componentLines.map(l => `<div>${l.trim()}</div>`).join('')
-      : '';
+    const componentHtml = parseComponentForPDF(row['組件'] || '');
 
     const block = document.createElement('div');
     block.style.cssText = 'width:375px;min-height:170px;border:1px solid black;padding:10px;box-sizing:border-box;display:flex;flex-direction:column;';
@@ -492,7 +492,7 @@ async function generatePickupPDF(rows) {
         <span style="flex-shrink:0;margin-left:8px;">${row['庫別']||''}</span>
       </div>
       <div style="font-size:16px;font-weight:bold;white-space:pre-line;line-height:1.5;margin-bottom:6px;flex:1;">${itemLines}</div>
-      <div style="font-size:12px;color:#444;margin-bottom:4px;line-height:1.6;">${componentHtml}</div>
+      <div style="font-size:12px;color:#444;margin-bottom:4px;">${componentHtml}</div>
       <div style="font-size:13px;text-align:right;">${row['業務']||''}</div>
     `;
     grid.appendChild(block);
@@ -551,6 +551,51 @@ async function markSerial(serial, status) {
     console.error('[markSerial] catch error:', e);
     showToast('❌ 無法連線');
   }
+}
+
+// ── 正字記數 ──────────────────────────────────
+function svgPartialZheng(strokes, color='#1a1a2e') {
+  const W = 17, H = 14, sw = 4.5;
+  const strokeDefs = [
+    `<line x1="3"  y1="5"  x2="25" y2="5"  stroke-width="${sw}" stroke-linecap="round"/>`,
+    `<line x1="14" y1="5"  x2="14" y2="27" stroke-width="${sw}" stroke-linecap="round"/>`,
+    `<line x1="14" y1="16" x2="25" y2="16" stroke-width="${sw}" stroke-linecap="round"/>`,
+    `<line x1="3"  y1="16" x2="3"  y2="27" stroke-width="${sw}" stroke-linecap="round"/>`,
+  ];
+  let paths = '';
+  for (let i = 0; i < strokes; i++) paths += strokeDefs[i];
+  return `<svg width="${W}" height="${H}" viewBox="0 0 28 30" style="display:inline-block;vertical-align:middle" stroke="${color}" fill="none">${paths}</svg>`;
+}
+
+function renderZheng(n, color='#1a1a2e') {
+  if (n <= 0) return '<span style="color:#c8c2b8;font-size:13px;">—</span>';
+  const full = Math.floor(n / 5);
+  const rem  = n % 5;
+  let html = '<span class="zheng-group">';
+  for (let i = 0; i < full; i++) {
+    html += `<span class="zheng-char" style="color:${color};">正</span>`;
+  }
+  if (rem > 0) html += svgPartialZheng(rem, color);
+  html += '</span>';
+  return html;
+}
+
+// 解析 "2.4 L: 14x3 / 16x5" 文字 → 正字 HTML（給 PDF 小卡用）
+function parseComponentForPDF(text) {
+  if (!text) return '';
+  const TYPECOLOR = { L: '#4CAF50', C: '#FF9800' };
+  return text.split('\n').filter(Boolean).map(line => {
+    const tm = line.match(/\b([LC]):/);
+    const color = tm ? (TYPECOLOR[tm[1]] || '#1a1a2e') : '#1a1a2e';
+    const converted = line.replace(/(\d+(?:\.\d+)?)x(\d+)/g, (_, len, cnt) => {
+      return `<span style="white-space:nowrap;display:inline-block;">`
+        + `<span style="font-family:'JetBrains Mono',monospace;font-size:12px;">${len}</span>`
+        + `<span style="font-size:12px;color:#999;margin:0 1px;">×</span>`
+        + renderZheng(parseInt(cnt), color)
+        + `</span>`;
+    });
+    return `<div style="line-height:2.2;">${converted}</div>`;
+  }).join('');
 }
 
 function showError(msg) {
