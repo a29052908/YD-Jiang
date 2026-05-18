@@ -1,7 +1,8 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
+<link rel="icon" type="image/png" href="/YD-Jiang/icon-192.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>變更申請</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -284,7 +285,9 @@ function renderChangeItems() {
   `).join('');
   selectedFields.forEach(field => {
     const orig = document.getElementById(`orig_${field}`);
-    if (orig) orig.value = getOrigValue(field);
+    const val = getOrigValue(field);
+    console.log(`[fill] orig_${field}:`, val, '| el:', orig);
+    if (orig) orig.value = val;
   });
 }
 

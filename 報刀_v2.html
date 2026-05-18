@@ -192,7 +192,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', s
 /* ── 預覽 Modal ── */
 .preview-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200; display: none; align-items: flex-start; justify-content: center; overflow-y: auto; padding: 20px 0; }
 .preview-overlay.show { display: flex; }
-.preview-modal { background: white; width: 95%; max-width: 640px; border-radius: 16px; overflow: hidden; margin: auto; }
+.preview-modal { background: white; width: 95%; max-width: 640px; border-radius: 16px; overflow: clip; margin: auto; }
 .preview-actions { display: flex; gap: 10px; padding: 16px; background: var(--bg); border-top: 1px solid var(--border); }
 .preview-action-btn { flex: 1; padding: 14px; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; font-family: 'Noto Sans TC', sans-serif; }
 .btn-cancel { background: var(--border); color: var(--text); }
@@ -1004,7 +1004,7 @@ const BUWEI_LIST = ['鎖骨','上肢','長骨','小骨','下肢','埋頭釘','�
 // 無左右的版型1
 const NO_RL = {
   '上肢':['LPHP'],
-  '下肢':['DHS','Calcaneus'],
+  '下肢':['DHS'],
   '小骨':['Radial Head'], // Radial Head neck無左右（v2=''），但head有
 };
 // Y/T/Z型無第三層
@@ -1863,7 +1863,7 @@ function showPreview(){
   const cb=t=>t===selectedType?'☑':'☐';
   const component=d.組件;
   const remark=d.備註;
-  const damageNote=document.getElementById('toolInput')?.value||'';
+  const damageNote=[document.getElementById('toolInput')?.value||'',buildDamageScrewText()].filter(Boolean).join('\n');
 
   let implantLines=[];
   let innerCodeLines=[];
