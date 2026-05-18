@@ -479,7 +479,7 @@ document.addEventListener('click', () => {
       <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);">
         <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">報損備註</div>
         <div class="text-area" id="toolDisplay" style="min-height:48px;line-height:2.4;cursor:default;"></div>
-        <textarea id="toolInput" style="display:none;" oninput="updateDamageIndicator()"></textarea>
+        <textarea class="text-area" id="toolInput" placeholder="手動備註（選填）" style="margin-top:8px;" oninput="updateDamageIndicator()"></textarea>
       </div>
     </div>
   </div>
