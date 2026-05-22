@@ -2108,13 +2108,14 @@ const std35 = genLengths([{from:10,to:40,step:2},{from:45,to:70,step:5,extra:[42
 const std24 = genLengths([{from:10,to:50,step:2}]);
 const std15 = genLengths([{from:6,to:14,step:1},{from:16,to:20,step:2}]);
 const std20 = genLengths([{from:6,to:14,step:1},{from:16,to:20,step:2}]);
+const std20L = [...std20, 22].sort((a,b)=>a-b);
 const std50L = genLengths([{from:20,to:50,step:2},{from:55,to:90,step:5}]);
 const std50C = genLengths([{from:20,to:50,step:2}]);
 std50C.push(...[54,60,64,70,80,90]); std50C.sort((a,b)=>a-b);
 
 const screwBoardDefs = {
   '1.5':{types:[{type:'L',color:'#4CAF50',dark:'#2E7D32'},{type:'C',color:'#FF9800',dark:'#E65100'}],lengths:std15},
-  '2.0':{types:[{type:'L',color:'#4CAF50',dark:'#2E7D32'},{type:'C',color:'#FF9800',dark:'#E65100'}],lengths:std20},
+  '2.0':{types:[{type:'L',color:'#4CAF50',dark:'#2E7D32'},{type:'C',color:'#FF9800',dark:'#E65100'}],lengthsL:std20L,lengthsC:std20},
   '2.4':{types:[{type:'L',color:'#4CAF50',dark:'#2E7D32'},{type:'C',color:'#FF9800',dark:'#E65100'}],lengths:std24},
   '3.5':{types:[{type:'L',color:'#4CAF50',dark:'#2E7D32'},{type:'C',color:'#FF9800',dark:'#E65100'}],lengths:std35},
   '5.0':{types:[{type:'L',color:'#4CAF50',dark:'#2E7D32'},{type:'C',color:'#FF9800',dark:'#E65100'}],lengthsL:std50L,lengthsC:std50C},
@@ -2145,7 +2146,7 @@ function renderAllDamageScrewBoards(){
   container.innerHTML=activeDamageScrewBoards.map(({dia,id})=>{
     const def=screwBoardDefs[dia];if(!def)return'';
     const typesHtml=def.types.map(({type,color,dark})=>{
-      const lengths=dia==='5.0'?(type==='L'?def.lengthsL:def.lengthsC):def.lengths;
+      const lengths=def.lengthsL?(type==='L'?def.lengthsL:def.lengthsC):def.lengths;
       if(!lengths.length)return`<div style="color:var(--muted);font-size:12px;padding:6px 0;">${type} — 尺寸待補齊</div>`;
       return`<div class="screw-type-label" style="color:${color};margin-top:8px;">● ${type} — ${type==='L'?'Locking':'Cortex'}</div>
       <div class="screw-row">${lengths.map(len=>`
@@ -2176,7 +2177,7 @@ function renderAllScrewBoards(){
   container.innerHTML=activeScrewBoards.map(({dia,id})=>{
     const def=screwBoardDefs[dia];if(!def)return'';
     const typesHtml=def.types.map(({type,color,dark})=>{
-      const lengths=dia==='5.0'?(type==='L'?def.lengthsL:def.lengthsC):def.lengths;
+      const lengths=def.lengthsL?(type==='L'?def.lengthsL:def.lengthsC):def.lengths;
       if(!lengths.length)return`<div style="color:var(--muted);font-size:12px;padding:6px 0;">${type} — 尺寸待補齊</div>`;
       return`<div class="screw-type-label" style="color:${color};margin-top:8px;">● ${type} — ${type==='L'?'Locking':'Cortex'}</div>
       <div class="screw-row">${lengths.map(len=>`
@@ -2208,7 +2209,7 @@ function updateComponentFromScrews(){
     const def=screwBoardDefs[dia];if(!def)continue;
     const diaLines=[];
     for(const{type}of def.types){
-      const lengths=dia==='5.0'?(type==='L'?def.lengthsL:def.lengthsC):def.lengths;
+      const lengths=def.lengthsL?(type==='L'?def.lengthsL:def.lengthsC):def.lengths;
       const entries=[];
       for(const len of lengths){const cnt=screwState[`${id}_${type}_${len}`]||0;if(cnt>0)entries.push(`${len}x${toZheng(cnt)}`);}
       if(entries.length>0){
@@ -2265,7 +2266,7 @@ function buildScrewText(){
     const def=screwBoardDefs[dia];if(!def)continue;
     const diaLines=[];
     for(const{type}of def.types){
-      const lengths=dia==='5.0'?(type==='L'?def.lengthsL:def.lengthsC):def.lengths;
+      const lengths=def.lengthsL?(type==='L'?def.lengthsL:def.lengthsC):def.lengths;
       const entries=[];
       for(const len of lengths){const cnt=screwState[`${id}_${type}_${len}`]||0;if(cnt>0)entries.push(`${len}x${toZheng(cnt)}`);}
       if(entries.length>0){
@@ -2287,7 +2288,7 @@ function buildDamageScrewText(){
     const def=screwBoardDefs[dia];if(!def)continue;
     const diaLines=[];
     for(const{type}of def.types){
-      const lengths=dia==='5.0'?(type==='L'?def.lengthsL:def.lengthsC):def.lengths;
+      const lengths=def.lengthsL?(type==='L'?def.lengthsL:def.lengthsC):def.lengths;
       const entries=[];
       for(const len of lengths){const cnt=damageScrewState[`${id}_${type}_${len}`]||0;if(cnt>0)entries.push(`${len}x${toZheng(cnt)}`);}
       if(entries.length>0){
@@ -2311,7 +2312,7 @@ function _buildZhengHTML(boards, state){
     const def=screwBoardDefs[dia];if(!def)continue;
     const diaLines=[];
     for(const{type,color}of def.types){
-      const lengths=dia==='5.0'?(type==='L'?def.lengthsL:def.lengthsC):def.lengths;
+      const lengths=def.lengthsL?(type==='L'?def.lengthsL:def.lengthsC):def.lengths;
       const tc=color||TYPECOLOR[type]||'#555';
       const [r2,g2,b2]=hex2rgb(tc);
       const bg=`rgba(${r2},${g2},${b2},0.19)`;
