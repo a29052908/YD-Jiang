@@ -182,6 +182,9 @@ tr:hover td { background: #faf9f7; cursor: pointer; }
   <!-- 統計 -->
   <div class="stats-bar" id="statsBar"></div>
 
+  <!-- 台數彙整 -->
+  <div class="stats-bar" id="summaryBar" style="display:none;"></div>
+
   <!-- 表格 -->
   <div class="table-wrap">
     <div class="table-scroll">
@@ -317,6 +320,7 @@ function applyFilter() {
   });
   renderTable();
   renderStats();
+  renderSummary();
 }
 
 function clearFilter() {
@@ -326,6 +330,7 @@ function clearFilter() {
   filteredData = [...allData];
   renderTable();
   renderStats();
+  renderSummary();
 }
 
 // ── 統計 ──────────────────────────────────────
@@ -339,6 +344,27 @@ function renderStats() {
     <div class="stat-chip"><strong>${hospitals}</strong> 間醫院</div>
     ${IS_ADMIN ? `<div class="stat-chip">檢視：<strong>全部</strong></div>` : `<div class="stat-chip">檢視：<strong>${USER.displayName || USER.username}</strong></div>`}
   `;
+}
+
+// ── 台數彙整 ──────────────────────────────────
+function renderSummary() {
+  const bar = document.getElementById('summaryBar');
+  if (!filteredData.length) { bar.style.display = 'none'; return; }
+  const cats = [
+    {label:'骨板', keys:['鎖骨','上肢','長骨','小骨','下肢'], color:'#3a5bd9', bg:'#e8ecff'},
+    {label:'VA骨板', keys:['VA'], color:'#7b2d8b', bg:'#f3e8ff'},
+    {label:'埋頭釘', keys:['埋頭釘'], color:'#e65c00', bg:'#fff3e0'},
+  ];
+  const chips = cats.map(cat => {
+    const count = filteredData.filter(row =>
+      (row['品項'] || []).some(item => cat.keys.some(k => (item['部位'] || '').includes(k)))
+    ).length;
+    if (!count) return '';
+    return `<div class="stat-chip" style="background:${cat.bg};border-color:${cat.color}33;color:${cat.color};">${cat.label} <strong>${count}</strong> 台</div>`;
+  }).filter(Boolean).join('');
+  if (!chips) { bar.style.display = 'none'; return; }
+  bar.style.display = 'flex';
+  bar.innerHTML = `<div style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:1px;font-family:'JetBrains Mono',monospace;align-self:center;">台數彙整</div>${chips}`;
 }
 
 // ── 表頭 ──────────────────────────────────────
