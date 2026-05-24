@@ -356,11 +356,12 @@ function renderSummary() {
     {label:'埋頭釘', keys:['埋頭釘'], color:'#e65c00', bg:'#fff3e0'},
   ];
   const chips = cats.map(cat => {
-    const count = filteredData.filter(row =>
-      (row['品項'] || []).some(item => cat.keys.some(k => (item['部位'] || '').includes(k)))
-    ).length;
+    const count = filteredData.reduce((sum, row) =>
+      sum + (row['品項'] || []).filter(item => cat.keys.some(k => (item['部位'] || '').includes(k)))
+                               .reduce((s, item) => s + (parseInt(item['數量']) || 1), 0)
+    , 0);
     if (!count) return '';
-    return `<div class="stat-chip" style="background:${cat.bg};border-color:${cat.color}33;color:${cat.color};">${cat.label} <strong>${count}</strong> 台</div>`;
+    return `<div class="stat-chip" style="background:${cat.bg};border-color:${cat.color}33;color:${cat.color};">${cat.label} <strong>${count}</strong> 件</div>`;
   }).filter(Boolean).join('');
   if (!chips) { bar.style.display = 'none'; return; }
   bar.style.display = 'flex';
