@@ -62,6 +62,11 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', s
 .change-input:focus { border-color: var(--blue); }
 .change-input.original { background: #fff0f1; border-color: #ffc0c4; color: var(--muted); }
 
+/* 申請類型切換 */
+.type-switcher { display: flex; background: var(--bg); border-radius: 10px; padding: 3px; border: 1.5px solid var(--border); margin-bottom: 14px; }
+.type-btn { flex: 1; padding: 8px; border: none; background: none; font-size: 13px; font-weight: 500; cursor: pointer; border-radius: 7px; font-family: 'Noto Sans TC', sans-serif; color: var(--muted); transition: all 0.2s; }
+.type-btn.active { background: var(--accent); color: white; font-weight: 600; }
+
 /* 送出按鈕 */
 .submit-btn { width: 100%; padding: 14px; background: var(--accent); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; font-family: 'Noto Sans TC', sans-serif; margin-top: 4px; transition: all 0.2s; }
 .submit-btn:hover { background: #2d2d4e; transform: translateY(-1px); }
@@ -124,6 +129,11 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', s
 
   <!-- 新增申請 -->
   <div id="applyTab">
+    <div class="type-switcher">
+      <button class="type-btn active" id="typeChangeBtn" onclick="switchType('變更')">✏️ 變更現有</button>
+      <button class="type-btn" id="typeAddBtn" onclick="switchType('新增')">➕ 新增部位</button>
+    </div>
+
     <div class="card">
       <div class="card-title">基本資訊</div>
       <div class="field">
@@ -136,7 +146,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', s
       </div>
     </div>
 
-    <div class="card">
+    <div class="card" id="changeCard">
       <div class="card-title">選擇要變更的欄位</div>
       <div class="field-chips" id="fieldChips">
         <div class="field-chip" data-field="日期" onclick="toggleField(this)">日期</div>
@@ -151,8 +161,40 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', s
         <div class="field-chip" data-field="備註" onclick="toggleField(this)">備註</div>
       </div>
     </div>
-
     <div id="changeItems"></div>
+
+    <div class="card" id="addCard" style="display:none;">
+      <div class="card-title">新增部位資料</div>
+      <div class="field">
+        <label>部位 <span style="color:var(--red)">*</span></label>
+        <input type="text" id="addBuwei" placeholder="如 上肢、下肢、鎖骨">
+      </div>
+      <div class="field">
+        <label>規格</label>
+        <input type="text" id="addSpec" placeholder="選填">
+      </div>
+      <div class="field">
+        <label>品號</label>
+        <input type="text" id="addPinhao" placeholder="選填">
+      </div>
+      <div class="field">
+        <label>數量 <span style="color:var(--red)">*</span></label>
+        <input type="number" id="addQty" value="1" min="1">
+      </div>
+      <div class="field">
+        <label>院內碼</label>
+        <input type="text" id="addInnerCode" placeholder="選填">
+      </div>
+      <div class="field">
+        <label>費用類型</label>
+        <select id="addPayType">
+          <option value="">— 選填 —</option>
+          <option value="健保">健保</option>
+          <option value="自費">自費</option>
+          <option value="另洽">另洽</option>
+        </select>
+      </div>
+    </div>
 
     <button class="submit-btn" id="submitBtn" onclick="submitRequest()">📤 送出變更申請</button>
   </div>
@@ -212,6 +254,16 @@ const WEBHOOK_GET    = 'https://ydj.zeabur.app/webhook/get-edit-requests';
 const USER = window.TANDRY_USER || {};
 
 let selectedFields = [];
+let currentType = '變更';
+
+function switchType(type) {
+  currentType = type;
+  document.getElementById('typeChangeBtn').classList.toggle('active', type === '變更');
+  document.getElementById('typeAddBtn').classList.toggle('active', type === '新增');
+  document.getElementById('changeCard').style.display = type === '變更' ? 'block' : 'none';
+  document.getElementById('changeItems').style.display = type === '變更' ? 'block' : 'none';
+  document.getElementById('addCard').style.display = type === '新增' ? 'block' : 'none';
+}
 
 const urlParams = new URLSearchParams(window.location.search);
 const serialFromUrl = urlParams.get('serial');
@@ -295,45 +347,67 @@ function renderChangeItems() {
 async function submitRequest() {
   const serial = document.getElementById('serialInput').value.trim();
   const reason = document.getElementById('reasonInput').value.trim();
-
   if (!serial) { showToast('❌ 請填寫流水號'); return; }
-  if (selectedFields.length === 0) { showToast('❌ 請選擇要變更的欄位'); return; }
-
-  const 變更欄位 = [];
-  const 原始值 = [];
-  const 新值 = [];
-
-  for (const field of selectedFields) {
-    const orig = document.getElementById(`orig_${field}`)?.value.trim() || '';
-    const newVal = document.getElementById(`new_${field}`)?.value.trim() || '';
-    if (!newVal) { showToast(`❌ 請填寫「${field}」的新值`); return; }
-    變更欄位.push(field);
-    原始值.push(orig);
-    新值.push(newVal);
-  }
 
   const btn = document.getElementById('submitBtn');
-  btn.disabled = true; btn.textContent = '送出中...';
+  let payload;
 
+  if (currentType === '新增') {
+    const buwei = document.getElementById('addBuwei').value.trim();
+    const spec   = document.getElementById('addSpec').value.trim();
+    const pinhao = document.getElementById('addPinhao').value.trim();
+    const qty    = document.getElementById('addQty').value.trim() || '1';
+    const inner  = document.getElementById('addInnerCode').value.trim();
+    const pay    = document.getElementById('addPayType').value.trim();
+    if (!buwei) { showToast('❌ 請填寫部位'); return; }
+    payload = {
+      流水號: serial,
+      申請者: USER.displayName || USER.username,
+      申請類型: '新增',
+      變更欄位: ['部位','規格','品號','數量','院內碼','費用類型'].join('、'),
+      原始值: '',
+      新值: [buwei, spec, pinhao, qty, inner, pay].join('|'),
+      申請原因: reason
+    };
+  } else {
+    if (selectedFields.length === 0) { showToast('❌ 請選擇要變更的欄位'); return; }
+    const 變更欄位 = [], 原始值 = [], 新值 = [];
+    for (const field of selectedFields) {
+      const orig   = document.getElementById(`orig_${field}`)?.value.trim() || '';
+      const newVal = document.getElementById(`new_${field}`)?.value.trim() || '';
+      if (!newVal) { showToast(`❌ 請填寫「${field}」的新值`); return; }
+      變更欄位.push(field); 原始值.push(orig); 新值.push(newVal);
+    }
+    payload = {
+      流水號: serial,
+      申請者: USER.displayName || USER.username,
+      申請類型: '變更',
+      變更欄位, 原始值, 新值,
+      申請原因: reason
+    };
+  }
+
+  btn.disabled = true; btn.textContent = '送出中...';
   try {
     const res = await fetch(WEBHOOK_SUBMIT, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        流水號: serial,
-        申請者: USER.displayName || USER.username,
-        變更欄位, 原始值, 新值,
-        申請原因: reason
-      })
+      body: JSON.stringify(payload)
     });
     const data = await res.json();
     if (data.success) {
       showToast('✅ 申請已送出，等待主管審核');
       document.getElementById('serialInput').value = '';
       document.getElementById('reasonInput').value = '';
-      selectedFields = [];
-      document.querySelectorAll('.field-chip').forEach(c => c.classList.remove('selected'));
-      document.getElementById('changeItems').innerHTML = '';
+      if (currentType === '新增') {
+        ['addBuwei','addSpec','addPinhao','addInnerCode'].forEach(id => document.getElementById(id).value = '');
+        document.getElementById('addQty').value = '1';
+        document.getElementById('addPayType').value = '';
+      } else {
+        selectedFields = [];
+        document.querySelectorAll('.field-chip').forEach(c => c.classList.remove('selected'));
+        document.getElementById('changeItems').innerHTML = '';
+      }
     } else {
       showToast('❌ 送出失敗：' + (data.message || ''));
     }
