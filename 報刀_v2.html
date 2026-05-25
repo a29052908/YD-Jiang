@@ -740,6 +740,22 @@ const innerCodeDb = [
   {院內碼:'3F0684',院內碼_醫院:'新泰',部位_院內碼:'下肢',大區:'北區',負責業務:'Vincent'},
   {院內碼:'3A294',院內碼_醫院:'新泰',部位_院內碼:'埋頭釘',大區:'北區',負責業務:'Vincent'},
   {院內碼:'34407',院內碼_醫院:'新泰',部位_院內碼:'人工骨1.0',大區:'北區',負責業務:'Vincent'},
+  // 台中區 - 台中老人
+  {院內碼:'18258893',院內碼_醫院:'台中老人',部位_院內碼:'鎖骨',大區:'台中區',負責業務:''},
+  {院內碼:'18258896',院內碼_醫院:'台中老人',部位_院內碼:'上肢',大區:'台中區',負責業務:''},
+  {院內碼:'18258894',院內碼_醫院:'台中老人',部位_院內碼:'長骨',大區:'台中區',負責業務:''},
+  {院內碼:'18258895',院內碼_醫院:'台中老人',部位_院內碼:'小骨',大區:'台中區',負責業務:''},
+  {院內碼:'18258897',院內碼_醫院:'台中老人',部位_院內碼:'下肢',大區:'台中區',負責業務:''},
+  {院內碼:'18258898',院內碼_醫院:'台中老人',部位_院內碼:'骨釘',大區:'台中區',負責業務:''},
+  {院內碼:'18258892',院內碼_醫院:'台中老人',部位_院內碼:'埋頭釘',大區:'台中區',負責業務:''},
+  // 台中區 - 中國醫總院
+  {院內碼:'18258893',院內碼_醫院:'中國醫總院',部位_院內碼:'鎖骨',大區:'台中區',負責業務:''},
+  {院內碼:'18258896',院內碼_醫院:'中國醫總院',部位_院內碼:'上肢',大區:'台中區',負責業務:''},
+  {院內碼:'18258894',院內碼_醫院:'中國醫總院',部位_院內碼:'長骨',大區:'台中區',負責業務:''},
+  {院內碼:'18258895',院內碼_醫院:'中國醫總院',部位_院內碼:'小骨',大區:'台中區',負責業務:''},
+  {院內碼:'18258897',院內碼_醫院:'中國醫總院',部位_院內碼:'下肢',大區:'台中區',負責業務:''},
+  {院內碼:'18258898',院內碼_醫院:'中國醫總院',部位_院內碼:'骨釘',大區:'台中區',負責業務:''},
+  {院內碼:'18258892',院內碼_醫院:'中國醫總院',部位_院內碼:'埋頭釘',大區:'台中區',負責業務:''},
 ];
 
 // ── rulesDb（醫師）────────────────────────────────────────────
@@ -1595,7 +1611,7 @@ function selectHospital(h){selectedHospital=h;document.getElementById('doctorSel
 function getDoctor(){const s=document.getElementById('doctorSelect');if(s.value==='__manual__') return document.getElementById('doctorManualInput').value.trim();return s.value.trim();}
 function renderDoctors(){const s=document.getElementById('doctorSelect');if(!selectedHospital){s.innerHTML='<option value="">— 請先選擇醫院 —</option>';document.getElementById('doctorManualInput').style.display='none';return;}
   const d=[...new Set(rulesDb.filter(r=>r['醫院']===selectedHospital&&r['醫師']).map(r=>r['醫師']))];
-  if(!d.length){s.innerHTML='<option value="">— 此醫院無醫師資料 —</option>';return;}
+  if(!d.length){s.innerHTML='<option value="">— 選擇醫師（可不選）—</option><option value="__manual__">✏️ 手動輸入...</option>';return;}
   s.innerHTML='<option value="">— 選擇醫師（可不選）—</option>'+d.map(x=>`<option value="${x}">${x}</option>`).join('')+'<option value="__manual__">✏️ 手動輸入...</option>';}
 // ── Summary ───────────────────────────────────────────────────
 function updateSummary(){const card=document.getElementById('summaryCard'),content=document.getElementById('summaryContent');
