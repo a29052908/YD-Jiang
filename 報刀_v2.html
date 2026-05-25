@@ -1857,6 +1857,7 @@ function _showWarehouseConfirm(zone, defaultWarehouse) {
 }
 
 function showPreview(){
+  if(!currentWarehouse){showToast('請先選擇庫別','error');return;}
   _updateToolDisplay();
   const td=document.getElementById('toolDisplay');
   if(td){const h=buildDamageScrewHTML();td.innerHTML=h||'';}
@@ -2022,6 +2023,7 @@ async function confirmSubmit(){
   const doctor=getDoctor();
   const dateStr=getDateStr();
   const items=productItems.length>0?productItems:[];
+  if(!currentWarehouse){showToast('請先選擇庫別','error');btn.disabled=false;btn.textContent='✅ 確認送出';return;}
   if(!selectedHospital){showToast('請選擇醫院','error');btn.disabled=false;btn.textContent='✅ 確認送出';return;}
   if(!items.length){showToast('請先加入產品','error');btn.disabled=false;btn.textContent='✅ 確認送出';return;}
   if(!patient){showToast('請輸入病人姓名','error');btn.disabled=false;btn.textContent='✅ 確認送出';return;}
