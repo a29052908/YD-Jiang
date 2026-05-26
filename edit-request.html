@@ -93,6 +93,17 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', s
 .add-result-row span { font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--accent); }
 .add-section-label { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-family: 'JetBrains Mono', monospace; margin-bottom: 6px; }
 
+/* 組件渲染 */
+.comp-preview { background: white; border: 1px solid var(--border); border-radius: 7px; padding: 8px 10px; overflow-x: auto; }
+.comp-preview pre { font-family: 'Noto Sans TC', monospace; font-size: 12px; line-height: 2; white-space: pre-wrap; margin: 0; }
+/* 品號+規格 連動 */
+.linked-orig { background: #fff0f1; border: 1.5px solid #ffc0c4; border-radius: 7px; padding: 8px 10px; margin-bottom: 4px; }
+.linked-orig-row { display: flex; gap: 6px; align-items: baseline; margin-bottom: 2px; }
+.linked-orig-k { font-size: 10px; font-family: 'JetBrains Mono', monospace; color: var(--muted); min-width: 36px; }
+.linked-orig-v { font-size: 13px; font-weight: 600; color: var(--text); font-family: 'JetBrains Mono', monospace; }
+.linked-new-spec { width: 100%; padding: 7px 10px; border: 1.5px solid var(--border); border-radius: 7px; font-size: 12px; font-family: 'JetBrains Mono', monospace; background: #f5f9ff; color: var(--blue); margin-top: 4px; outline: none; }
+.spec-hint { font-size: 11px; color: var(--muted); margin-top: 3px; font-family: 'JetBrains Mono', monospace; }
+
 /* 送出按鈕 */
 .submit-btn { width: 100%; padding: 14px; background: var(--accent); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; font-family: 'Noto Sans TC', sans-serif; margin-top: 4px; transition: all 0.2s; }
 .submit-btn:hover { background: #2d2d4e; transform: translateY(-1px); }
@@ -187,8 +198,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', s
         <div class="field-chip" data-field="醫師" onclick="toggleField(this)">醫師</div>
         <div class="field-chip" data-field="病人" onclick="toggleField(this)">病人</div>
         <div class="field-chip" data-field="病歷號" onclick="toggleField(this)">病歷號</div>
-        <div class="field-chip" data-field="品號" onclick="toggleField(this)">品號</div>
-        <div class="field-chip" data-field="規格" onclick="toggleField(this)">規格</div>
+        <div class="field-chip" data-field="品號" onclick="toggleField(this)">品號／規格</div>
         <div class="field-chip" data-field="數量" onclick="toggleField(this)">數量</div>
         <div class="field-chip" data-field="院內碼" onclick="toggleField(this)">院內碼</div>
         <div class="field-chip" data-field="費用類型" onclick="toggleField(this)">費用類型</div>
@@ -343,6 +353,79 @@ function getOrigValue(field) {
   return map[field] ?? '';
 }
 
+// ── 正字記數渲染（供組件顯示） ───────────────
+function renderZheng(n, color='#145f56') {
+  if (n <= 0) return '<span style="color:#c8c2b8;font-size:14px;">—</span>';
+  const full = Math.floor(n / 5), rem = n % 5;
+  let html = '<span>';
+  for (let i = 0; i < full; i++) html += `<span style="color:${color};font-weight:700;font-size:14px;">正</span>`;
+  if (rem > 0) html += `<span>${svgPartialZheng(rem, color)}</span>`;
+  return html + '</span>';
+}
+function svgPartialZheng(strokes, color='#145f56') {
+  const sw = 4.5;
+  const defs = [
+    `<line x1="3" y1="5" x2="25" y2="5" stroke-width="${sw}" stroke-linecap="round"/>`,
+    `<line x1="14" y1="5" x2="14" y2="27" stroke-width="${sw}" stroke-linecap="round"/>`,
+    `<line x1="14" y1="16" x2="25" y2="16" stroke-width="${sw}" stroke-linecap="round"/>`,
+    `<line x1="3" y1="16" x2="3" y2="27" stroke-width="${sw}" stroke-linecap="round"/>`,
+  ];
+  let paths = '';
+  for (let i = 0; i < strokes; i++) paths += defs[i];
+  return `<svg width="17" height="14" viewBox="0 0 28 30" style="display:inline-block;vertical-align:middle" stroke="${color}" fill="none">${paths}</svg>`;
+}
+function buildComponentTable(text) {
+  if (!text || !text.trim()) return '';
+  const CIRCLES = {'①':1,'②':2,'③':3,'④':4,'⑤':5,'⑥':6,'⑦':7,'⑧':8,'⑨':9,'⑩':10};
+  const COLORS = {
+    L:{ header:'#2d6a4f', cell:'#d8f3dc', text:'#1b4332' },
+    C:{ header:'#b07d00', cell:'#fff9c4', text:'#7a5500' },
+    Q:{ header:'#5e35b1', cell:'#ede7f6', text:'#4527a0' },
+  };
+  const parts = text.split(/(\d+\.?\d*\s*[LCQ]:)/);
+  const groups = [];
+  for (let i = 1; i < parts.length; i += 2) {
+    const type = parts[i].replace(':','').trim();
+    const letter = type.match(/[LCQ]$/)?.[0] || '';
+    const content = parts[i+1] || '';
+    const items = [];
+    for (const m of content.matchAll(/(\d+)[x×]([①②③④⑤⑥⑦⑧⑨⑩]|\d+)/g)) {
+      const qty = CIRCLES[m[2]] !== undefined ? CIRCLES[m[2]] : parseInt(m[2]);
+      items.push({ len: parseInt(m[1]), qty });
+    }
+    if (items.length) groups.push({ type, letter, items });
+  }
+  if (!groups.length) return `<pre style="font-size:12px;line-height:2;white-space:pre-wrap;margin:0;">${text}</pre>`;
+  const col = l => COLORS[l] || { header:'#555', cell:'#f0f0f0', text:'#333' };
+  return groups.map(g => {
+    const c = col(g.letter);
+    const th = `background:${c.header};color:white;padding:3px 10px;font-size:13px;border:1px solid #bbb;text-align:center;`;
+    const td = `background:${c.cell};color:${c.text};font-weight:700;padding:3px 10px;font-size:13px;border:1px solid #bbb;text-align:center;`;
+    let html = `<table style="border-collapse:collapse;margin-bottom:4px;">`;
+    html += `<tr><th style="${th}" rowspan="2">${g.type}</th>${g.items.map(i=>`<th style="${th}">${i.len}</th>`).join('')}</tr>`;
+    html += `<tr>${g.items.map(i=>`<td style="${td}">${renderZheng(i.qty)}</td>`).join('')}</tr>`;
+    return html + '</table>';
+  }).join('');
+}
+
+// 從 ADD_DB 反查規格
+function lookupSpec(pinhao) {
+  const row = ADD_DB.find(r => r.品號 === pinhao.trim());
+  if (!row) return '';
+  return [row.v1, row.v2, row.v3].filter(Boolean).join(' ');
+}
+function autoFillNewSpec() {
+  const pinhao = document.getElementById('new_品號')?.value || '';
+  const spec = lookupSpec(pinhao);
+  const el = document.getElementById('new_規格_linked');
+  if (el) {
+    el.value = spec;
+    el.style.color = spec ? 'var(--blue)' : 'var(--muted)';
+  }
+  const hint = document.getElementById('spec_hint');
+  if (hint) hint.textContent = spec ? `✓ 對應規格：${spec}` : (pinhao ? '（品號未在資料庫中，請手動確認規格）' : '');
+}
+
 // ── Tab 切換 ─────────────────────────────────
 function switchTab(tab) {
   document.getElementById('applyTab').style.display = tab === 'apply' ? 'block' : 'none';
@@ -367,31 +450,79 @@ function toggleField(el) {
 
 function renderChangeItems() {
   const container = document.getElementById('changeItems');
-  if (selectedFields.length === 0) {
-    container.innerHTML = '';
-    return;
-  }
-  container.innerHTML = selectedFields.map(field => `
-    <div class="change-item">
-      <div class="change-item-header">${field}</div>
-      <div class="change-row">
-        <div>
-          <div class="change-label">原始值</div>
-          <input class="change-input original" id="orig_${field}" placeholder="目前的值">
+  if (selectedFields.length === 0) { container.innerHTML = ''; return; }
+
+  container.innerHTML = selectedFields.map(field => {
+    if (field === '品號') return renderPinhaoItem();
+    if (field === '組件') return renderCompItem();
+    return `
+      <div class="change-item">
+        <div class="change-item-header">${field}</div>
+        <div class="change-row">
+          <div><div class="change-label">原始值</div>
+            <input class="change-input original" id="orig_${field}" placeholder="目前的值"></div>
+          <div><div class="change-label">新值</div>
+            <input class="change-input" id="new_${field}" placeholder="要改成..."></div>
         </div>
-        <div>
-          <div class="change-label">新值</div>
-          <input class="change-input" id="new_${field}" placeholder="要改成...">
-        </div>
-      </div>
-    </div>
-  `).join('');
+      </div>`;
+  }).join('');
+
+  // 一般欄位自動帶入原始值
   selectedFields.forEach(field => {
+    if (field === '品號' || field === '組件') return;
     const orig = document.getElementById(`orig_${field}`);
-    const val = getOrigValue(field);
-    console.log(`[fill] orig_${field}:`, val, '| el:', orig);
-    if (orig) orig.value = val;
+    if (orig) orig.value = getOrigValue(field);
   });
+
+  // 品號+規格 帶入
+  if (selectedFields.includes('品號')) {
+    const ep = document.getElementById('orig_品號');
+    const es = document.getElementById('orig_規格_linked');
+    if (ep) ep.value = getOrigValue('品號');
+    if (es) es.value = getOrigValue('規格');
+  }
+  // 組件帶入渲染
+  if (selectedFields.includes('組件')) {
+    const origVal = getOrigValue('組件') || (editTarget?.['組件'] || '');
+    const previewEl = document.getElementById('comp_orig_preview');
+    if (previewEl) previewEl.innerHTML = buildComponentTable(origVal) || `<span style="color:var(--muted);font-size:12px;">（無資料）</span>`;
+    const ta = document.getElementById('orig_組件_hidden');
+    if (ta) ta.value = origVal;
+    const newTa = document.getElementById('new_組件');
+    if (newTa) newTa.placeholder = origVal ? '輸入新組件文字...' : '輸入組件文字...';
+  }
+}
+
+function renderPinhaoItem() {
+  const origPN = getOrigValue('品號');
+  const origSpec = getOrigValue('規格');
+  return `
+    <div class="change-item">
+      <div class="change-item-header">品號 <span style="color:var(--muted);font-size:10px;font-weight:400;">（連動規格）</span></div>
+      <div class="linked-orig">
+        <div class="linked-orig-row"><span class="linked-orig-k">品號</span><span class="linked-orig-v" id="orig_品號_disp">${origPN || '—'}</span></div>
+        <div class="linked-orig-row"><span class="linked-orig-k">規格</span><span class="linked-orig-v" id="orig_規格_disp">${origSpec || '—'}</span></div>
+      </div>
+      <input type="hidden" id="orig_品號" value="${origPN}">
+      <input type="hidden" id="orig_規格_linked" value="${origSpec}">
+      <div class="change-label" style="margin-top:8px;">新品號</div>
+      <input class="change-input" id="new_品號" placeholder="輸入新品號" oninput="autoFillNewSpec()">
+      <input class="linked-new-spec" id="new_規格_linked" readonly placeholder="規格自動帶入" style="margin-top:6px;">
+      <div class="spec-hint" id="spec_hint"></div>
+    </div>`;
+}
+
+function renderCompItem() {
+  const origVal = editTarget?.['組件'] || getOrigValue('組件') || '';
+  return `
+    <div class="change-item">
+      <div class="change-item-header">組件</div>
+      <div class="change-label">目前組件</div>
+      <div class="comp-preview" id="comp_orig_preview"></div>
+      <input type="hidden" id="orig_組件_hidden" value="${origVal.replace(/"/g,'&quot;')}">
+      <div class="change-label" style="margin-top:10px;">新值</div>
+      <textarea class="change-input" id="new_組件" rows="4" placeholder="輸入新組件文字..."></textarea>
+    </div>`;
 }
 
 // ── 品項資料庫（同報刀_v2.html） ─────────────
@@ -784,6 +915,31 @@ async function submitRequest() {
   if (hasChange) {
     const 變更欄位 = [], 原始值 = [], 新值 = [];
     for (const field of selectedFields) {
+      if (field === '品號') {
+        const origPN   = document.getElementById('orig_品號')?.value.trim() || '';
+        const origSpec = document.getElementById('orig_規格_linked')?.value.trim() || '';
+        const newPN    = document.getElementById('new_品號')?.value.trim() || '';
+        const newSpec  = document.getElementById('new_規格_linked')?.value.trim() || '';
+        if (!newPN) {
+          showToast('❌ 請填寫新品號');
+          btn.disabled = false; btn.textContent = '📤 送出申請';
+          return;
+        }
+        變更欄位.push('品號'); 原始值.push(origPN); 新值.push(newPN);
+        變更欄位.push('規格'); 原始值.push(origSpec); 新值.push(newSpec);
+        continue;
+      }
+      if (field === '組件') {
+        const orig   = document.getElementById('orig_組件_hidden')?.value.trim() || '';
+        const newVal = document.getElementById('new_組件')?.value.trim() || '';
+        if (!newVal) {
+          showToast('❌ 請填寫新組件內容');
+          btn.disabled = false; btn.textContent = '📤 送出申請';
+          return;
+        }
+        變更欄位.push('組件'); 原始值.push(orig); 新值.push(newVal);
+        continue;
+      }
       const orig   = document.getElementById(`orig_${field}`)?.value.trim() || '';
       const newVal = document.getElementById(`new_${field}`)?.value.trim() || '';
       if (!newVal) {
