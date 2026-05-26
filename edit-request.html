@@ -67,6 +67,26 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', s
 .type-btn { flex: 1; padding: 8px; border: none; background: none; font-size: 13px; font-weight: 500; cursor: pointer; border-radius: 7px; font-family: 'Noto Sans TC', sans-serif; color: var(--muted); transition: all 0.2s; }
 .type-btn.active { background: var(--accent); color: white; font-weight: 600; }
 
+/* 品項選擇（新增部位） */
+.add-buwei-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 4px; }
+.add-buwei-btn { padding: 10px 6px; border-radius: 9px; border: 2px solid var(--border); background: var(--bg); font-size: 13px; font-weight: 500; cursor: pointer; text-align: center; color: var(--text); font-family: 'Noto Sans TC', sans-serif; transition: all 0.15s; }
+.add-buwei-btn:hover { border-color: var(--accent); }
+.add-buwei-btn.selected { border-color: var(--red); background: var(--red); color: white; }
+.add-sel-btn { padding: 9px 12px; border-radius: 8px; border: 2px solid var(--border); background: var(--bg); font-size: 12px; font-weight: 600; cursor: pointer; color: var(--text); font-family: 'JetBrains Mono', monospace; white-space: nowrap; transition: all 0.15s; }
+.add-sel-btn:hover { border-color: var(--blue); }
+.add-sel-btn.selected { border-color: var(--blue); background: var(--blue); color: white; }
+.add-sel-btn.rl-r { border-color: #e07000; color: #e07000; }
+.add-sel-btn.rl-r.selected { background: #e07000; color: white; border-color: #e07000; }
+.add-sel-btn.rl-l { border-color: var(--green); color: var(--green); }
+.add-sel-btn.rl-l.selected { background: var(--green); color: white; border-color: var(--green); }
+.add-level-label { font-size: 11px; font-weight: 700; color: var(--blue); letter-spacing: 1.5px; margin-bottom: 8px; font-family: 'JetBrains Mono', monospace; display: flex; align-items: center; gap: 6px; }
+.add-level-label .lnum { background: var(--blue); color: white; width: 17px; height: 17px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; flex-shrink: 0; }
+.add-level-select { width: 100%; padding: 10px 12px; border: 2px solid var(--border); border-radius: 9px; font-size: 13px; font-family: 'JetBrains Mono', monospace; background: var(--bg); color: var(--text); outline: none; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; font-weight: 600; }
+.add-level-select:focus { border-color: var(--blue); }
+.add-result-row { background: var(--bg); border-radius: 9px; padding: 10px 12px; border: 1.5px solid var(--border); font-size: 13px; margin-bottom: 10px; }
+.add-result-row span { font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--accent); }
+.add-section-label { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-family: 'JetBrains Mono', monospace; margin-bottom: 6px; }
+
 /* 送出按鈕 */
 .submit-btn { width: 100%; padding: 14px; background: var(--accent); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; font-family: 'Noto Sans TC', sans-serif; margin-top: 4px; transition: all 0.2s; }
 .submit-btn:hover { background: #2d2d4e; transform: translateY(-1px); }
@@ -165,18 +185,22 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', s
 
     <div class="card" id="addCard" style="display:none;">
       <div class="card-title">新增部位資料</div>
-      <div class="field">
-        <label>部位 <span style="color:var(--red)">*</span></label>
-        <input type="text" id="addBuwei" placeholder="如 上肢、下肢、鎖骨">
+
+      <!-- 1. 部位 -->
+      <div style="margin-bottom:14px;">
+        <div class="add-section-label">部位 *</div>
+        <div class="add-buwei-grid" id="addBuweiGrid"></div>
       </div>
-      <div class="field">
-        <label>規格</label>
-        <input type="text" id="addSpec" placeholder="選填">
+
+      <!-- 2. 版型/規格層級 -->
+      <div id="addLevelSection" style="display:none; margin-bottom:14px;">
+        <div id="addLevelContent"></div>
       </div>
-      <div class="field">
-        <label>品號</label>
-        <input type="text" id="addPinhao" placeholder="選填">
-      </div>
+
+      <!-- 3. 已選結果 -->
+      <div id="addResultRow" class="add-result-row" style="display:none;"></div>
+
+      <!-- 4. 其他欄位 -->
       <div class="field">
         <label>數量 <span style="color:var(--red)">*</span></label>
         <input type="number" id="addQty" value="1" min="1">
@@ -263,6 +287,7 @@ function switchType(type) {
   document.getElementById('changeCard').style.display = type === '變更' ? 'block' : 'none';
   document.getElementById('changeItems').style.display = type === '變更' ? 'block' : 'none';
   document.getElementById('addCard').style.display = type === '新增' ? 'block' : 'none';
+  if (type === '新增') addInitBuwei();
 }
 
 const urlParams = new URLSearchParams(window.location.search);
@@ -343,6 +368,377 @@ function renderChangeItems() {
   });
 }
 
+// ── 品項資料庫（同報刀_v2.html） ─────────────
+const ADD_DB = [
+  {部位:'鎖骨',v1:'Hook',v2:'R',v3:'4H 15mm',品號:'T2-441-074'},
+  {部位:'鎖骨',v1:'Hook',v2:'L',v3:'4H 15mm',品號:'T2-441-075'},
+  {部位:'鎖骨',v1:'Hook',v2:'R',v3:'4H 18mm',品號:'T2-441-076'},
+  {部位:'鎖骨',v1:'Hook',v2:'L',v3:'4H 18mm',品號:'T2-441-077'},
+  {部位:'鎖骨',v1:'Hook',v2:'R',v3:'6H 15mm',品號:'T2-441-094'},
+  {部位:'鎖骨',v1:'Hook',v2:'L',v3:'6H 15mm',品號:'T2-441-095'},
+  {部位:'鎖骨',v1:'Hook',v2:'R',v3:'6H 18mm',品號:'T2-441-096'},
+  {部位:'鎖骨',v1:'Hook',v2:'L',v3:'6H 18mm',品號:'T2-441-097'},
+  {部位:'鎖骨',v1:'Superior Clavicle',v2:'R',v3:'6H',品號:'T2-04-112-080'},
+  {部位:'鎖骨',v1:'Superior Clavicle',v2:'L',v3:'6H',品號:'T2-04-112-081'},
+  {部位:'鎖骨',v1:'Superior Clavicle',v2:'R',v3:'7H',品號:'T2-04-112-082'},
+  {部位:'鎖骨',v1:'Superior Clavicle',v2:'L',v3:'7H',品號:'T2-04-112-083'},
+  {部位:'鎖骨',v1:'Superior Clavicle',v2:'R',v3:'8H',品號:'T2-04-112-084'},
+  {部位:'鎖骨',v1:'Superior Clavicle',v2:'L',v3:'8H',品號:'T2-04-112-085'},
+  {部位:'鎖骨',v1:'Distal Clavicle',v2:'R',v3:'4H',品號:'T2-04-112-010'},
+  {部位:'鎖骨',v1:'Distal Clavicle',v2:'L',v3:'4H',品號:'T2-04-112-011'},
+  {部位:'鎖骨',v1:'Distal Clavicle',v2:'R',v3:'5H',品號:'T2-04-112-012'},
+  {部位:'鎖骨',v1:'Distal Clavicle',v2:'L',v3:'5H',品號:'T2-04-112-013'},
+  {部位:'鎖骨',v1:'Distal Clavicle',v2:'R',v3:'6H',品號:'T2-04-112-008'},
+  {部位:'鎖骨',v1:'Distal Clavicle',v2:'L',v3:'6H',品號:'T2-04-112-009'},
+  {部位:'鎖骨',v1:'Distal Clavicle',v2:'R',v3:'7H',品號:'T2-04-112-018'},
+  {部位:'鎖骨',v1:'Distal Clavicle',v2:'L',v3:'7H',品號:'T2-04-112-019'},
+  {部位:'上肢',v1:'LPHP',v2:'',v3:'3H',品號:'T2-441-901'},
+  {部位:'上肢',v1:'LPHP',v2:'',v3:'5H',品號:'T2-441-902'},
+  {部位:'上肢',v1:'LPHP',v2:'',v3:'8H',品號:'T2-441-904'},
+  {部位:'上肢',v1:'Olecranon',v2:'R',v3:'2H',品號:'T2-436-502'},
+  {部位:'上肢',v1:'Olecranon',v2:'L',v3:'2H',品號:'T2-436-503'},
+  {部位:'上肢',v1:'Olecranon',v2:'R',v3:'3H',品號:'T2-436-504'},
+  {部位:'上肢',v1:'Olecranon',v2:'L',v3:'3H',品號:'T2-436-505'},
+  {部位:'上肢',v1:'Olecranon',v2:'R',v3:'4H',品號:'T2-436-506'},
+  {部位:'上肢',v1:'Olecranon',v2:'L',v3:'4H',品號:'T2-436-507'},
+  {部位:'上肢',v1:'LDHP外',v2:'R',v3:'5H',品號:'T2-441-274'},
+  {部位:'上肢',v1:'LDHP外',v2:'L',v3:'5H',品號:'T2-441-275'},
+  {部位:'上肢',v1:'LDHP外',v2:'R',v3:'7H',品號:'T2-441-276'},
+  {部位:'上肢',v1:'LDHP外',v2:'L',v3:'7H',品號:'T2-441-277'},
+  {部位:'上肢',v1:'LDHP外',v2:'R',v3:'9H',品號:'T2-441-278'},
+  {部位:'上肢',v1:'LDHP外',v2:'L',v3:'9H',品號:'T2-441-279'},
+  {部位:'上肢',v1:'LDHP內',v2:'R',v3:'3H',品號:'T2-441-282'},
+  {部位:'上肢',v1:'LDHP內',v2:'L',v3:'3H',品號:'T2-441-283'},
+  {部位:'上肢',v1:'LDHP內',v2:'R',v3:'5H',品號:'T2-441-284'},
+  {部位:'上肢',v1:'LDHP內',v2:'L',v3:'5H',品號:'T2-441-285'},
+  {部位:'上肢',v1:'LDHP內',v2:'R',v3:'7H',品號:'T2-441-286'},
+  {部位:'上肢',v1:'LDHP內',v2:'L',v3:'7H',品號:'T2-441-287'},
+  {部位:'長骨',v1:'3.5',v2:'Recon',v3:'5H',品號:'T2-445-052'},
+  {部位:'長骨',v1:'3.5',v2:'Recon',v3:'6H',品號:'T2-445-062'},
+  {部位:'長骨',v1:'3.5',v2:'Recon',v3:'7H',品號:'T2-445-072'},
+  {部位:'長骨',v1:'3.5',v2:'Recon',v3:'8H',品號:'T2-445-082'},
+  {部位:'長骨',v1:'3.5',v2:'Recon',v3:'10H',品號:'T2-445-102'},
+  {部位:'長骨',v1:'3.5',v2:'Recon',v3:'12H',品號:'T2-445-122'},
+  {部位:'長骨',v1:'3.5',v2:'Recon',v3:'16H',品號:'T2-445-162'},
+  {部位:'長骨',v1:'3.5',v2:'Recon',v3:'18H',品號:'T2-445-182'},
+  {部位:'長骨',v1:'3.5',v2:'Recon',v3:'20H',品號:'T2-445-202'},
+  {部位:'長骨',v1:'3.5',v2:'1/3 Tubular',v3:'6H',品號:'T2-441-361'},
+  {部位:'長骨',v1:'3.5',v2:'1/3 Tubular',v3:'8H',品號:'T2-441-381'},
+  {部位:'長骨',v1:'3.5',v2:'1/3 Tubular',v3:'10H',品號:'T2-441-401'},
+  {部位:'長骨',v1:'3.5',v2:'直板',v3:'5H',品號:'T2-423-551'},
+  {部位:'長骨',v1:'3.5',v2:'直板',v3:'6H',品號:'T2-423-561'},
+  {部位:'長骨',v1:'3.5',v2:'直板',v3:'7H',品號:'T2-423-571'},
+  {部位:'長骨',v1:'3.5',v2:'直板',v3:'8H',品號:'T2-423-581'},
+  {部位:'長骨',v1:'3.5',v2:'直板',v3:'10H',品號:'T2-423-601'},
+  {部位:'長骨',v1:'3.5',v2:'直板',v3:'12H',品號:'T2-423-621'},
+  {部位:'長骨',v1:'5.0',v2:'Broad',v3:'6H',品號:'T2-426-561'},
+  {部位:'長骨',v1:'5.0',v2:'Broad',v3:'8H',品號:'T2-426-581'},
+  {部位:'長骨',v1:'5.0',v2:'Broad',v3:'10H',品號:'T2-426-601'},
+  {部位:'長骨',v1:'5.0',v2:'Broad',v3:'12H',品號:'T2-426-621'},
+  {部位:'長骨',v1:'5.0',v2:'Narrow',v3:'6H',品號:'T2-424-561'},
+  {部位:'長骨',v1:'5.0',v2:'Narrow',v3:'8H',品號:'T2-424-581'},
+  {部位:'長骨',v1:'5.0',v2:'Narrow',v3:'10H',品號:'T2-424-601'},
+  {部位:'長骨',v1:'5.0',v2:'Narrow',v3:'12H',品號:'T2-424-621'},
+  {部位:'小骨',v1:'1.5',v2:'直版',v3:'5H',品號:'T2-04-114-002'},
+  {部位:'小骨',v1:'1.5',v2:'直版',v3:'6H',品號:'T2-04-114-003'},
+  {部位:'小骨',v1:'1.5',v2:'直版',v3:'7H',品號:'T2-04-114-004'},
+  {部位:'小骨',v1:'1.5',v2:'直版',v3:'8H',品號:'T2-04-114-005'},
+  {部位:'小骨',v1:'1.5',v2:'直版',v3:'10H',品號:'T2-04-114-007'},
+  {部位:'小骨',v1:'1.5',v2:'直版',v3:'12H',品號:'T2-04-114-008'},
+  {部位:'小骨',v1:'1.5',v2:'Y型',v3:'',品號:'T2-04-114-014'},
+  {部位:'小骨',v1:'1.5',v2:'T型',v3:'',品號:'T2-04-114-009'},
+  {部位:'小骨',v1:'1.5',v2:'Z型',v3:'',品號:'T2-04-114-010'},
+  {部位:'小骨',v1:'2.0',v2:'直版',v3:'4H',品號:'T2-447-344'},
+  {部位:'小骨',v1:'2.0',v2:'直版',v3:'5H',品號:'T2-447-345'},
+  {部位:'小骨',v1:'2.0',v2:'直版',v3:'6H',品號:'T2-447-346'},
+  {部位:'小骨',v1:'2.0',v2:'直版',v3:'7H',品號:'T2-447-347'},
+  {部位:'小骨',v1:'2.0',v2:'直版',v3:'8H',品號:'T2-447-348'},
+  {部位:'小骨',v1:'2.0',v2:'Y型',v3:'',品號:'T2-447-349'},
+  {部位:'小骨',v1:'2.0',v2:'T型',v3:'',品號:'T2-447-615'},
+  {部位:'小骨',v1:'Volar',v2:'R',v3:'2H',品號:'T2-04-111-620'},
+  {部位:'小骨',v1:'Volar',v2:'L',v3:'2H',品號:'T2-04-111-621'},
+  {部位:'小骨',v1:'Volar',v2:'R',v3:'3H',品號:'T2-04-111-630'},
+  {部位:'小骨',v1:'Volar',v2:'L',v3:'3H',品號:'T2-04-111-631'},
+  {部位:'小骨',v1:'Volar',v2:'R',v3:'6H',品號:'T2-04-111-660'},
+  {部位:'小骨',v1:'Volar',v2:'L',v3:'6H',品號:'T2-04-111-661'},
+  {部位:'小骨',v1:'Volar',v2:'R',v3:'8H',品號:'T2-04-111-680'},
+  {部位:'小骨',v1:'Volar',v2:'L',v3:'8H',品號:'T2-04-111-681'},
+  {部位:'小骨',v1:'Juxta',v2:'R',v3:'2H',品號:'T2-442-491'},
+  {部位:'小骨',v1:'Juxta',v2:'L',v3:'2H',品號:'T2-442-492'},
+  {部位:'小骨',v1:'Juxta',v2:'R',v3:'3H',品號:'T2-442-493'},
+  {部位:'小骨',v1:'Juxta',v2:'L',v3:'3H',品號:'T2-442-494'},
+  {部位:'小骨',v1:'Fibula',v2:'R',v3:'4H',品號:'T2-04-112-138'},
+  {部位:'小骨',v1:'Fibula',v2:'L',v3:'4H',品號:'T2-04-112-139'},
+  {部位:'小骨',v1:'Fibula',v2:'R',v3:'6H',品號:'T2-04-112-142'},
+  {部位:'小骨',v1:'Fibula',v2:'L',v3:'6H',品號:'T2-04-112-143'},
+  {部位:'小骨',v1:'Fibula',v2:'R',v3:'8H',品號:'T2-04-112-146'},
+  {部位:'小骨',v1:'Fibula',v2:'L',v3:'8H',品號:'T2-04-112-147'},
+  {部位:'小骨',v1:'Radial Head',v2:'',v3:'2H',品號:'T2-441-690'},
+  {部位:'小骨',v1:'Radial Head',v2:'',v3:'3H',品號:'T2-441-691'},
+  {部位:'小骨',v1:'Radial Head',v2:'',v3:'4H',品號:'T2-441-692'},
+  {部位:'小骨',v1:'Radial Head',v2:'R',v3:'2H',品號:'T2-441-680'},
+  {部位:'小骨',v1:'Radial Head',v2:'L',v3:'2H',品號:'T2-441-681'},
+  {部位:'小骨',v1:'Radial Head',v2:'R',v3:'3H',品號:'T2-441-682'},
+  {部位:'小骨',v1:'Radial Head',v2:'L',v3:'3H',品號:'T2-441-683'},
+  {部位:'小骨',v1:'Radial Head',v2:'R',v3:'4H',品號:'T2-441-684'},
+  {部位:'小骨',v1:'Radial Head',v2:'L',v3:'4H',品號:'T2-441-685'},
+  {部位:'下肢',v1:'Distal Femur',v2:'R',v3:'5H',品號:'T2-422-250'},
+  {部位:'下肢',v1:'Distal Femur',v2:'L',v3:'5H',品號:'T2-422-251'},
+  {部位:'下肢',v1:'Distal Femur',v2:'R',v3:'7H',品號:'T2-422-252'},
+  {部位:'下肢',v1:'Distal Femur',v2:'L',v3:'7H',品號:'T2-422-253'},
+  {部位:'下肢',v1:'Distal Femur',v2:'R',v3:'9H',品號:'T2-422-254'},
+  {部位:'下肢',v1:'Distal Femur',v2:'L',v3:'9H',品號:'T2-422-255'},
+  {部位:'下肢',v1:'Distal Femur',v2:'R',v3:'11H',品號:'T2-422-256'},
+  {部位:'下肢',v1:'Distal Femur',v2:'L',v3:'11H',品號:'T2-422-257'},
+  {部位:'下肢',v1:'Distal Femur',v2:'R',v3:'13H',品號:'T2-422-258'},
+  {部位:'下肢',v1:'Distal Femur',v2:'L',v3:'13H',品號:'T2-422-259'},
+  {部位:'下肢',v1:'DHS',v2:'',v3:'2H',品號:'T2-04-422-222'},
+  {部位:'下肢',v1:'DHS',v2:'',v3:'3H',品號:'T2-04-422-223'},
+  {部位:'下肢',v1:'DHS',v2:'',v3:'4H',品號:'T2-04-422-224'},
+  {部位:'下肢',v1:'DHS',v2:'',v3:'6H',品號:'T2-04-422-226'},
+  {部位:'下肢',v1:'LPTP 外',v2:'R',v3:'4H',品號:'T2-440-036'},
+  {部位:'下肢',v1:'LPTP 外',v2:'L',v3:'4H',品號:'T2-440-037'},
+  {部位:'下肢',v1:'LPTP 外',v2:'R',v3:'6H',品號:'T2-440-038'},
+  {部位:'下肢',v1:'LPTP 外',v2:'L',v3:'6H',品號:'T2-440-039'},
+  {部位:'下肢',v1:'LPTP 外',v2:'R',v3:'8H',品號:'T2-440-040'},
+  {部位:'下肢',v1:'LPTP 外',v2:'L',v3:'8H',品號:'T2-440-041'},
+  {部位:'下肢',v1:'LPTP 外',v2:'R',v3:'10H',品號:'T2-440-042'},
+  {部位:'下肢',v1:'LPTP 外',v2:'L',v3:'10H',品號:'T2-440-043'},
+  {部位:'下肢',v1:'LPTP 外',v2:'R',v3:'12H',品號:'T2-440-044'},
+  {部位:'下肢',v1:'LPTP 外',v2:'L',v3:'12H',品號:'T2-440-045'},
+  {部位:'下肢',v1:'LPTP 內',v2:'R',v3:'4H',品號:'T2-439-984'},
+  {部位:'下肢',v1:'LPTP 內',v2:'L',v3:'4H',品號:'T2-439-985'},
+  {部位:'下肢',v1:'LPTP 內',v2:'R',v3:'6H',品號:'T2-439-986'},
+  {部位:'下肢',v1:'LPTP 內',v2:'L',v3:'6H',品號:'T2-439-987'},
+  {部位:'下肢',v1:'LPTP 內',v2:'R',v3:'8H',品號:'T2-439-988'},
+  {部位:'下肢',v1:'LPTP 內',v2:'L',v3:'8H',品號:'T2-439-989'},
+  {部位:'下肢',v1:'LPTP 內',v2:'R',v3:'10H',品號:'T2-439-990'},
+  {部位:'下肢',v1:'LPTP 內',v2:'L',v3:'10H',品號:'T2-439-991'},
+  {部位:'下肢',v1:'LPTP 內',v2:'R',v3:'12H',品號:'T2-439-992'},
+  {部位:'下肢',v1:'LPTP 內',v2:'L',v3:'12H',品號:'T2-439-993'},
+  {部位:'下肢',v1:'Distal Tibia內',v2:'R',v3:'7H',品號:'T2-04-112-514'},
+  {部位:'下肢',v1:'Distal Tibia內',v2:'L',v3:'7H',品號:'T2-04-112-515'},
+  {部位:'下肢',v1:'Distal Tibia內',v2:'R',v3:'9H',品號:'T2-04-112-518'},
+  {部位:'下肢',v1:'Distal Tibia內',v2:'L',v3:'9H',品號:'T2-04-112-519'},
+  {部位:'下肢',v1:'Distal Tibia內',v2:'R',v3:'11H',品號:'T2-04-112-522'},
+  {部位:'下肢',v1:'Distal Tibia內',v2:'L',v3:'11H',品號:'T2-04-112-523'},
+  {部位:'下肢',v1:'Distal Tibia內',v2:'R',v3:'13H',品號:'T2-04-112-526'},
+  {部位:'下肢',v1:'Distal Tibia內',v2:'L',v3:'13H',品號:'T2-04-112-527'},
+  {部位:'下肢',v1:'Distal Tibia內',v2:'R',v3:'15H',品號:'T2-04-112-530'},
+  {部位:'下肢',v1:'Distal Tibia內',v2:'L',v3:'15H',品號:'T2-04-112-531'},
+  {部位:'下肢',v1:'Distal Tibia 前外',v2:'R',v3:'7H',品號:'T2-441-442'},
+  {部位:'下肢',v1:'Distal Tibia 前外',v2:'L',v3:'7H',品號:'T2-441-443'},
+  {部位:'下肢',v1:'Distal Tibia 前外',v2:'R',v3:'9H',品號:'T2-441-444'},
+  {部位:'下肢',v1:'Distal Tibia 前外',v2:'L',v3:'9H',品號:'T2-441-445'},
+  {部位:'下肢',v1:'Distal Tibia 前外',v2:'R',v3:'11H',品號:'T2-441-446'},
+  {部位:'下肢',v1:'Distal Tibia 前外',v2:'L',v3:'11H',品號:'T2-441-447'},
+  {部位:'下肢',v1:'Calcaneus',v2:'R',v3:'14H',品號:'T2-441-610'},
+  {部位:'下肢',v1:'Calcaneus',v2:'L',v3:'14H',品號:'T2-441-611'},
+  {部位:'人工骨',v1:'0.6cc',v2:'',v3:'',品號:'LCMBPCC06200'},
+  {部位:'人工骨',v1:'1.0cc',v2:'',v3:'',品號:'LCMBPCC10200'},
+  {部位:'人工骨',v1:'2.5cc',v2:'',v3:'',品號:'LCMBPCC25200'},
+];
+const ADD_SCREW_DB = {'2.0':[7,8,9,10,11,12,14,16,18,20],'2.8':[8,9,10,11,12,14,16,18,20,22,24,26,28,30],'3.6':[16,18,20,22,24,26,28,30,32,34,38,42,46,50],'4.7':[30,32,34,36,38,40,42,44,46,48,50,55,60,65,70],'5.5':[35,40,45,50,55,60,65,70,75,80],'7.5':[65,70,75,80,85,90,95,100,105,110]};
+const ADD_SCREW_PN = {'2.0':{7:'T0415-007',8:'T0415-008',9:'T0415-009',10:'T0415-010',11:'T0415-011',12:'T0415-012',14:'T0415-014',16:'T0415-016',18:'T0415-018',20:'T0415-020'},'2.8':{8:'T04280-008',9:'T04280-009',10:'T04280-010',11:'T04280-011',12:'T04280-012',14:'T04280-014',16:'T04280-016',18:'T04280-018',20:'T04280-020',22:'T04280-022',24:'T04280-024',26:'T04280-026',28:'T04280-028',30:'T04280-030'},'3.6':{16:'T04360-016',18:'T04360-018',20:'T04360-020',22:'T04360-022',24:'T04360-024',26:'T04360-026',28:'T04360-028',30:'T04360-030',32:'T04360-032',34:'T04360-034',38:'T04360-038',42:'T04360-042',46:'T04360-046',50:'T04360-050'},'4.7':{30:'T04470-030',32:'T04470-032',34:'T04470-034',36:'T04470-036',38:'T04470-038',40:'T04470-040',42:'T04470-042',44:'T04470-044',46:'T04470-046',48:'T04470-048',50:'T04470-050',55:'T04470-055',60:'T04470-060',65:'T04470-065',70:'T04470-070'},'5.5':{35:'T04550-035',40:'T04550-040',45:'T04550-045',50:'T04550-050',55:'T04550-055',60:'T04550-060',65:'T04550-065',70:'T04550-070',75:'T04550-075',80:'T04550-080'},'7.5':{65:'T04750-065',70:'T04750-070',75:'T04750-075',80:'T04750-080',85:'T04750-085',90:'T04750-090',95:'T04750-095',100:'T04750-100',105:'T04750-105',110:'T04750-110'}};
+const ADD_BUWEI_LIST = ['鎖骨','上肢','長骨','小骨','下肢','埋頭釘','骨釘','人工骨','VA'];
+const ADD_NO_RL = {'上肢':['LPHP'],'下肢':['DHS']};
+const ADD_NO_V3 = ['Y型','T型','Z型'];
+
+let addSel = {buwei:'',v1:'',v2:'',v3:'',品號:''};
+
+function addInitBuwei() {
+  const grid = document.getElementById('addBuweiGrid');
+  if (!grid) return;
+  grid.innerHTML = ADD_BUWEI_LIST.map(b =>
+    `<button class="add-buwei-btn ${b===addSel.buwei?'selected':''}" onclick="addSelectBuwei('${b}')">${b}</button>`
+  ).join('');
+}
+
+function addSelectBuwei(b) {
+  addSel = {buwei:b,v1:'',v2:'',v3:'',品號:''};
+  addInitBuwei();
+  document.getElementById('addLevelSection').style.display = 'block';
+  addRenderLevels();
+  addUpdateResult();
+}
+
+function addLevelBlock(num, label, content, gridCols) {
+  const style = gridCols
+    ? `display:grid;grid-template-columns:repeat(${gridCols},1fr);gap:8px;`
+    : `display:flex;flex-wrap:wrap;gap:8px;`;
+  return `<div style="margin-bottom:12px;">
+    <div class="add-level-label"><span class="lnum">${num}</span>${label}</div>
+    <div style="${style}">${content}</div>
+  </div>`;
+}
+
+function addRenderLevels() {
+  const b = addSel.buwei;
+  const lc = document.getElementById('addLevelContent');
+  if (!lc) return;
+
+  if (b === '埋頭釘') { addRenderScrewLevels(lc); addUpdateResult(); return; }
+  if (b === '人工骨') { addRenderSimpleLevels(lc); addUpdateResult(); return; }
+  if (b === '骨釘' || b === 'VA') {
+    lc.innerHTML = `<div style="color:var(--muted);font-size:13px;">此部位品項待建立</div>`;
+    addUpdateResult(); return;
+  }
+
+  const makeBtnV1 = v => `<button class="add-sel-btn ${v===addSel.v1?'selected':''}" onclick="addSetV1('${v}')">${v}</button>`;
+  let html = '';
+
+  if (b === '鎖骨') {
+    html = addLevelBlock(1,'版型',['Hook','Superior Clavicle','Distal Clavicle'].map(makeBtnV1).join(''),3);
+  } else if (b === '上肢') {
+    html = addLevelBlock(1,'版型',['LPHP','Olecranon','LDHP外','LDHP內'].map(makeBtnV1).join(''),2);
+  } else if (b === '長骨') {
+    html = addLevelBlock(1,'版型',['3.5','5.0'].map(makeBtnV1).join(''),2);
+  } else if (b === '小骨') {
+    const s1 = `<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:8px;">${['1.5','2.0'].map(makeBtnV1).join('')}</div>`;
+    const s2 = `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px;">${['Volar','Juxta','Radial Head'].map(makeBtnV1).join('')}</div>`;
+    const s3 = `<div style="display:grid;grid-template-columns:repeat(1,1fr);gap:8px;">${['Fibula'].map(makeBtnV1).join('')}</div>`;
+    html = `<div style="margin-bottom:12px;"><div class="add-level-label"><span class="lnum">1</span>版型</div>${s1}${s2}${s3}</div>`;
+  } else if (b === '下肢') {
+    const d1 = `<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:8px;">${['Distal Femur','DHS'].map(makeBtnV1).join('')}</div>`;
+    const d2 = `<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:8px;">${['LPTP 外','LPTP 內'].map(makeBtnV1).join('')}</div>`;
+    const d3 = `<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:8px;">${['Distal Tibia內','Distal Tibia 前外'].map(makeBtnV1).join('')}</div>`;
+    const d4 = `<div style="display:grid;grid-template-columns:repeat(1,1fr);gap:8px;">${['Calcaneus'].map(makeBtnV1).join('')}</div>`;
+    html = `<div style="margin-bottom:12px;"><div class="add-level-label"><span class="lnum">1</span>版型</div>${d1}${d2}${d3}${d4}</div>`;
+  } else {
+    const v1opts = [...new Set(ADD_DB.filter(r=>r.部位===b).map(r=>r.v1))];
+    html = addLevelBlock(1,'版型',v1opts.map(makeBtnV1).join(''));
+  }
+
+  if (addSel.v1) {
+    const noRL = (ADD_NO_RL[b]||[]).includes(addSel.v1);
+    if (!noRL) {
+      const v2opts = [...new Set(ADD_DB.filter(r=>r.部位===b&&r.v1===addSel.v1&&r.v2).map(r=>r.v2))];
+      if (v2opts.length) {
+        const isRL = v2opts.every(v => v==='R'||v==='L');
+        if (isRL) {
+          const sorted = [...v2opts].sort((a,_b)=>a==='L'?-1:1);
+          html += addLevelBlock(2,'左／右側',sorted.map(v=>
+            `<button class="add-sel-btn rl-${v[0].toLowerCase()} ${v===addSel.v2?'selected':''}" onclick="addSetV2('${v}')">${v}</button>`
+          ).join(''),2);
+        } else {
+          const cols = v2opts.length <= 2 ? v2opts.length : 2;
+          html += addLevelBlock(2,'板型',v2opts.map(v=>
+            `<button class="add-sel-btn ${v===addSel.v2?'selected':''}" onclick="addSetV2('${v}')">${v}</button>`
+          ).join(''),cols);
+        }
+      }
+    } else if (b==='小骨'&&addSel.v1==='Radial Head') {
+      const v2opts = [...new Set(ADD_DB.filter(r=>r.部位===b&&r.v1===addSel.v1&&r.v2).map(r=>r.v2))].sort((a,_b)=>a==='L'?-1:1);
+      html += addLevelBlock(2,'左／右側（Head）或無（Neck）',
+        `<button class="add-sel-btn ${''===addSel.v2?'selected':''}" onclick="addSetV2('')">Neck（無側）</button>` +
+        v2opts.map(v=>`<button class="add-sel-btn rl-${v[0].toLowerCase()} ${v===addSel.v2?'selected':''}" onclick="addSetV2('${v}')">${v}</button>`).join(''),2);
+    }
+
+    // V3
+    if (!ADD_NO_V3.some(x=>addSel.v2===x||addSel.v1===x)) {
+      const v3cands = ADD_DB.filter(r=>{
+        if(r.部位!==b||r.v1!==addSel.v1) return false;
+        if((ADD_NO_RL[b]||[]).includes(addSel.v1)) return true;
+        return r.v2===addSel.v2;
+      });
+      const v3opts = [...new Set(v3cands.map(r=>r.v3).filter(Boolean))];
+      if (v3opts.length && (addSel.v2 || (ADD_NO_RL[b]||[]).includes(addSel.v1))) {
+        if (v3opts.length > 8) {
+          html += addLevelBlock(3,'洞數 / 長度',
+            `<select class="add-level-select" onchange="addSetV3(this.value)">
+              <option value="">— 選擇 —</option>
+              ${v3opts.map(v=>`<option value="${v}" ${v===addSel.v3?'selected':''}>${v}</option>`).join('')}
+            </select>`);
+        } else {
+          const cols = v3opts.length <= 4 ? v3opts.length : Math.ceil(v3opts.length/2);
+          html += addLevelBlock(3,'洞數 / 長度',v3opts.map(v=>
+            `<button class="add-sel-btn ${v===addSel.v3?'selected':''}" onclick="addSetV3('${v}')">${v}</button>`
+          ).join(''),cols);
+        }
+      }
+    }
+  }
+
+  lc.innerHTML = html;
+  addUpdateResult();
+}
+
+function addRenderScrewLevels(lc) {
+  const dias = Object.keys(ADD_SCREW_DB);
+  let html = addLevelBlock(1,'直徑 (mm)',dias.map(d=>
+    `<button class="add-sel-btn ${d===addSel.v1?'selected':''}" onclick="addSetScrewDia('${d}')">${d}</button>`
+  ).join(''));
+  if (addSel.v1) {
+    const lens = ADD_SCREW_DB[addSel.v1];
+    html += addLevelBlock(2,'長度 (mm)',
+      `<select class="add-level-select" onchange="addSetScrewLen(this.value)">
+        <option value="">— 選擇長度 —</option>
+        ${lens.map(l=>`<option value="${l}" ${String(l)===addSel.v3?'selected':''}>${l} mm</option>`).join('')}
+      </select>`);
+  }
+  lc.innerHTML = html;
+  addUpdateResult();
+}
+
+function addRenderSimpleLevels(lc) {
+  const opts = ADD_DB.filter(r=>r.部位==='人工骨').map(r=>r.v1);
+  lc.innerHTML = addLevelBlock(1,'容量',opts.map(v=>
+    `<button class="add-sel-btn ${v===addSel.v1?'selected':''}" onclick="addSetSimple('${v}')">${v}</button>`
+  ).join(''));
+  addUpdateResult();
+}
+
+function addSetV1(v) { addSel.v1=v; addSel.v2=''; addSel.v3=''; addSel.品號=''; addRenderLevels(); }
+function addSetV2(v) { addSel.v2=v; addSel.v3=''; addSel.品號=''; addRenderLevels(); }
+function addSetV3(v) {
+  addSel.v3=v;
+  const r = ADD_DB.find(x=>x.部位===addSel.buwei&&x.v1===addSel.v1&&x.v2===addSel.v2&&x.v3===v);
+  addSel.品號 = r?.品號||'';
+  addRenderLevels();
+}
+function addSetScrewDia(d) { addSel.v1=d; addSel.v3=''; addSel.品號=''; addRenderLevels(); }
+function addSetScrewLen(l) {
+  addSel.v3=l;
+  addSel.品號 = l ? (ADD_SCREW_PN[addSel.v1]?.[Number(l)]||'') : '';
+  addRenderLevels();
+}
+function addSetSimple(v) {
+  addSel.v1=v;
+  const r = ADD_DB.find(x=>x.部位==='人工骨'&&x.v1===v);
+  addSel.品號 = r?.品號||'';
+  addRenderLevels();
+}
+
+function addGetSpec() {
+  const parts = [addSel.v1, addSel.v2, addSel.v3].filter(Boolean);
+  return parts.join(' ');
+}
+
+function addUpdateResult() {
+  const row = document.getElementById('addResultRow');
+  if (!row) return;
+  const spec = addGetSpec();
+  const pn = addSel.品號;
+  if (!addSel.buwei || (!spec && !pn)) { row.style.display='none'; return; }
+  row.style.display='block';
+  row.innerHTML = `部位：<span>${addSel.buwei}</span>　規格：<span>${spec||'—'}</span>　品號：<span>${pn||'—'}</span>`;
+}
+
+function addResetForm() {
+  addSel = {buwei:'',v1:'',v2:'',v3:'',品號:''};
+  addInitBuwei();
+  document.getElementById('addLevelSection').style.display='none';
+  document.getElementById('addResultRow').style.display='none';
+  document.getElementById('addLevelContent').innerHTML='';
+  document.getElementById('addQty').value='1';
+  document.getElementById('addInnerCode').value='';
+  document.getElementById('addPayType').value='';
+}
+
+// 切換新增分頁時初始化部位格
+const _origSwitchType = switchType;
+// override handled below with init call
+
 // ── 送出申請 ─────────────────────────────────
 async function submitRequest() {
   const serial = document.getElementById('serialInput').value.trim();
@@ -353,20 +749,19 @@ async function submitRequest() {
   let payload;
 
   if (currentType === '新增') {
-    const buwei = document.getElementById('addBuwei').value.trim();
-    const spec   = document.getElementById('addSpec').value.trim();
-    const pinhao = document.getElementById('addPinhao').value.trim();
+    if (!addSel.buwei) { showToast('❌ 請選擇部位'); return; }
+    const spec   = addGetSpec();
+    const pinhao = addSel.品號;
     const qty    = document.getElementById('addQty').value.trim() || '1';
     const inner  = document.getElementById('addInnerCode').value.trim();
     const pay    = document.getElementById('addPayType').value.trim();
-    if (!buwei) { showToast('❌ 請填寫部位'); return; }
     payload = {
       流水號: serial,
       申請者: USER.displayName || USER.username,
       申請類型: '新增',
       變更欄位: ['部位','規格','品號','數量','院內碼','費用類型'].join('、'),
       原始值: '',
-      新值: [buwei, spec, pinhao, qty, inner, pay].join('|'),
+      新值: [addSel.buwei, spec, pinhao, qty, inner, pay].join('|'),
       申請原因: reason
     };
   } else {
@@ -400,9 +795,7 @@ async function submitRequest() {
       document.getElementById('serialInput').value = '';
       document.getElementById('reasonInput').value = '';
       if (currentType === '新增') {
-        ['addBuwei','addSpec','addPinhao','addInnerCode'].forEach(id => document.getElementById(id).value = '');
-        document.getElementById('addQty').value = '1';
-        document.getElementById('addPayType').value = '';
+        addResetForm();
       } else {
         selectedFields = [];
         document.querySelectorAll('.field-chip').forEach(c => c.classList.remove('selected'));
