@@ -1918,7 +1918,7 @@ function showPreview(){
             <div style="font-size:15px;font-weight:700;letter-spacing:2px;white-space:nowrap;">星 泓 股 份 有 限 公 司</div>
             <div style="font-size:11px;color:#333;word-break:break-all;line-height:1.5;">地址：114台北市內湖區瑞光路76巷65號2樓<br>電話：(02) 2796-2677　傳真：(02) 2796-2611</div>
           </div>
-          <div style="color:#e63946;font-size:16px;font-weight:700;font-family:monospace;white-space:nowrap;">${serial}</div>
+          <div id="previewSerialEl" style="color:#e63946;font-size:16px;font-weight:700;font-family:monospace;white-space:nowrap;">${serial}</div>
         </div>
         <div style="display:flex;align-items:center;justify-content:space-between;font-size:11px;border-top:1px solid #eee;padding-top:4px;flex-wrap:wrap;gap:4px;">
           <div style="display:flex;gap:12px;">
@@ -2059,6 +2059,9 @@ async function confirmSubmit(){
     }catch(e){console.error('報刀資料送出失敗',e);anyFailed=true;}
   }
   if(anyFailed){showToast('部分資料送出失敗，請檢查網路','error');btn.disabled=false;btn.textContent='✅ 確認送出';return;}
+  // 流水號填回預覽
+  const serialEl=document.getElementById('previewSerialEl');
+  if(serialEl&&serialNo) serialEl.textContent=serialNo;
   // 追蹤送出
   if(document.getElementById('trackCheck').checked && window._selectedTrackType){
     try{
