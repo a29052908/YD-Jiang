@@ -62,10 +62,16 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', s
 .change-input:focus { border-color: var(--blue); }
 .change-input.original { background: #fff0f1; border-color: #ffc0c4; color: var(--muted); }
 
-/* 申請類型切換 */
-.type-switcher { display: flex; background: var(--bg); border-radius: 10px; padding: 3px; border: 1.5px solid var(--border); margin-bottom: 14px; }
-.type-btn { flex: 1; padding: 8px; border: none; background: none; font-size: 13px; font-weight: 500; cursor: pointer; border-radius: 7px; font-family: 'Noto Sans TC', sans-serif; color: var(--muted); transition: all 0.2s; }
-.type-btn.active { background: var(--accent); color: white; font-weight: 600; }
+/* 目前品項快覽 */
+.context-block { background: var(--bg); border-radius: 9px; padding: 10px 12px; border: 1.5px solid var(--border); margin-top: 12px; }
+.context-label { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-family: 'JetBrains Mono', monospace; margin-bottom: 8px; }
+.context-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.context-tag { display: flex; align-items: baseline; gap: 4px; background: white; border: 1px solid var(--border); border-radius: 6px; padding: 4px 9px; font-size: 12px; }
+.context-tag-k { color: var(--muted); font-family: 'JetBrains Mono', monospace; font-size: 10px; }
+.context-tag-v { font-weight: 600; color: var(--accent); font-family: 'JetBrains Mono', monospace; }
+
+/* 區塊標頭 */
+.section-hd { font-size: 12px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; font-family: 'JetBrains Mono', monospace; padding: 10px 0 8px; border-top: 1.5px dashed var(--border); margin-top: 4px; }
 
 /* 品項選擇（新增部位） */
 .add-buwei-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 4px; }
@@ -149,25 +155,32 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', s
 
   <!-- 新增申請 -->
   <div id="applyTab">
-    <div class="type-switcher">
-      <button class="type-btn active" id="typeChangeBtn" onclick="switchType('變更')">✏️ 變更現有</button>
-      <button class="type-btn" id="typeAddBtn" onclick="switchType('新增')">➕ 新增部位</button>
-    </div>
 
+    <!-- 基本資訊 -->
     <div class="card">
       <div class="card-title">基本資訊</div>
       <div class="field">
         <label>流水號</label>
         <input type="text" id="serialInput" placeholder="如 IV26050801" style="font-family:'JetBrains Mono',monospace;">
       </div>
-      <div class="field">
+      <div class="field" style="margin-bottom:0;">
         <label>申請原因</label>
-        <textarea id="reasonInput" rows="3" placeholder="說明為什麼需要變更..."></textarea>
+        <textarea id="reasonInput" rows="2" placeholder="說明為什麼需要變更..."></textarea>
+      </div>
+      <!-- 目前品項快覽（有 editTarget 時顯示） -->
+      <div id="contextCard" style="display:none;">
+        <div class="context-block">
+          <div class="context-label">目前品項資料</div>
+          <div class="context-tags" id="contextTags"></div>
+        </div>
       </div>
     </div>
 
-    <div class="card" id="changeCard">
-      <div class="card-title">選擇要變更的欄位</div>
+    <!-- 統一申請內容 -->
+    <div class="card">
+
+      <!-- ── 變更現有欄位 ── -->
+      <div class="card-title">✏️ 變更現有欄位</div>
       <div class="field-chips" id="fieldChips">
         <div class="field-chip" data-field="日期" onclick="toggleField(this)">日期</div>
         <div class="field-chip" data-field="醫院" onclick="toggleField(this)">醫院</div>
@@ -175,20 +188,21 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', s
         <div class="field-chip" data-field="病人" onclick="toggleField(this)">病人</div>
         <div class="field-chip" data-field="病歷號" onclick="toggleField(this)">病歷號</div>
         <div class="field-chip" data-field="品號" onclick="toggleField(this)">品號</div>
+        <div class="field-chip" data-field="規格" onclick="toggleField(this)">規格</div>
         <div class="field-chip" data-field="數量" onclick="toggleField(this)">數量</div>
+        <div class="field-chip" data-field="院內碼" onclick="toggleField(this)">院內碼</div>
+        <div class="field-chip" data-field="費用類型" onclick="toggleField(this)">費用類型</div>
         <div class="field-chip" data-field="組件" onclick="toggleField(this)">組件</div>
-        <div class="field-chip" data-field="工具" onclick="toggleField(this)">工具</div>
         <div class="field-chip" data-field="備註" onclick="toggleField(this)">備註</div>
       </div>
-    </div>
-    <div id="changeItems"></div>
+      <div id="changeItems" style="margin-top:4px;"></div>
 
-    <div class="card" id="addCard" style="display:none;">
-      <div class="card-title">新增部位資料</div>
+      <!-- ── 新增部位 ── -->
+      <div class="section-hd" style="margin-top:16px;">➕ 新增部位</div>
 
       <!-- 1. 部位 -->
       <div style="margin-bottom:14px;">
-        <div class="add-section-label">部位 *</div>
+        <div class="add-section-label">部位</div>
         <div class="add-buwei-grid" id="addBuweiGrid"></div>
       </div>
 
@@ -200,27 +214,30 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', s
       <!-- 3. 已選結果 -->
       <div id="addResultRow" class="add-result-row" style="display:none;"></div>
 
-      <!-- 4. 其他欄位 -->
-      <div class="field">
-        <label>數量 <span style="color:var(--red)">*</span></label>
-        <input type="number" id="addQty" value="1" min="1">
+      <!-- 4. 其他欄位（只在選了部位後顯示） -->
+      <div id="addExtraFields" style="display:none;">
+        <div class="field">
+          <label>數量 <span style="color:var(--red)">*</span></label>
+          <input type="number" id="addQty" value="1" min="1">
+        </div>
+        <div class="field">
+          <label>院內碼</label>
+          <input type="text" id="addInnerCode" placeholder="選填">
+        </div>
+        <div class="field" style="margin-bottom:0;">
+          <label>費用類型</label>
+          <select id="addPayType">
+            <option value="">— 選填 —</option>
+            <option value="健保">健保</option>
+            <option value="自費">自費</option>
+            <option value="另洽">另洽</option>
+          </select>
+        </div>
       </div>
-      <div class="field">
-        <label>院內碼</label>
-        <input type="text" id="addInnerCode" placeholder="選填">
-      </div>
-      <div class="field">
-        <label>費用類型</label>
-        <select id="addPayType">
-          <option value="">— 選填 —</option>
-          <option value="健保">健保</option>
-          <option value="自費">自費</option>
-          <option value="另洽">另洽</option>
-        </select>
-      </div>
+
     </div>
 
-    <button class="submit-btn" id="submitBtn" onclick="submitRequest()">📤 送出變更申請</button>
+    <button class="submit-btn" id="submitBtn" onclick="submitRequest()">📤 送出申請</button>
   </div>
 
   <!-- 我的申請 -->
@@ -278,23 +295,28 @@ const WEBHOOK_GET    = 'https://ydj.zeabur.app/webhook/get-edit-requests';
 const USER = window.TANDRY_USER || {};
 
 let selectedFields = [];
-let currentType = '變更';
 
-function switchType(type) {
-  currentType = type;
-  document.getElementById('typeChangeBtn').classList.toggle('active', type === '變更');
-  document.getElementById('typeAddBtn').classList.toggle('active', type === '新增');
-  document.getElementById('changeCard').style.display = type === '變更' ? 'block' : 'none';
-  document.getElementById('changeItems').style.display = type === '變更' ? 'block' : 'none';
-  document.getElementById('addCard').style.display = type === '新增' ? 'block' : 'none';
-  if (type === '新增') addInitBuwei();
+// 目前品項快覽
+function initContextCard() {
+  if (!editTarget) return;
+  const item = (editTarget['品項'] || [])[0] || {};
+  const tags = [
+    { k:'日期',  v: editTarget['日期'] },
+    { k:'醫師',  v: editTarget['醫師'] },
+    { k:'部位',  v: item['部位'] || editTarget['部位'] },
+    { k:'規格',  v: item['規格'] },
+    { k:'品號',  v: item['品號'] },
+    { k:'數量',  v: item['數量'] != null ? String(item['數量']) : '' },
+    { k:'院內碼', v: item['院內碼'] || editTarget['院內碼'] },
+    { k:'費用',  v: item['費用類型'] },
+  ].filter(t => t.v);
+  if (!tags.length) return;
+  document.getElementById('contextCard').style.display = 'block';
+  document.getElementById('contextTags').innerHTML = tags.map(t =>
+    `<div class="context-tag"><span class="context-tag-k">${t.k}</span><span class="context-tag-v">${t.v}</span></div>`
+  ).join('');
 }
 
-const urlParams = new URLSearchParams(window.location.search);
-const serialFromUrl = urlParams.get('serial');
-if (serialFromUrl) {
-  document.getElementById('serialInput').value = serialFromUrl;
-}
 
 let editTarget = null;
 try {
@@ -305,14 +327,18 @@ console.log('editTarget:', editTarget);
 
 function getOrigValue(field) {
   if (!editTarget) return '';
+  const item = (editTarget['品項'] || [])[0] || {};
   const map = {
-    日期: editTarget['日期'] || '',
-    醫院: editTarget['醫院'] || '',
-    醫師: editTarget['醫師'] || '',
-    病人: editTarget['病人'] || '',
+    日期:   editTarget['日期'] || '',
+    醫院:   editTarget['醫院'] || '',
+    醫師:   editTarget['醫師'] || '',
+    病人:   editTarget['病人'] || '',
     病歷號: editTarget['病歷號'] || '',
-    品號: editTarget['品項']?.[0]?.['品號'] || '',
-    數量: String(editTarget['品項']?.[0]?.['數量'] ?? ''),
+    品號:   item['品號'] || '',
+    規格:   item['規格'] || '',
+    數量:   item['數量'] != null ? String(item['數量']) : '',
+    院內碼: item['院內碼'] || editTarget['院內碼'] || '',
+    費用類型: item['費用類型'] || '',
   };
   return map[field] ?? '';
 }
@@ -558,6 +584,7 @@ function addSelectBuwei(b) {
   addSel = {buwei:b,v1:'',v2:'',v3:'',品號:''};
   addInitBuwei();
   document.getElementById('addLevelSection').style.display = 'block';
+  document.getElementById('addExtraFields').style.display = 'block';
   addRenderLevels();
   addUpdateResult();
 }
@@ -729,15 +756,13 @@ function addResetForm() {
   addInitBuwei();
   document.getElementById('addLevelSection').style.display='none';
   document.getElementById('addResultRow').style.display='none';
+  document.getElementById('addExtraFields').style.display='none';
   document.getElementById('addLevelContent').innerHTML='';
   document.getElementById('addQty').value='1';
   document.getElementById('addInnerCode').value='';
   document.getElementById('addPayType').value='';
 }
 
-// 切換新增分頁時初始化部位格
-const _origSwitchType = switchType;
-// override handled below with init call
 
 // ── 送出申請 ─────────────────────────────────
 async function submitRequest() {
@@ -745,71 +770,82 @@ async function submitRequest() {
   const reason = document.getElementById('reasonInput').value.trim();
   if (!serial) { showToast('❌ 請填寫流水號'); return; }
 
-  const btn = document.getElementById('submitBtn');
-  let payload;
+  const hasChange = selectedFields.length > 0;
+  const hasNew    = !!addSel.buwei;
+  if (!hasChange && !hasNew) { showToast('❌ 請選擇要變更的欄位或新增的部位'); return; }
 
-  if (currentType === '新增') {
-    if (!addSel.buwei) { showToast('❌ 請選擇部位'); return; }
-    const spec   = addGetSpec();
-    const pinhao = addSel.品號;
-    const qty    = document.getElementById('addQty').value.trim() || '1';
-    const inner  = document.getElementById('addInnerCode').value.trim();
-    const pay    = document.getElementById('addPayType').value.trim();
-    payload = {
-      流水號: serial,
-      申請者: USER.displayName || USER.username,
-      申請類型: '新增',
-      變更欄位: ['部位','規格','品號','數量','院內碼','費用類型'].join('、'),
-      原始值: '',
-      新值: [addSel.buwei, spec, pinhao, qty, inner, pay].join('|'),
-      申請原因: reason
-    };
-  } else {
-    if (selectedFields.length === 0) { showToast('❌ 請選擇要變更的欄位'); return; }
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true; btn.textContent = '送出中...';
+
+  const base = { 流水號: serial, 申請者: USER.displayName || USER.username, 申請原因: reason };
+  let anyFail = false;
+
+  // 變更
+  if (hasChange) {
     const 變更欄位 = [], 原始值 = [], 新值 = [];
     for (const field of selectedFields) {
       const orig   = document.getElementById(`orig_${field}`)?.value.trim() || '';
       const newVal = document.getElementById(`new_${field}`)?.value.trim() || '';
-      if (!newVal) { showToast(`❌ 請填寫「${field}」的新值`); return; }
+      if (!newVal) {
+        showToast(`❌ 請填寫「${field}」的新值`);
+        btn.disabled = false; btn.textContent = '📤 送出申請';
+        return;
+      }
       變更欄位.push(field); 原始值.push(orig); 新值.push(newVal);
     }
-    payload = {
-      流水號: serial,
-      申請者: USER.displayName || USER.username,
-      申請類型: '變更',
-      變更欄位, 原始值, 新值,
-      申請原因: reason
-    };
+    try {
+      const res = await fetch(WEBHOOK_SUBMIT, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...base, 申請類型: '變更', 變更欄位, 原始值, 新值 })
+      });
+      const d = await res.json();
+      if (!d.success) anyFail = true;
+    } catch(e) { anyFail = true; }
   }
 
-  btn.disabled = true; btn.textContent = '送出中...';
-  try {
-    const res = await fetch(WEBHOOK_SUBMIT, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    const data = await res.json();
-    if (data.success) {
-      showToast('✅ 申請已送出，等待主管審核');
-      document.getElementById('serialInput').value = '';
-      document.getElementById('reasonInput').value = '';
-      if (currentType === '新增') {
-        addResetForm();
-      } else {
-        selectedFields = [];
-        document.querySelectorAll('.field-chip').forEach(c => c.classList.remove('selected'));
-        document.getElementById('changeItems').innerHTML = '';
-      }
-    } else {
-      showToast('❌ 送出失敗：' + (data.message || ''));
-    }
-  } catch(e) {
-    showToast('❌ 無法連線');
-  } finally {
-    btn.disabled = false; btn.textContent = '📤 送出變更申請';
+  // 新增
+  if (hasNew) {
+    const qty   = document.getElementById('addQty').value.trim() || '1';
+    const inner = document.getElementById('addInnerCode').value.trim();
+    const pay   = document.getElementById('addPayType').value.trim();
+    try {
+      const res = await fetch(WEBHOOK_SUBMIT, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...base, 申請類型: '新增',
+          變更欄位: ['部位','規格','品號','數量','院內碼','費用類型'].join('、'),
+          原始值: '',
+          新值: [addSel.buwei, addGetSpec(), addSel.品號, qty, inner, pay].join('|')
+        })
+      });
+      const d = await res.json();
+      if (!d.success) anyFail = true;
+    } catch(e) { anyFail = true; }
+  }
+
+  btn.disabled = false; btn.textContent = '📤 送出申請';
+
+  if (!anyFail) {
+    showToast('✅ 申請已送出，等待主管審核');
+    document.getElementById('serialInput').value = '';
+    document.getElementById('reasonInput').value = '';
+    selectedFields = [];
+    document.querySelectorAll('.field-chip').forEach(c => c.classList.remove('selected'));
+    document.getElementById('changeItems').innerHTML = '';
+    addResetForm();
+  } else {
+    showToast('❌ 送出失敗，請檢查網路');
   }
 }
+
+// ── 頁面初始化 ────────────────────────────────
+(function initPage() {
+  initContextCard();
+  addInitBuwei();
+  const urlParams = new URLSearchParams(window.location.search);
+  const s = urlParams.get('serial');
+  if (s) document.getElementById('serialInput').value = s;
+})();
 
 // ── 我的申請 ─────────────────────────────────
 async function loadHistory() {
