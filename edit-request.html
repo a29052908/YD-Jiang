@@ -349,6 +349,7 @@ function getOrigValue(field) {
     數量:   item['數量'] != null ? String(item['數量']) : '',
     院內碼: item['院內碼'] || editTarget['院內碼'] || '',
     費用類型: item['費用類型'] || '',
+    工具: editTarget?.['報損'] || '',
   };
   return map[field] ?? '';
 }
@@ -454,7 +455,7 @@ function renderChangeItems() {
 
   container.innerHTML = selectedFields.map(field => {
     if (field === '品號') return renderPinhaoItem();
-    if (field === '組件') return renderCompItem();
+    if (field === '組件' || field === '工具') return renderCompItem(field);
     return `
       <div class="change-item">
         <div class="change-item-header">${field}</div>
@@ -469,7 +470,7 @@ function renderChangeItems() {
 
   // 一般欄位自動帶入原始值
   selectedFields.forEach(field => {
-    if (field === '品號' || field === '組件') return;
+    if (field === '品號' || field === '組件' || field === '工具') return;
     const orig = document.getElementById(`orig_${field}`);
     if (orig) orig.value = getOrigValue(field);
   });
@@ -481,16 +482,15 @@ function renderChangeItems() {
     if (ep) ep.value = getOrigValue('品號');
     if (es) es.value = getOrigValue('規格');
   }
-  // 組件帶入渲染
-  if (selectedFields.includes('組件')) {
-    const origVal = getOrigValue('組件') || (editTarget?.['組件'] || '');
-    const previewEl = document.getElementById('comp_orig_preview');
+  // 組件／工具 帶入渲染
+  ['組件','工具'].forEach(f => {
+    if (!selectedFields.includes(f)) return;
+    const origVal = editTarget?.[f === '工具' ? '報損' : '組件'] || editTarget?.[f] || '';
+    const previewEl = document.getElementById(`comp_orig_preview_${f}`);
     if (previewEl) previewEl.innerHTML = buildComponentTable(origVal) || `<span style="color:var(--muted);font-size:12px;">（無資料）</span>`;
-    const ta = document.getElementById('orig_組件_hidden');
+    const ta = document.getElementById(`orig_${f}_hidden`);
     if (ta) ta.value = origVal;
-    const newTa = document.getElementById('new_組件');
-    if (newTa) newTa.placeholder = origVal ? '輸入新組件文字...' : '輸入組件文字...';
-  }
+  });
 }
 
 function renderPinhaoItem() {
@@ -512,16 +512,19 @@ function renderPinhaoItem() {
     </div>`;
 }
 
-function renderCompItem() {
-  const origVal = editTarget?.['組件'] || getOrigValue('組件') || '';
+function renderCompItem(field) {
+  const sheetKey = field === '工具' ? '報損' : '組件';
+  const origVal = editTarget?.[sheetKey] || editTarget?.[field] || '';
+  const label = field === '工具' ? '目前釘盤組件' : '目前組件';
+  const placeholder = field === '工具' ? '輸入新釘盤內容...' : '輸入新組件文字...';
   return `
     <div class="change-item">
-      <div class="change-item-header">組件</div>
-      <div class="change-label">目前組件</div>
-      <div class="comp-preview" id="comp_orig_preview"></div>
-      <input type="hidden" id="orig_組件_hidden" value="${origVal.replace(/"/g,'&quot;')}">
+      <div class="change-item-header">${field}</div>
+      <div class="change-label">${label}</div>
+      <div class="comp-preview" id="comp_orig_preview_${field}"></div>
+      <input type="hidden" id="orig_${field}_hidden" value="${origVal.replace(/"/g,'&quot;')}">
       <div class="change-label" style="margin-top:10px;">新值</div>
-      <textarea class="change-input" id="new_組件" rows="4" placeholder="輸入新組件文字..."></textarea>
+      <textarea class="change-input" id="new_${field}" rows="4" placeholder="${placeholder}"></textarea>
     </div>`;
 }
 
@@ -929,15 +932,15 @@ async function submitRequest() {
         變更欄位.push('規格'); 原始值.push(origSpec); 新值.push(newSpec);
         continue;
       }
-      if (field === '組件') {
-        const orig   = document.getElementById('orig_組件_hidden')?.value.trim() || '';
-        const newVal = document.getElementById('new_組件')?.value.trim() || '';
+      if (field === '組件' || field === '工具') {
+        const orig   = document.getElementById(`orig_${field}_hidden`)?.value.trim() || '';
+        const newVal = document.getElementById(`new_${field}`)?.value.trim() || '';
         if (!newVal) {
-          showToast('❌ 請填寫新組件內容');
+          showToast(`❌ 請填寫新${field === '工具' ? '釘盤' : '組件'}內容`);
           btn.disabled = false; btn.textContent = '📤 送出申請';
           return;
         }
-        變更欄位.push('組件'); 原始值.push(orig); 新值.push(newVal);
+        變更欄位.push(field); 原始值.push(orig); 新值.push(newVal);
         continue;
       }
       const orig   = document.getElementById(`orig_${field}`)?.value.trim() || '';
