@@ -65,10 +65,30 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', s
 /* 目前品項快覽 */
 .context-block { background: var(--bg); border-radius: 9px; padding: 10px 12px; border: 1.5px solid var(--border); margin-top: 12px; }
 .context-label { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-family: 'JetBrains Mono', monospace; margin-bottom: 8px; }
-.context-tags { display: flex; flex-wrap: wrap; gap: 6px; }
-.context-tag { display: flex; align-items: baseline; gap: 4px; background: white; border: 1px solid var(--border); border-radius: 6px; padding: 4px 9px; font-size: 12px; }
+.context-tags {}
+.context-tag { display: inline-flex; align-items: baseline; gap: 4px; background: white; border: 1px solid var(--border); border-radius: 6px; padding: 4px 9px; font-size: 12px; }
 .context-tag-k { color: var(--muted); font-family: 'JetBrains Mono', monospace; font-size: 10px; }
 .context-tag-v { font-weight: 600; color: var(--accent); font-family: 'JetBrains Mono', monospace; }
+/* 品項列表 */
+.ctx-case-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.ctx-item { background: white; border: 1.5px solid var(--border); border-radius: 8px; padding: 9px 10px; margin-bottom: 6px; transition: all 0.2s; }
+.ctx-item.selected { border-color: var(--blue); background: #f5f9ff; }
+.ctx-item.deleting { border-color: var(--red); background: #fff0f1; opacity: 0.7; }
+.ctx-item-head { display: flex; align-items: center; gap: 6px; margin-bottom: 5px; }
+.ctx-item-no { font-size: 10px; font-weight: 700; color: var(--muted); font-family: 'JetBrains Mono', monospace; min-width: 36px; }
+.ctx-item-badge { background: var(--accent); color: white; border-radius: 4px; padding: 2px 7px; font-size: 10px; font-weight: 600; }
+.ctx-item-btns { margin-left: auto; display: flex; gap: 5px; }
+.ctx-item-btn { border: 1.5px solid; border-radius: 6px; padding: 3px 10px; font-size: 11px; font-weight: 600; cursor: pointer; font-family: 'Noto Sans TC', sans-serif; transition: all 0.15s; background: white; }
+.ctx-item-btn.edit { border-color: var(--blue); color: var(--blue); }
+.ctx-item-btn.edit:hover, .ctx-item-btn.edit.active { background: var(--blue); color: white; }
+.ctx-item-btn.del { border-color: var(--red); color: var(--red); }
+.ctx-item-btn.del:hover, .ctx-item-btn.del.active { background: var(--red); color: white; }
+.ctx-item-body { font-size: 12px; color: var(--muted); font-family: 'JetBrains Mono', monospace; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.ctx-item-body span { color: var(--text); font-weight: 500; }
+.ctx-sep { color: #ccc !important; font-weight: 400 !important; }
+/* 編輯品項指示 */
+.editing-note { font-size: 11px; background: var(--blue-light); color: var(--blue); border-radius: 6px; padding: 5px 10px; margin-bottom: 8px; font-family: 'JetBrains Mono', monospace; display: none; }
+.editing-note.show { display: block; }
 
 /* 區塊標頭 */
 .section-hd { font-size: 12px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; font-family: 'JetBrains Mono', monospace; padding: 10px 0 8px; border-top: 1.5px dashed var(--border); margin-top: 4px; }
@@ -192,6 +212,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', s
 
       <!-- ── 變更現有欄位 ── -->
       <div class="card-title">✏️ 變更現有欄位</div>
+      <div class="editing-note" id="editingNote"></div>
       <div class="field-chips" id="fieldChips">
         <div class="field-chip" data-field="日期" onclick="toggleField(this)">日期</div>
         <div class="field-chip" data-field="醫院" onclick="toggleField(this)">醫院</div>
@@ -203,6 +224,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', s
         <div class="field-chip" data-field="院內碼" onclick="toggleField(this)">院內碼</div>
         <div class="field-chip" data-field="費用類型" onclick="toggleField(this)">費用類型</div>
         <div class="field-chip" data-field="組件" onclick="toggleField(this)">組件</div>
+        <div class="field-chip" data-field="工具" onclick="toggleField(this)">釘盤</div>
         <div class="field-chip" data-field="備註" onclick="toggleField(this)">備註</div>
       </div>
       <div id="changeItems" style="margin-top:4px;"></div>
@@ -310,31 +332,76 @@ const WEBHOOK_GET    = 'https://ydj.zeabur.app/webhook/get-edit-requests';
 const USER = window.TANDRY_USER || {};
 
 let selectedFields = [];
+let selectedItemIndex = 0;
+let deleteItemIndices = new Set();
 
 // 目前品項快覽
 function initContextCard() {
   if (!editTarget) return;
   const items = editTarget['品項'] || [];
-  const item = items[0] || {};
-  const allInnerCodes = [...new Set(items.map(i => i['院內碼']).filter(Boolean))];
-  const innerCodeStr = allInnerCodes.join('、') || editTarget['院內碼'] || '';
-  const allBuwei = [...new Set(items.map(i => i['部位']).filter(Boolean))];
-  const buweiStr = allBuwei.join('、') || editTarget['部位'] || '';
-  const tags = [
-    { k:'日期',  v: editTarget['日期'] },
-    { k:'醫師',  v: editTarget['醫師'] },
-    { k:'部位',  v: buweiStr },
-    { k:'規格',  v: item['規格'] },
-    { k:'品號',  v: item['品號'] },
-    { k:'數量',  v: item['數量'] != null ? String(item['數量']) : '' },
-    { k:'院內碼', v: innerCodeStr },
-    { k:'費用',  v: item['費用類型'] },
-  ].filter(t => t.v);
-  if (!tags.length) return;
-  document.getElementById('contextCard').style.display = 'block';
-  document.getElementById('contextTags').innerHTML = tags.map(t =>
+  if (!items.length && !editTarget['日期']) return;
+
+  const caseMeta = [
+    { k:'日期', v: editTarget['日期'] },
+    { k:'醫師', v: editTarget['醫師'] },
+  ].filter(t => t.v).map(t =>
     `<div class="context-tag"><span class="context-tag-k">${t.k}</span><span class="context-tag-v">${t.v}</span></div>`
   ).join('');
+
+  const itemsHtml = items.map((item, idx) => {
+    const specs = [item['規格'], item['品號']].filter(Boolean);
+    const extras = [
+      item['數量'] != null ? `×${item['數量']}` : null,
+      item['院內碼'], item['費用類型']
+    ].filter(Boolean);
+    const allParts = [...specs, ...extras];
+    return `
+      <div class="ctx-item" id="ctx_item_${idx}">
+        <div class="ctx-item-head">
+          <span class="ctx-item-no">品項 ${idx+1}</span>
+          ${item['部位'] ? `<span class="ctx-item-badge">${item['部位']}</span>` : ''}
+          <div class="ctx-item-btns">
+            <button class="ctx-item-btn edit" id="ctx_edit_${idx}" onclick="selectItemToEdit(${idx})">更正</button>
+            <button class="ctx-item-btn del"  id="ctx_del_${idx}"  onclick="markItemDelete(${idx})">刪除</button>
+          </div>
+        </div>
+        <div class="ctx-item-body">
+          ${allParts.map((s,i) => `${i>0?'<span class="ctx-sep">·</span>':''}<span>${s}</span>`).join('')}
+        </div>
+      </div>`;
+  }).join('');
+
+  document.getElementById('contextCard').style.display = 'block';
+  document.getElementById('contextTags').innerHTML =
+    `<div class="ctx-case-meta">${caseMeta}</div>${itemsHtml}`;
+}
+
+function selectItemToEdit(idx) {
+  selectedItemIndex = idx;
+  const items = editTarget?.['品項'] || [];
+  items.forEach((_, i) => {
+    document.getElementById(`ctx_item_${i}`)?.classList.toggle('selected', i === idx);
+    document.getElementById(`ctx_edit_${i}`)?.classList.toggle('active', i === idx);
+  });
+  const item = items[idx] || {};
+  const note = document.getElementById('editingNote');
+  if (note) {
+    note.textContent = `✏️ 正在修改 品項 ${idx+1}${item['部位'] ? '（'+item['部位']+'）' : ''}`;
+    note.classList.add('show');
+  }
+  renderChangeItems();
+  document.getElementById('fieldChips')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function markItemDelete(idx) {
+  if (deleteItemIndices.has(idx)) {
+    deleteItemIndices.delete(idx);
+  } else {
+    deleteItemIndices.add(idx);
+  }
+  const active = deleteItemIndices.has(idx);
+  document.getElementById(`ctx_item_${idx}`)?.classList.toggle('deleting', active);
+  document.getElementById(`ctx_del_${idx}`)?.classList.toggle('active', active);
 }
 
 
@@ -347,7 +414,7 @@ console.log('editTarget:', editTarget);
 
 function getOrigValue(field) {
   if (!editTarget) return '';
-  const item = (editTarget['品項'] || [])[0] || {};
+  const item = (editTarget['品項'] || [])[selectedItemIndex] || {};
   const map = {
     日期:   editTarget['日期'] || '',
     醫院:   editTarget['醫院'] || '',
@@ -922,17 +989,21 @@ async function submitRequest() {
 
   const hasChange = selectedFields.length > 0;
   const hasNew    = !!addSel.buwei;
-  if (!hasChange && !hasNew) { showToast('❌ 請選擇要變更的欄位或新增的部位'); return; }
+  const hasDel    = deleteItemIndices.size > 0;
+  if (!hasChange && !hasNew && !hasDel) { showToast('❌ 請選擇要變更的欄位、新增部位或標記刪除品項'); return; }
 
   const btn = document.getElementById('submitBtn');
   btn.disabled = true; btn.textContent = '送出中...';
 
+  const ITEM_FIELDS = new Set(['品號','數量','院內碼','費用類型','組件','工具']);
   const base = { 流水號: serial, 申請者: USER.displayName || USER.username, 申請原因: reason };
   let anyFail = false;
 
   // 變更
   if (hasChange) {
     const 變更欄位 = [], 原始值 = [], 新值 = [];
+    const hasItemField = selectedFields.some(f => ITEM_FIELDS.has(f));
+    const extBase = hasItemField ? { ...base, 品項序號: selectedItemIndex + 1 } : base;
     for (const field of selectedFields) {
       if (field === '品號') {
         const origPN   = document.getElementById('orig_品號')?.value.trim() || '';
@@ -971,11 +1042,28 @@ async function submitRequest() {
     try {
       const res = await fetch(WEBHOOK_SUBMIT, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...base, 申請類型: '變更', 變更欄位, 原始值, 新值 })
+        body: JSON.stringify({ ...extBase, 申請類型: '變更', 變更欄位, 原始值, 新值 })
       });
       const d = await res.json();
       if (!d.success) anyFail = true;
     } catch(e) { anyFail = true; }
+  }
+
+  // 刪除品項
+  if (hasDel) {
+    const items = editTarget?.['品項'] || [];
+    for (const idx of deleteItemIndices) {
+      const item = items[idx] || {};
+      const origStr = [item['部位'], item['規格'], item['品號'], item['數量'] != null ? `×${item['數量']}` : null].filter(Boolean).join(' ');
+      try {
+        const res = await fetch(WEBHOOK_SUBMIT, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...base, 申請類型: '刪除品項', 變更欄位: `品項${idx+1}`, 原始值: origStr, 新值: '刪除' })
+        });
+        const d = await res.json();
+        if (!d.success) anyFail = true;
+      } catch(e) { anyFail = true; }
+    }
   }
 
   // 新增
