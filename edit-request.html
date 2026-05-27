@@ -503,7 +503,7 @@ function lookupSpec(pinhao) {
   if (!row) return '';
   return [row.v1, row.v2, row.v3].filter(Boolean).join(' ');
 }
-// ── 釘盤UI（工具欄位用） ──────────────────────
+// ── 釘盤UI（組件/工具欄位共用，field 參數化） ──
 function genLengths(rules){const s=new Set();rules.forEach(r=>{if(r.extra)r.extra.forEach(x=>s.add(x));for(let v=r.from;v<=r.to;v+=r.step)s.add(v);});return[...s].sort((a,b)=>a-b);}
 const edStd35=genLengths([{from:10,to:40,step:2},{from:45,to:70,step:5,extra:[42,48]}]);
 const edStd24=genLengths([{from:10,to:50,step:2}]);
@@ -520,7 +520,9 @@ const edScrewDefs={
   '5.0':{types:[{type:'L',color:'#4CAF50',dark:'#2E7D32'},{type:'C',color:'#FF9800',dark:'#E65100'}],lengthsL:edStd50L,lengthsC:edStd50C},
   'VA': {types:[{type:'L',color:'#9C27B0',dark:'#6A1B9A'},{type:'C',color:'#FF9800',dark:'#E65100'}],lengths:[]},
 };
-let edBoards=[], edState={};
+const edBoardsMap={}, edStateMap={};
+function _eb(f){return edBoardsMap[f]=edBoardsMap[f]||[];}
+function _es(f){return edStateMap[f]=edStateMap[f]||{};}
 
 function edUpdateDot(dot,n,color,dark){
   dot.dataset.count=n; dot.textContent=n;
@@ -528,60 +530,62 @@ function edUpdateDot(dot,n,color,dark){
   else if(n<=2){dot.style.background=color;dot.style.color='white';}
   else{dot.style.background=dark;dot.style.color='white';}
 }
-function showEdAddPanel(){const p=document.getElementById('edAddPanel');if(p)p.style.display=p.style.display==='none'?'block':'none';}
-function addEdBoard(dia){
-  if(edBoards.find(b=>b.dia===dia)){showToast(`已有 ${dia} mm 釘盤`);return;}
-  edBoards.push({dia,id:`ed_${dia}_${Date.now()}`});
-  document.getElementById('edAddPanel').style.display='none';
-  renderEdBoards();
+function showEdAddPanel(f){const p=document.getElementById(`edAddPanel_${f}`);if(p)p.style.display=p.style.display==='none'?'block':'none';}
+function addEdBoard(f,dia){
+  const boards=_eb(f);
+  if(boards.find(b=>b.dia===dia)){showToast(`已有 ${dia} mm 釘盤`);return;}
+  boards.push({dia,id:`eb_${dia}_${Date.now()}`});
+  document.getElementById(`edAddPanel_${f}`).style.display='none';
+  renderEdBoards(f);
 }
-function removeEdBoard(id){
-  edBoards=edBoards.filter(b=>b.id!==id);
-  Object.keys(edState).filter(k=>k.startsWith(id+'_')).forEach(k=>delete edState[k]);
-  renderEdBoards();
+function removeEdBoard(f,id){
+  edBoardsMap[f]=(edBoardsMap[f]||[]).filter(b=>b.id!==id);
+  const st=_es(f); Object.keys(st).filter(k=>k.startsWith(id+'_')).forEach(k=>delete st[k]);
+  renderEdBoards(f);
 }
-function toggleEdBoard(id){
-  const body=document.getElementById(`ed_body_${id}`);
-  const arrow=document.getElementById(`ed_arrow_${id}`);
+function toggleEdBoard(f,id){
+  const body=document.getElementById(`ed_body_${f}_${id}`);
+  const arrow=document.getElementById(`ed_arrow_${f}_${id}`);
   const isOpen=body.style.display!=='none';
   body.style.display=isOpen?'none':'block';
   if(arrow)arrow.textContent=isOpen?'▶':'▼';
 }
-function toggleEdScrew(id,type,len,color,dark){
-  const key=`${id}_${type}_${len}`;
-  const dot=document.getElementById(`ed_dot_${id}_${type}_${len}`);
-  const next=(edState[key]||0)>=99?0:(edState[key]||0)+1;
-  edState[key]=next; edUpdateDot(dot,next,color,dark); edUpdateOutput();
+function toggleEdScrew(f,id,type,len,color,dark){
+  const st=_es(f); const key=`${id}_${type}_${len}`;
+  const dot=document.getElementById(`ed_dot_${f}_${id}_${type}_${len}`);
+  const next=(st[key]||0)>=99?0:(st[key]||0)+1;
+  st[key]=next; edUpdateDot(dot,next,color,dark); edUpdateOutput(f);
 }
-function decreaseEdScrew(id,type,len,color,dark){
-  const key=`${id}_${type}_${len}`;
-  const dot=document.getElementById(`ed_dot_${id}_${type}_${len}`);
-  const next=Math.max(0,(edState[key]||0)-1);
-  edState[key]=next; edUpdateDot(dot,next,color,dark); edUpdateOutput();
+function decreaseEdScrew(f,id,type,len,color,dark){
+  const st=_es(f); const key=`${id}_${type}_${len}`;
+  const dot=document.getElementById(`ed_dot_${f}_${id}_${type}_${len}`);
+  const next=Math.max(0,(st[key]||0)-1);
+  st[key]=next; edUpdateDot(dot,next,color,dark); edUpdateOutput(f);
 }
-function edUpdateOutput(){
-  const groups=[];
-  for(const{dia,id}of edBoards){
+function edUpdateOutput(f){
+  const boards=_eb(f); const st=_es(f); const groups=[];
+  for(const{dia,id}of boards){
     const def=edScrewDefs[dia];if(!def)continue;
     for(const{type}of def.types){
       const lengths=def.lengthsL?(type==='L'?def.lengthsL:def.lengthsC):def.lengths;
       const entries=[];
-      for(const len of lengths){const cnt=edState[`${id}_${type}_${len}`]||0;if(cnt>0)entries.push(`${len}x${cnt}`);}
+      for(const len of lengths){const cnt=st[`${id}_${type}_${len}`]||0;if(cnt>0)entries.push(`${len}x${cnt}`);}
       if(entries.length)groups.push(`${dia} ${type}: ${entries.join(' ')}`);
     }
   }
   const text=groups.join('\n');
-  const ta=document.getElementById('new_工具');if(ta)ta.value=text;
-  const prev=document.getElementById('ed_screw_preview');
+  const ta=document.getElementById(`new_${f}`);if(ta)ta.value=text;
+  const prev=document.getElementById(`ed_screw_preview_${f}`);
   if(prev){const h=buildComponentTable(text);prev.innerHTML=h||'';prev.style.display=h?'block':'none';}
 }
-function renderEdBoards(){
-  const container=document.getElementById('edScrewBoards');if(!container)return;
-  if(!edBoards.length){
+function renderEdBoards(f){
+  const boards=_eb(f); const st=_es(f);
+  const container=document.getElementById(`edScrewBoards_${f}`);if(!container)return;
+  if(!boards.length){
     container.innerHTML='<div style="color:var(--muted);font-size:13px;padding:6px 0;">點「＋ 新增釘盤」開始選擇</div>';
-    edUpdateOutput();return;
+    edUpdateOutput(f);return;
   }
-  container.innerHTML=edBoards.map(({dia,id})=>{
+  container.innerHTML=boards.map(({dia,id})=>{
     const def=edScrewDefs[dia];if(!def)return'';
     const typesHtml=def.types.map(({type,color,dark})=>{
       const lengths=def.lengthsL?(type==='L'?def.lengthsL:def.lengthsC):def.lengths;
@@ -590,30 +594,30 @@ function renderEdBoards(){
 <div class="screw-row">${lengths.map(len=>`
   <div class="screw-dot-wrap">
     <div class="screw-len">${len}</div>
-    <div class="screw-dot" id="ed_dot_${id}_${type}_${len}" style="border-color:${color};" onclick="toggleEdScrew('${id}','${type}',${len},'${color}','${dark}')" data-count="0">0</div>
-    <div onclick="decreaseEdScrew('${id}','${type}',${len},'${color}','${dark}')" style="width:30px;height:13px;border-radius:4px;background:var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;color:var(--muted);user-select:none;">－</div>
+    <div class="screw-dot" id="ed_dot_${f}_${id}_${type}_${len}" style="border-color:${color};" onclick="toggleEdScrew('${f}','${id}','${type}',${len},'${color}','${dark}')" data-count="0">0</div>
+    <div onclick="decreaseEdScrew('${f}','${id}','${type}',${len},'${color}','${dark}')" style="width:30px;height:13px;border-radius:4px;background:var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;color:var(--muted);user-select:none;">－</div>
   </div>`).join('')}</div>`;
     }).join('');
     return`<div style="margin-bottom:8px;border:1px solid var(--border);border-radius:9px;overflow:hidden;">
-  <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--bg);cursor:pointer;" onclick="toggleEdBoard('${id}')">
-    <div style="font-size:13px;font-weight:700;color:var(--accent);"><span id="ed_arrow_${id}">▼</span> ⌀ ${dia} mm</div>
-    <button onclick="event.stopPropagation();removeEdBoard('${id}')" style="padding:2px 9px;border-radius:6px;border:1px solid var(--red);background:white;color:var(--red);font-size:11px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;">移除</button>
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--bg);cursor:pointer;" onclick="toggleEdBoard('${f}','${id}')">
+    <div style="font-size:13px;font-weight:700;color:var(--accent);"><span id="ed_arrow_${f}_${id}">▼</span> ⌀ ${dia} mm</div>
+    <button onclick="event.stopPropagation();removeEdBoard('${f}','${id}')" style="padding:2px 9px;border-radius:6px;border:1px solid var(--red);background:white;color:var(--red);font-size:11px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;">移除</button>
   </div>
-  <div id="ed_body_${id}" style="padding:10px 12px;">${typesHtml}</div>
+  <div id="ed_body_${f}_${id}" style="padding:10px 12px;">${typesHtml}</div>
 </div>`;
   }).join('');
-  Object.keys(edState).forEach(key=>{
-    const cnt=edState[key];if(!cnt)return;
+  Object.keys(st).forEach(key=>{
+    const cnt=st[key];if(!cnt)return;
     const lastU=key.lastIndexOf('_',key.lastIndexOf('_')-1);
     const bid=key.substring(0,lastU);
     const parts=key.substring(lastU+1).split('_');
-    const dot=document.getElementById(`ed_dot_${bid}_${parts[0]}_${parts[1]}`);
+    const dot=document.getElementById(`ed_dot_${f}_${bid}_${parts[0]}_${parts[1]}`);
     if(!dot)return;
-    const board=edBoards.find(b=>b.id===bid);if(!board)return;
+    const board=boards.find(b=>b.id===bid);if(!board)return;
     const t=edScrewDefs[board.dia]?.types.find(t=>t.type===parts[0]);
     if(t)edUpdateDot(dot,cnt,t.color,t.dark);
   });
-  edUpdateOutput();
+  edUpdateOutput(f);
 }
 
 function renderAddComp() {
@@ -698,11 +702,12 @@ function renderChangeItems() {
     const ta = document.getElementById(`orig_${f}_hidden`);
     if (ta) ta.value = origVal;
   });
-  // 工具釘盤UI 初始化
-  if (selectedFields.includes('工具')) {
-    edBoards = []; edState = {};
-    renderEdBoards();
-  }
+  // 組件/工具 釘盤UI 初始化
+  ['組件','工具'].forEach(f => {
+    if (!selectedFields.includes(f)) return;
+    edBoardsMap[f] = []; edStateMap[f] = {};
+    renderEdBoards(f);
+  });
 }
 
 function renderPinhaoItem() {
@@ -729,49 +734,38 @@ function renderCompItem(field) {
   const origVal = editTarget?.[sheetKey] || editTarget?.[field] || '';
   const label = field === '工具' ? '目前釘盤組件' : '目前組件';
 
-  if (field === '工具') {
-    return `
-      <div class="change-item">
-        <div class="change-item-header">工具（釘盤）</div>
-        <div class="change-label">${label}</div>
-        <div class="comp-preview" id="comp_orig_preview_工具"></div>
-        <input type="hidden" id="orig_工具_hidden" value="${origVal.replace(/"/g,'&quot;')}">
-        <div class="change-label" style="margin-top:12px;">新值（釘盤建立）</div>
-        <div style="background:var(--bg);border:1.5px solid var(--border);border-radius:9px;padding:10px 12px;">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-            <div class="screw-legend">
-              <div class="legend-item"><div class="legend-dot" style="background:#4CAF50;"></div>L = Locking</div>
-              <div class="legend-item"><div class="legend-dot" style="background:#FF9800;"></div>C = Cortex</div>
-              <div class="legend-item"><div class="legend-dot" style="background:#9C27B0;"></div>VA-L</div>
-            </div>
-            <button onclick="showEdAddPanel()" style="padding:4px 12px;border-radius:16px;border:1.5px solid var(--accent);background:white;color:var(--accent);font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:'Noto Sans TC',sans-serif;">＋ 新增釘盤</button>
-          </div>
-          <div id="edAddPanel" style="display:none;background:white;border-radius:8px;padding:10px;margin-bottom:8px;border:1px solid var(--border);">
-            <div style="font-size:11px;color:var(--muted);margin-bottom:7px;font-family:'JetBrains Mono',monospace;">選擇釘子直徑</div>
-            <div style="display:flex;flex-wrap:wrap;gap:6px;">
-              <button class="type-btn" onclick="addEdBoard('1.5')">1.5 mm</button>
-              <button class="type-btn" onclick="addEdBoard('2.0')">2.0 mm</button>
-              <button class="type-btn" onclick="addEdBoard('2.4')">2.4 mm</button>
-              <button class="type-btn" onclick="addEdBoard('3.5')">3.5 mm</button>
-              <button class="type-btn" onclick="addEdBoard('5.0')">5.0 mm</button>
-              <button class="type-btn" onclick="addEdBoard('VA')">VA</button>
-            </div>
-          </div>
-          <div id="edScrewBoards"></div>
-        </div>
-        <textarea id="new_工具" style="display:none;"></textarea>
-        <div class="comp-preview" id="ed_screw_preview" style="margin-top:8px;display:none;"></div>
-      </div>`;
-  }
-
+  const title = field === '工具' ? '工具（釘盤）' : '組件';
   return `
     <div class="change-item">
-      <div class="change-item-header">${field}</div>
+      <div class="change-item-header">${title}</div>
       <div class="change-label">${label}</div>
       <div class="comp-preview" id="comp_orig_preview_${field}"></div>
       <input type="hidden" id="orig_${field}_hidden" value="${origVal.replace(/"/g,'&quot;')}">
-      <div class="change-label" style="margin-top:10px;">新值</div>
-      <textarea class="change-input" id="new_${field}" rows="4" placeholder="輸入新組件文字..."></textarea>
+      <div class="change-label" style="margin-top:12px;">新值（釘盤建立）</div>
+      <div style="background:var(--bg);border:1.5px solid var(--border);border-radius:9px;padding:10px 12px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <div class="screw-legend">
+            <div class="legend-item"><div class="legend-dot" style="background:#4CAF50;"></div>L = Locking</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#FF9800;"></div>C = Cortex</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#9C27B0;"></div>VA-L</div>
+          </div>
+          <button onclick="showEdAddPanel('${field}')" style="padding:4px 12px;border-radius:16px;border:1.5px solid var(--accent);background:white;color:var(--accent);font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:'Noto Sans TC',sans-serif;">＋ 新增釘盤</button>
+        </div>
+        <div id="edAddPanel_${field}" style="display:none;background:white;border-radius:8px;padding:10px;margin-bottom:8px;border:1px solid var(--border);">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:7px;font-family:'JetBrains Mono',monospace;">選擇釘子直徑</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;">
+            <button class="type-btn" onclick="addEdBoard('${field}','1.5')">1.5 mm</button>
+            <button class="type-btn" onclick="addEdBoard('${field}','2.0')">2.0 mm</button>
+            <button class="type-btn" onclick="addEdBoard('${field}','2.4')">2.4 mm</button>
+            <button class="type-btn" onclick="addEdBoard('${field}','3.5')">3.5 mm</button>
+            <button class="type-btn" onclick="addEdBoard('${field}','5.0')">5.0 mm</button>
+            <button class="type-btn" onclick="addEdBoard('${field}','VA')">VA</button>
+          </div>
+        </div>
+        <div id="edScrewBoards_${field}"></div>
+      </div>
+      <textarea id="new_${field}" style="display:none;"></textarea>
+      <div class="comp-preview" id="ed_screw_preview_${field}" style="margin-top:8px;display:none;"></div>
     </div>`;
 }
 
