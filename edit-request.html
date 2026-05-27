@@ -243,6 +243,11 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', s
             <option value="另洽">另洽</option>
           </select>
         </div>
+        <div class="field" style="margin-top:14px;margin-bottom:0;">
+          <label>組件 <span style="color:var(--muted);font-size:10px;font-weight:400;">(選填)</span></label>
+          <textarea id="addComp" rows="3" placeholder="例：3.5 L: 40x2 38x1&#10;3.5 C: 24x①" oninput="renderAddComp()"></textarea>
+          <div class="comp-preview" id="addCompPreview" style="margin-top:6px;"></div>
+        </div>
       </div>
 
     </div>
@@ -309,15 +314,20 @@ let selectedFields = [];
 // 目前品項快覽
 function initContextCard() {
   if (!editTarget) return;
-  const item = (editTarget['品項'] || [])[0] || {};
+  const items = editTarget['品項'] || [];
+  const item = items[0] || {};
+  const allInnerCodes = [...new Set(items.map(i => i['院內碼']).filter(Boolean))];
+  const innerCodeStr = allInnerCodes.join('、') || editTarget['院內碼'] || '';
+  const allBuwei = [...new Set(items.map(i => i['部位']).filter(Boolean))];
+  const buweiStr = allBuwei.join('、') || editTarget['部位'] || '';
   const tags = [
     { k:'日期',  v: editTarget['日期'] },
     { k:'醫師',  v: editTarget['醫師'] },
-    { k:'部位',  v: item['部位'] || editTarget['部位'] },
+    { k:'部位',  v: buweiStr },
     { k:'規格',  v: item['規格'] },
     { k:'品號',  v: item['品號'] },
     { k:'數量',  v: item['數量'] != null ? String(item['數量']) : '' },
-    { k:'院內碼', v: item['院內碼'] || editTarget['院內碼'] },
+    { k:'院內碼', v: innerCodeStr },
     { k:'費用',  v: item['費用類型'] },
   ].filter(t => t.v);
   if (!tags.length) return;
@@ -347,7 +357,7 @@ function getOrigValue(field) {
     品號:   item['品號'] || '',
     規格:   item['規格'] || '',
     數量:   item['數量'] != null ? String(item['數量']) : '',
-    院內碼: item['院內碼'] || editTarget['院內碼'] || '',
+    院內碼: [...new Set((editTarget['品項']||[]).map(i=>i['院內碼']).filter(Boolean))].join('、') || editTarget['院內碼'] || '',
     費用類型: item['費用類型'] || '',
     工具: editTarget?.['報損'] || '',
   };
@@ -415,6 +425,12 @@ function lookupSpec(pinhao) {
   if (!row) return '';
   return [row.v1, row.v2, row.v3].filter(Boolean).join(' ');
 }
+function renderAddComp() {
+  const text = document.getElementById('addComp')?.value || '';
+  const el = document.getElementById('addCompPreview');
+  if (el) el.innerHTML = buildComponentTable(text) || '';
+}
+
 function autoFillNewSpec() {
   const pinhao = document.getElementById('new_品號')?.value || '';
   const spec = lookupSpec(pinhao);
@@ -967,14 +983,15 @@ async function submitRequest() {
     const qty   = document.getElementById('addQty').value.trim() || '1';
     const inner = document.getElementById('addInnerCode').value.trim();
     const pay   = document.getElementById('addPayType').value.trim();
+    const comp  = document.getElementById('addComp')?.value.trim() || '';
     try {
       const res = await fetch(WEBHOOK_SUBMIT, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...base, 申請類型: '新增',
-          變更欄位: ['部位','規格','品號','數量','院內碼','費用類型'].join('、'),
+          變更欄位: ['部位','規格','品號','數量','院內碼','費用類型','組件'].join('、'),
           原始值: '',
-          新值: [addSel.buwei, addGetSpec(), addSel.品號, qty, inner, pay].join('|')
+          新值: [addSel.buwei, addGetSpec(), addSel.品號, qty, inner, pay, comp].join('|')
         })
       });
       const d = await res.json();

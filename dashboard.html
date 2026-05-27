@@ -502,6 +502,8 @@ function requestEdit(index) {
     病人:   row['病人'],
     病歷號: row['病歷號'],
     品項:   row['品項'],
+    組件:   row['組件'] || '',
+    報損:   row['報損'] || '',
   }));
   window.location.href = `edit-request.html?serial=${row['流水號']}`;
 }
