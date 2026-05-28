@@ -445,9 +445,12 @@ header{display:flex;align-items:center;justify-content:space-between;padding:26p
       </div>
     </div>
     <div class="fg" id="navFg" style="display:none">
-      <label class="fl">目前淨值 NAV（手動輸入）</label>
-      <input class="fi" type="number" id="aNav" placeholder="0.0000" step="any">
-      <div class="fhint">請至台灣基金資訊觀測站 fundclear.com.tw 查詢最新 NAV</div>
+      <label class="fl">目前淨值 NAV</label>
+      <div style="display:flex;gap:8px;align-items:stretch">
+        <input class="fi" type="number" id="aNav" placeholder="0.0000" step="any" style="flex:1">
+        <button type="button" id="navQueryBtn" onclick="queryFundNAV()" style="background:var(--green);color:#fff;border:none;border-radius:8px;font-family:var(--mono);font-size:.65rem;padding:9px 13px;cursor:pointer;white-space:nowrap;transition:opacity .15s">查詢 NAV</button>
+      </div>
+      <div class="fhint" id="navHint">輸入代碼後點「查詢 NAV」自動填入，或至 fundclear.com.tw 手動查詢</div>
     </div>
     <div class="fg">
       <label class="fl">計價幣別</label>
@@ -548,13 +551,6 @@ const LCAT = {
   mortgage:{color:'#2c5f8a',label:'房貸'},car:{color:'#b5700a',label:'車貸'},
   credit:  {color:'#c0392b',label:'信貸'},student:{color:'#5b4a8a',label:'學貸'},
   personal:{color:'#1a7a7a',label:'信用卡分期'},other:{color:'#8a8680',label:'其他'},
-};
-const CGID = {
-  BTC:'bitcoin',ETH:'ethereum',SOL:'solana',BNB:'binancecoin',XRP:'ripple',
-  ADA:'cardano',AVAX:'avalanche-2',DOT:'polkadot',DOGE:'dogecoin',
-  MATIC:'matic-network',LINK:'chainlink',UNI:'uniswap',LTC:'litecoin',
-  ATOM:'cosmos',NEAR:'near',ARB:'arbitrum',OP:'optimism',SUI:'sui',
-  TON:'the-open-network',USDT:'tether',USDC:'usd-coin',
 };
 
 // ══════════════════════════════════════
@@ -712,20 +708,55 @@ async function fetchYahoo(ticker) {
     return {price:m.regularMarketPrice||m.chartPreviousClose,currency:m.currency,name:m.shortName||''};
   } catch {return null;}
 }
-async function fetchCoinGecko(symbol) {
-  const id=CGID[symbol.toUpperCase()]||symbol.toLowerCase();
+async function fetchPionex(symbol) {
+  const pair = symbol.toUpperCase() + '_USDT';
   try {
-    const r=await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${id}&vs_currencies=usd,twd`,{signal:AbortSignal.timeout(8000)});
-    const d=await r.json(); if(!d[id])return null;
-    return {usd:d[id].usd,twd:d[id].twd};
+    const r=await fetch('https://api.pionex.com/api/v1/market/tickers',{signal:AbortSignal.timeout(8000)});
+    const d=await r.json();
+    if(!d.result||!d.data?.tickers)return null;
+    const t=d.data.tickers.find(x=>x.symbol===pair);
+    if(!t)return null;
+    const usd=parseFloat(t.close);
+    return {usd,twd:usd*usdTwd};
   } catch {return null;}
 }
+async function fetchExchangeRate() {
+  try {
+    const r=await fetch('https://open.er-api.com/v6/latest/USD',{signal:AbortSignal.timeout(8000)});
+    const d=await r.json();
+    if(d.result==='success'&&d.rates?.TWD>20&&d.rates?.TWD<60)return d.rates.TWD;
+  } catch {}
+  return null;
+}
+async function fetchFundNAV(ticker) {
+  const proxy='https://api.allorigins.win/raw?url=';
+  const url=`https://www.fundclear.com.tw/MFCConsumer.B2C/Fund/SearchFundNAVByCode?fundCode=${encodeURIComponent(ticker)}`;
+  try {
+    const r=await fetch(proxy+encodeURIComponent(url),{signal:AbortSignal.timeout(10000)});
+    const text=await r.text();
+    try {
+      const d=JSON.parse(text);
+      const nav=d?.NAV??d?.nav??d?.Data?.[0]?.NAV??d?.data?.[0]?.nav??d?.data?.[0]?.NAV;
+      if(nav!=null&&!isNaN(parseFloat(nav)))return parseFloat(nav);
+    } catch {}
+    const m=text.match(/["']NAV["']\s*:\s*["']?([0-9]+(?:\.[0-9]+)?)["']?/i);
+    if(m)return parseFloat(m[1]);
+  } catch {}
+  return null;
+}
 async function fetchPrices() {
-  const rr=await fetchYahoo('USDTWD=X');
-  if(rr?.price&&rr.price>20&&rr.price<60)usdTwd=rr.price;
+  // 匯率：ExchangeRate-API 優先，Yahoo 備援
+  const er=await fetchExchangeRate();
+  if(er){usdTwd=er;}else{const rr=await fetchYahoo('USDTWD=X');if(rr?.price&&rr.price>20&&rr.price<60)usdTwd=rr.price;}
   await Promise.all(assets.map(async a=>{
-    if(a.type==='fund'){if(a.nav)prices[a.id]={price:a.nav,currency:a.currency};return;}
-    if(a.type==='crypto'){const r=await fetchCoinGecko(a.ticker);if(r)prices[a.id]={price:a.currency==='TWD'?r.twd:r.usd,currency:a.currency};return;}
+    if(a.type==='fund'){
+      // 嘗試自動抓取 NAV，失敗則沿用手動輸入值
+      const fresh=await fetchFundNAV(a.ticker);
+      const navToUse=fresh||a.nav;
+      if(navToUse){prices[a.id]={price:navToUse,currency:a.currency};if(fresh&&fresh!==a.nav)a.nav=fresh;}
+      return;
+    }
+    if(a.type==='crypto'){const r=await fetchPionex(a.ticker);if(r)prices[a.id]={price:a.currency==='TWD'?r.twd:r.usd,currency:a.currency};return;}
     const t=a.type==='tw'?a.ticker+'.TW':a.ticker;
     const r=await fetchYahoo(t);
     if(r){prices[a.id]={price:r.price,currency:r.currency||a.currency};if(!a.name&&r.name)a.name=r.name;}
@@ -929,10 +960,21 @@ function closeModal(id){document.getElementById(id).classList.remove('open');}
 
 function onAssetTypeChange(){
   const t=document.getElementById('aType').value;
-  const hints={tw:'台股代號：2330、0050、006208',us:'美股 Ticker：AAPL、MSFT、SPY、QQQ',fund:'輸入基金代號或簡稱（標記識別用）',crypto:'支援：BTC、ETH、SOL、BNB、XRP、ADA…'};
+  const hints={tw:'台股代號：2330、0050、006208',us:'美股 Ticker：AAPL、MSFT、SPY、QQQ',fund:'輸入基金代號後點「查詢 NAV」自動填入',crypto:'支援：BTC、ETH、SOL、BNB、XRP、ADA…（派網報價）'};
   document.getElementById('aHint').textContent=hints[t];
   document.getElementById('navFg').style.display=t==='fund'?'':'none';
   document.getElementById('aCur').value=(t==='us'||t==='crypto')?'USD':'TWD';
+  if(t==='fund'){document.getElementById('navHint').textContent='輸入代碼後點「查詢 NAV」自動填入，或至 fundclear.com.tw 手動查詢';}
+}
+async function queryFundNAV(){
+  const ticker=document.getElementById('aTicker').value.trim();
+  if(!ticker){alert('請先輸入基金代碼');return;}
+  const btn=document.getElementById('navQueryBtn'),hint=document.getElementById('navHint');
+  btn.textContent='查詢中…';btn.disabled=true;btn.style.opacity='.6';
+  const nav=await fetchFundNAV(ticker);
+  btn.textContent='查詢 NAV';btn.disabled=false;btn.style.opacity='1';
+  if(nav){document.getElementById('aNav').value=nav;hint.textContent=`✅ 查詢成功：NAV = ${nav}`;}
+  else{hint.textContent='❌ 自動查詢失敗，請至 fundclear.com.tw 手動輸入 NAV';}
 }
 
 async function addAsset(){
@@ -956,7 +998,7 @@ async function addAsset(){
   await n8nPost({action:'save_asset',payload:a});
   if(type!=='fund'){
     (async()=>{
-      if(type==='crypto'){const r=await fetchCoinGecko(a.ticker);if(r)prices[a.id]={price:cur==='TWD'?r.twd:r.usd,currency:cur};}
+      if(type==='crypto'){const r=await fetchPionex(a.ticker);if(r)prices[a.id]={price:cur==='TWD'?r.twd:r.usd,currency:cur};}
       else{const t2=type==='tw'?a.ticker+'.TW':a.ticker;const r=await fetchYahoo(t2);if(r){prices[a.id]={price:r.price,currency:r.currency||cur};if(!a.name&&r.name){a.name=r.name;await n8nPost({action:'save_asset',payload:a});}}}
       saveLocal();renderAll();
     })();
