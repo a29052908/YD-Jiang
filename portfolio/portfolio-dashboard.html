@@ -718,7 +718,11 @@ async function loadData() {
       assets      = Array.isArray(d.assets)?d.assets:[];
       liabilities = Array.isArray(d.liabilities)?d.liabilities:[];
       saveLocal(); updateSyncPill('ok');
-    } else { loadLocal(); updateSyncPill('err'); }
+    } else {
+      loadLocal();
+      // n8n 失敗時靜默降級：有本機資料就顯示本機模式，不顯示紅色錯誤
+      updateSyncPill(assets.length||liabilities.length ? 'local' : 'err');
+    }
   } else { loadLocal(); }
   renderAll();
   if (assets.length) await fetchPrices();
