@@ -536,7 +536,8 @@ header{display:flex;align-items:center;justify-content:space-between;padding:26p
 // ══════════════════════════════════════
 // State
 // ══════════════════════════════════════
-let N8N_URL = localStorage.getItem('n8n_url') || '';
+const N8N_BASE = 'https://ydj.zeabur.app/webhook/portfolio';
+let N8N_URL = localStorage.getItem('n8n_url') || N8N_BASE;
 let assets = [], liabilities = [], prices = {};
 let usdTwd = 32.5, dispCur = 'TWD';
 let assetFilter = 'all', liabFilter = 'all';
