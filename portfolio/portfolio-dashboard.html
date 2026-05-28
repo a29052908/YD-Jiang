@@ -217,6 +217,16 @@ header{display:flex;align-items:center;justify-content:space-between;padding:26p
 .ai-spinner{width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto}
 @media(max-width:1100px){.main-grid{grid-template-columns:1fr}.sidebar{flex-direction:row;flex-wrap:wrap}.sidebar .card{flex:1;min-width:255px}}
 @media(max-width:700px){.kpi-row{grid-template-columns:repeat(3,1fr)}.shell{padding:0 14px 48px}.foot-bar{grid-template-columns:1fr 1fr}}
+
+/* ── Fixed income badge ── */
+.b-fixed{background:var(--teal-l);color:var(--teal)}
+
+/* ── Sell modal ── */
+.sell-info{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:13px 15px;margin-bottom:14px}
+.sell-info-row{display:flex;justify-content:space-between;font-family:var(--mono);font-size:.71rem;padding:3px 0;color:var(--muted)}
+.sell-info-row span:last-child{color:var(--text);font-weight:500}
+.sell-calc{background:var(--green-l);border:1px solid #c6e8d4;border-radius:8px;padding:13px 16px;margin-top:11px;text-align:center;font-family:var(--mono)}
+.sell-calc.crypto-bg{background:var(--purple-l);border-color:#d4c6f0}
 </style>
 </head>
 <body>
@@ -288,35 +298,65 @@ header{display:flex;align-items:center;justify-content:space-between;padding:26p
 <div class="page active" id="page-assets">
   <div class="main-grid">
     <div class="left">
-      <div class="card">
-        <div class="card-header">
-          <div class="card-title">持倉明細</div>
-          <div style="display:flex;align-items:center;gap:8px">
-            <div class="tabs">
-              <button class="tab active" onclick="filterTab(this,'all')">全部</button>
-              <button class="tab" onclick="filterTab(this,'tw')">台股</button>
-              <button class="tab" onclick="filterTab(this,'us')">美股</button>
-              <button class="tab" onclick="filterTab(this,'fund')">基金</button>
-              <button class="tab" onclick="filterTab(this,'crypto')">加密</button>
+      <!-- 資產子分類切換 -->
+      <div class="snav-bar" style="margin-bottom:14px">
+        <button class="snav active" id="viewGenBtn" onclick="setAssetView('general',this)">一般資產</button>
+        <button class="snav" id="viewFixBtn" onclick="setAssetView('fixed',this)">固定升息</button>
+      </div>
+
+      <!-- 一般資產 -->
+      <div id="generalCard">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">持倉明細</div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <div class="tabs">
+                <button class="tab active" onclick="filterTab(this,'all')">全部</button>
+                <button class="tab" onclick="filterTab(this,'tw')">台股</button>
+                <button class="tab" onclick="filterTab(this,'us')">美股</button>
+                <button class="tab" onclick="filterTab(this,'fund')">基金</button>
+                <button class="tab" onclick="filterTab(this,'crypto')">加密</button>
+              </div>
+              <button class="add-btn g" onclick="openModal('assetModal')">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>新增資產
+              </button>
             </div>
-            <button class="add-btn g" onclick="openModal('assetModal')">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>新增資產
-            </button>
+          </div>
+          <table class="tbl"><thead><tr>
+            <th>名稱</th><th>現價</th><th>持有量</th><th>現值</th><th>成本</th><th>損益</th><th>報酬率</th><th></th>
+          </tr></thead><tbody id="assetBody"></tbody></table>
+          <div class="foot-bar" id="pnlBar" style="display:none">
+            <div class="foot-cell"><div class="foot-label">最佳績效</div><div class="foot-val pos" id="pBest">—</div></div>
+            <div class="foot-cell"><div class="foot-label">最差績效</div><div class="foot-val neg" id="pWorst">—</div></div>
+            <div class="foot-cell"><div class="foot-label">平均報酬</div><div class="foot-val" id="pAvg">—</div></div>
+            <div class="foot-cell"><div class="foot-label">獲利 / 虧損</div><div class="foot-val" id="pRatio">—</div></div>
           </div>
         </div>
-        <table class="tbl"><thead><tr>
-          <th>名稱</th><th>現價</th><th>持有量</th><th>現值</th><th>成本</th><th>損益</th><th>報酬率</th><th></th>
-        </tr></thead><tbody id="assetBody"></tbody></table>
-        <div class="foot-bar" id="pnlBar" style="display:none">
-          <div class="foot-cell"><div class="foot-label">最佳績效</div><div class="foot-val pos" id="pBest">—</div></div>
-          <div class="foot-cell"><div class="foot-label">最差績效</div><div class="foot-val neg" id="pWorst">—</div></div>
-          <div class="foot-cell"><div class="foot-label">平均報酬</div><div class="foot-val" id="pAvg">—</div></div>
-          <div class="foot-cell"><div class="foot-label">獲利 / 虧損</div><div class="foot-val" id="pRatio">—</div></div>
+      </div>
+
+      <!-- 固定升息 -->
+      <div id="fixedCard" style="display:none">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">固定升息資產</div>
+            <button class="add-btn g" onclick="openModal('fixedModal')" style="background:var(--teal)">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>新增固定升息
+            </button>
+          </div>
+          <table class="tbl"><thead><tr>
+            <th>名稱</th><th>類型</th><th>本金</th><th>年利率</th><th>月現金流</th><th>到期日</th><th></th>
+          </tr></thead><tbody id="fixedBody"></tbody></table>
+          <div class="foot-bar" id="fixedFooter" style="display:none;grid-template-columns:repeat(3,1fr)">
+            <div class="foot-cell"><div class="foot-label">總本金</div><div class="foot-val" id="fxTotalPrincipal">—</div></div>
+            <div class="foot-cell"><div class="foot-label">月現金流合計</div><div class="foot-val pos" id="fxTotalMonthly">—</div></div>
+            <div class="foot-cell"><div class="foot-label">平均年利率</div><div class="foot-val" id="fxAvgRate">—</div></div>
+          </div>
         </div>
       </div>
     </div>
+
     <div class="sidebar">
-      <div class="card">
+      <div class="card" id="sidebarDonut">
         <div class="card-header"><div class="card-title">資產配置</div></div>
         <div class="donut-area">
           <svg class="donut-svg" viewBox="0 0 144 144" id="donutSvg">
@@ -326,9 +366,13 @@ header{display:flex;align-items:center;justify-content:space-between;padding:26p
           <div class="d-legend" id="donutLegend"><div class="d-row" style="color:var(--faint);font-size:.65rem">新增資產後顯示</div></div>
         </div>
       </div>
-      <div class="card">
+      <div class="card" id="sidebarAlloc">
         <div class="card-header"><div class="card-title">類別水位</div></div>
         <div class="alloc-area" id="allocArea"><div style="font-family:var(--mono);font-size:.65rem;color:var(--faint)">新增資產後顯示</div></div>
+      </div>
+      <div class="card" id="sidebarCashflow" style="display:none">
+        <div class="card-header"><div class="card-title">月現金流預覽</div></div>
+        <div class="alloc-area" id="cashflowArea"><div style="font-family:var(--mono);font-size:.65rem;color:var(--faint)">新增固定升息資產後顯示</div></div>
       </div>
     </div>
   </div>
@@ -569,15 +613,88 @@ header{display:flex;align-items:center;justify-content:space-between;padding:26p
   </div>
 </div>
 
+<!-- ── Fixed Income Modal ── -->
+<div class="backdrop" id="fixedModal">
+  <div class="modal">
+    <div class="modal-head"><div class="modal-title">新增固定升息資產</div><button class="modal-close" onclick="closeModal('fixedModal')">×</button></div>
+    <div class="frow">
+      <div class="fg">
+        <label class="fl">名稱</label>
+        <input class="fi" id="fxName" placeholder="如 玉山定存、儲蓄險">
+      </div>
+      <div class="fg">
+        <label class="fl">類型</label>
+        <select class="fs" id="fxSubtype">
+          <option value="deposit">定期存款</option>
+          <option value="bond">債券</option>
+          <option value="insurance">儲蓄險</option>
+          <option value="reit">REITs</option>
+          <option value="other">其他</option>
+        </select>
+      </div>
+    </div>
+    <div class="frow">
+      <div class="fg">
+        <label class="fl">本金金額</label>
+        <input class="fi" type="number" id="fxPrincipal" placeholder="0" min="0">
+      </div>
+      <div class="fg">
+        <label class="fl">年利率 (%)</label>
+        <input class="fi" type="number" id="fxRate" placeholder="2.50" min="0" step="0.01">
+      </div>
+    </div>
+    <div class="frow">
+      <div class="fg">
+        <label class="fl">計價幣別</label>
+        <select class="fs" id="fxCurrency">
+          <option value="TWD">TWD 新台幣</option>
+          <option value="USD">USD 美元</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label class="fl">到期日（選填）</label>
+        <input class="fi" type="date" id="fxMaturity">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('fixedModal')">取消</button>
+      <button class="btn btn-green" style="background:var(--teal)" onclick="addFixedIncome()">新增</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Sell Modal ── -->
+<div class="backdrop" id="sellModal">
+  <div class="modal" style="width:420px">
+    <div class="modal-head"><div class="modal-title" id="sellModalTitle">售出資產</div><button class="modal-close" onclick="closeModal('sellModal')">×</button></div>
+    <div class="sell-info" id="sellInfo"></div>
+    <div class="fg">
+      <label class="fl">售出數量</label>
+      <input class="fi" type="number" id="sellQty" placeholder="0" min="0" step="any" oninput="updateSellCalc()">
+    </div>
+    <div id="sellCalc" style="display:none">
+      <div class="sell-calc" id="sellCalcBox">
+        <div style="font-size:.6rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px" id="sellCalcLabel"></div>
+        <div style="font-size:1.3rem;font-weight:500" id="sellCalcValue"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('sellModal')">取消</button>
+      <button class="btn btn-green" onclick="confirmSell()">確認售出</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ══════════════════════════════════════
 // State
 // ══════════════════════════════════════
 const N8N_BASE = 'https://ydj.zeabur.app/webhook/portfolio';
 let N8N_URL = localStorage.getItem('n8n_url') || N8N_BASE;
-let assets = [], liabilities = [], prices = {};
+let assets = [], liabilities = [], fixedAssets = [], prices = {};
 let usdTwd = 32.5, dispCur = 'TWD';
 let assetFilter = 'all', liabFilter = 'all';
+let sellTargetId = null;
 
 const CAT = {
   tw:    {color:'#2c5f8a',label:'台股/ETF', badge:'b-tw'    },
@@ -589,6 +706,9 @@ const LCAT = {
   mortgage:{color:'#2c5f8a',label:'房貸'},car:{color:'#b5700a',label:'車貸'},
   credit:  {color:'#c0392b',label:'信貸'},student:{color:'#5b4a8a',label:'學貸'},
   personal:{color:'#1a7a7a',label:'信用卡分期'},other:{color:'#8a8680',label:'其他'},
+};
+const FXCAT = {
+  deposit:{label:'定期存款'},bond:{label:'債券'},insurance:{label:'儲蓄險'},reit:{label:'REITs'},other:{label:'其他'},
 };
 
 // ══════════════════════════════════════
@@ -741,10 +861,12 @@ async function n8nDelete(type,id) {
 function saveLocal() {
   localStorage.setItem('pf_assets_v3',JSON.stringify(assets));
   localStorage.setItem('pf_liabs_v1',JSON.stringify(liabilities));
+  localStorage.setItem('pf_fixed_v1',JSON.stringify(fixedAssets));
 }
 function loadLocal() {
-  assets      = JSON.parse(localStorage.getItem('pf_assets_v3')||'[]');
-  liabilities = JSON.parse(localStorage.getItem('pf_liabs_v1') ||'[]');
+  assets       = JSON.parse(localStorage.getItem('pf_assets_v3')||'[]');
+  liabilities  = JSON.parse(localStorage.getItem('pf_liabs_v1') ||'[]');
+  fixedAssets  = JSON.parse(localStorage.getItem('pf_fixed_v1') ||'[]');
 }
 
 async function loadData() {
@@ -862,7 +984,7 @@ function fmtM(n,d=0){if(n===null||n===undefined||isNaN(n))return '—';return SY
 // ══════════════════════════════════════
 // Render
 // ══════════════════════════════════════
-function renderAll(){renderAssetTable();renderKPI();renderDonut();renderAlloc();renderPnL();renderLiabTable();renderLiabDonut();renderLiabFooter();renderReminders();}
+function renderAll(){renderAssetTable();renderFixedTable();renderCashflow();renderKPI();renderDonut();renderAlloc();renderPnL();renderLiabTable();renderLiabDonut();renderLiabFooter();renderReminders();}
 
 function renderAssetTable(){
   const tbody=document.getElementById('assetBody');
@@ -876,14 +998,19 @@ function renderAssetTable(){
     const cls=pnl==null?'neu':pnl>=0?'pos':'neg';const sign=v=>v>=0?'+':'−';
     const pDec=price?(price<10?4:price<1000?2:0):2;
     const pStr=price!=null?`${fmt(price,pDec)} <span style="color:var(--faint);font-size:.57rem">${pCur}</span>`:`<span class="pill-loading">取得中…</span>`;
+    const qtyStr=a.type==='tw'?fmt(a.qty,0)+' 股':a.type==='crypto'?fmt(a.qty,6):fmt(a.qty,0);
+    const canSell=price!=null;
     return `<tr>
       <td><div class="cell-name">${a.name||a.ticker}<span class="badge ${CAT[a.type].badge}">${CAT[a.type].label}</span></div><div class="cell-sub">${a.ticker}</div></td>
-      <td>${pStr}</td><td>${a.type==='crypto'?fmt(a.qty,6):fmt(a.qty,0)}</td>
+      <td>${pStr}</td><td>${qtyStr}</td>
       <td>${dv!=null?fmtM(dv,0):'—'}</td>
       <td style="color:var(--muted)">${fmtM(dc,0)}</td>
       <td class="${cls}">${pnl!=null?sign(pnl)+fmtM(Math.abs(pnl),0):'—'}</td>
       <td class="${cls}">${pct!=null?sign(pct)+Math.abs(pct).toFixed(2)+'%':'—'}</td>
-      <td><button class="icon-btn" onclick="deleteAsset('${a.id}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg></button></td>
+      <td style="display:flex;gap:3px;justify-content:flex-end">
+        ${canSell?`<button class="icon-btn" style="color:var(--blue);font-size:.63rem;padding:4px 7px" onclick="openSellModal('${a.id}')">售出</button>`:''}
+        <button class="icon-btn" onclick="deleteAsset('${a.id}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg></button>
+      </td>
     </tr>`;
   }).join('');
 }
@@ -1017,7 +1144,21 @@ function renderReminders(){
 // ══════════════════════════════════════
 // Page / Tab controls
 // ══════════════════════════════════════
-function showPage(id,btn){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.snav').forEach(b=>b.classList.remove('active'));document.getElementById('page-'+id).classList.add('active');btn.classList.add('active');}
+function showPage(id,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  btn.parentElement.querySelectorAll('.snav').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  btn.classList.add('active');
+}
+function setAssetView(v,el){
+  el.parentElement.querySelectorAll('.snav').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('generalCard').style.display   = v==='general'?'':'none';
+  document.getElementById('fixedCard').style.display     = v==='fixed'  ?'':'none';
+  document.getElementById('sidebarDonut').style.display  = v==='general'?'':'none';
+  document.getElementById('sidebarAlloc').style.display  = v==='general'?'':'none';
+  document.getElementById('sidebarCashflow').style.display = v==='fixed'?'':'none';
+}
 function filterTab(el,type){document.querySelectorAll('#page-assets .tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');assetFilter=type;renderAssetTable();}
 function filterLiabTab(el,type){document.querySelectorAll('#page-liabilities .tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');liabFilter=type;renderLiabTable();}
 
@@ -1185,6 +1326,159 @@ async function runAI(){
     resultEl.innerHTML=`<div class="ai-placeholder" style="color:var(--red)">分析失敗：${e.message}<br><br>請確認 n8n AI workflow 已啟用</div>`;
   }
   btn.disabled=false;btn.textContent='重新分析';
+}
+
+// ══════════════════════════════════════
+// Fixed Income
+// ══════════════════════════════════════
+function renderFixedTable(){
+  const tbody=document.getElementById('fixedBody');
+  const footer=document.getElementById('fixedFooter');
+  if(!fixedAssets.length){
+    tbody.innerHTML=`<tr><td colspan="7" class="empty-td">尚無固定升息資產。點擊「新增固定升息」開始新增。</td></tr>`;
+    footer.style.display='none';return;
+  }
+  let totP=0,totM=0,totR=0;
+  tbody.innerHTML=fixedAssets.map(fx=>{
+    const principal=toD(fx.principal||0,fx.currency);
+    const monthly=principal*(fx.rate||0)/100/12;
+    totP+=principal;totM+=monthly;totR+=fx.rate||0;
+    const matStr=fx.maturity?new Date(fx.maturity).toLocaleDateString('zh-TW',{year:'numeric',month:'2-digit',day:'2-digit'}):'—';
+    const subLabel=(FXCAT[fx.subtype]||FXCAT.other).label;
+    return `<tr>
+      <td><div class="cell-name">${fx.name}<span class="badge b-fixed">${subLabel}</span></div></td>
+      <td style="color:var(--teal);font-family:var(--mono);font-size:.71rem">${subLabel}</td>
+      <td>${fmtM(principal,0)}</td>
+      <td style="color:var(--muted)">${(fx.rate||0).toFixed(2)}%</td>
+      <td class="pos">${fmtM(monthly,0)}</td>
+      <td style="color:var(--muted)">${matStr}</td>
+      <td><button class="icon-btn" onclick="deleteFixed('${fx.id}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg></button></td>
+    </tr>`;
+  }).join('');
+  footer.style.display='grid';
+  document.getElementById('fxTotalPrincipal').textContent=fmtM(totP,0);
+  document.getElementById('fxTotalMonthly').textContent=fmtM(totM,0);
+  document.getElementById('fxAvgRate').textContent=(totR/fixedAssets.length).toFixed(2)+'%';
+}
+
+function renderCashflow(){
+  const area=document.getElementById('cashflowArea');
+  const card=document.getElementById('sidebarCashflow');
+  if(!fixedAssets.length){
+    area.innerHTML=`<div style="font-family:var(--mono);font-size:.65rem;color:var(--faint)">新增固定升息資產後顯示</div>`;
+    return;
+  }
+  let totM=0;
+  const rows=fixedAssets.map(fx=>{
+    const principal=toD(fx.principal||0,fx.currency);
+    const monthly=principal*(fx.rate||0)/100/12;
+    totM+=monthly;
+    return `<div><div class="alloc-meta"><span class="alloc-name">${fx.name}</span><span class="alloc-pct pos">${fmtM(monthly,0)}/月</span></div><div style="font-family:var(--mono);font-size:.58rem;color:var(--faint);margin-top:2px">${(fx.rate||0).toFixed(2)}% 年利率</div></div>`;
+  }).join('');
+  area.innerHTML=rows+`<div style="border-top:1px solid var(--border-light);margin-top:10px;padding-top:10px"><div class="alloc-meta"><span class="alloc-name" style="font-weight:600">月現金流合計</span><span style="font-family:var(--mono);font-size:.72rem;font-weight:600;color:var(--teal)">${fmtM(totM,0)}</span></div></div>`;
+}
+
+async function addFixedIncome(){
+  const name=document.getElementById('fxName').value.trim();
+  const subtype=document.getElementById('fxSubtype').value;
+  const principal=parseFloat(document.getElementById('fxPrincipal').value)||0;
+  const rate=parseFloat(document.getElementById('fxRate').value)||0;
+  const currency=document.getElementById('fxCurrency').value;
+  const maturity=document.getElementById('fxMaturity').value||null;
+  if(!name){alert('請輸入名稱');return;}
+  if(principal<=0){alert('請輸入本金金額');return;}
+  const fx={id:Date.now().toString(),name,subtype,principal,rate,currency,maturity};
+  fixedAssets.push(fx);
+  closeModal('fixedModal');
+  ['fxName','fxPrincipal','fxRate','fxMaturity'].forEach(id=>document.getElementById(id).value='');
+  saveLocal();renderAll();
+}
+
+async function deleteFixed(id){
+  if(!confirm('確認刪除此固定升息資產？'))return;
+  fixedAssets=fixedAssets.filter(f=>f.id!==id);
+  saveLocal();renderAll();
+}
+
+// ══════════════════════════════════════
+// Sell
+// ══════════════════════════════════════
+function openSellModal(id){
+  sellTargetId=id;
+  const a=assets.find(x=>x.id===id);if(!a)return;
+  const p=prices[id];if(!p)return;
+  const isCrypto=a.type==='crypto';
+  document.getElementById('sellModalTitle').textContent=isCrypto?`售出 ${a.ticker} → USDT`:`售出 ${a.name||a.ticker} → 現金`;
+  const pCur=p.currency||a.currency;
+  const costT=(a.costPerUnit||0)*a.qty;
+  const mktV=p.price*a.qty;
+  const pnl=toD(mktV,pCur)-toD(costT,a.currency);
+  const sign=pnl>=0?'+':'−';
+  document.getElementById('sellInfo').innerHTML=`
+    <div class="sell-info-row"><span>持有數量</span><span>${a.type==='tw'?fmt(a.qty,0)+' 股':a.type==='crypto'?fmt(a.qty,6):fmt(a.qty,0)}</span></div>
+    <div class="sell-info-row"><span>目前市價</span><span>${fmt(p.price,p.price<10?4:2)} ${pCur}</span></div>
+    <div class="sell-info-row"><span>市值</span><span>${fmtM(toD(mktV,pCur),0)}</span></div>
+    <div class="sell-info-row"><span>未實現損益</span><span style="color:${pnl>=0?'var(--green)':'var(--red)'}">${sign}${fmtM(Math.abs(pnl),0)}</span></div>`;
+  document.getElementById('sellQty').value='';
+  document.getElementById('sellQty').max=a.qty;
+  document.getElementById('sellCalc').style.display='none';
+  openModal('sellModal');
+}
+
+function updateSellCalc(){
+  if(!sellTargetId)return;
+  const a=assets.find(x=>x.id===sellTargetId);if(!a)return;
+  const p=prices[sellTargetId];if(!p)return;
+  const qty=parseFloat(document.getElementById('sellQty').value)||0;
+  const calc=document.getElementById('sellCalc');
+  const box=document.getElementById('sellCalcBox');
+  const label=document.getElementById('sellCalcLabel');
+  const val=document.getElementById('sellCalcValue');
+  if(qty<=0||qty>a.qty){calc.style.display='none';return;}
+  calc.style.display='';
+  const isCrypto=a.type==='crypto';
+  const pCur=p.currency||a.currency;
+  if(isCrypto){
+    const usdt=qty*p.price;
+    box.className='sell-calc crypto-bg';
+    label.textContent='換得 USDT';
+    val.style.color='var(--purple)';
+    val.textContent=fmt(usdt,2)+' USDT';
+  } else {
+    const cash=toD(qty*p.price,pCur);
+    box.className='sell-calc';
+    label.textContent='換得現金（'+dispCur+'）';
+    val.style.color='var(--green)';
+    val.textContent=fmtM(cash,0);
+  }
+}
+
+async function confirmSell(){
+  if(!sellTargetId)return;
+  const idx=assets.findIndex(x=>x.id===sellTargetId);if(idx<0)return;
+  const a=assets[idx];
+  const qty=parseFloat(document.getElementById('sellQty').value)||0;
+  if(qty<=0||qty>a.qty){alert('請輸入有效售出數量');return;}
+  const p=prices[sellTargetId];
+  const isCrypto=a.type==='crypto';
+  const pCur=p?.currency||a.currency;
+  let resultMsg;
+  if(isCrypto&&p){
+    resultMsg=`✅ 已售出 ${fmt(qty,6)} ${a.ticker}\n換得 ${fmt(qty*p.price,2)} USDT`;
+  } else if(p){
+    resultMsg=`✅ 已售出 ${a.type==='tw'?fmt(qty,0)+' 股':fmt(qty,0)} ${a.name||a.ticker}\n換得現金 ${fmtM(toD(qty*p.price,pCur),0)}`;
+  } else {
+    resultMsg=`✅ 已售出 ${fmt(qty,0)} 股 ${a.name||a.ticker}`;
+  }
+  if(qty>=a.qty){
+    assets.splice(idx,1);delete prices[sellTargetId];
+  } else {
+    a.qty-=qty;
+  }
+  closeModal('sellModal');
+  saveLocal();renderAll();
+  await n8nPost({action:'save_asset',payload:assets.find(x=>x.id===sellTargetId)||{id:sellTargetId,_deleted:true}});
+  alert(resultMsg);
 }
 
 // ══════════════════════════════════════
