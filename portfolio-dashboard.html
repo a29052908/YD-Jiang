@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>財務儀表板</title>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@300;400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f7f6f3;--white:#fff;--border:#e8e6e1;--border-light:#f0eeea;
+  --text:#1a1916;--muted:#8a8680;--faint:#c8c5bf;
+  --green:#2a6b4a;--green-l:#eaf3ed;
+  --blue:#2c5f8a; --blue-l:#eef3f9;
+  --gold:#b5700a; --gold-l:#fef9ef;
+  --purple:#5b4a8a;--purple-l:#f3f0fa;
+  --red:#c0392b;  --red-l:#fdf0ee;
+  --teal:#1a7a7a; --teal-l:#eaf4f4;
+  --serif:'Libre Baskerville',Georgia,serif;
+  --mono:'IBM Plex Mono',monospace;
+  --sans:'IBM Plex Sans',sans-serif;
+  --sh:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
+  --sh2:0 8px 24px rgba(0,0,0,.08);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;-webkit-font-smoothing:antialiased}
+.shell{max-width:1440px;margin:0 auto;padding:0 32px 72px}
+
+/* ── Setup Card ── */
+#setupCard{background:var(--white);border:1px solid #fde68a;border-radius:12px;padding:24px 28px;margin-bottom:22px;box-shadow:var(--sh)}
+#setupCard.hidden{display:none}
+.setup-title{font-family:var(--serif);font-size:.95rem;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.setup-sub{font-family:var(--mono);font-size:.65rem;color:var(--muted);margin-bottom:18px;line-height:1.7}
+.setup-sub code{background:var(--bg);padding:1px 6px;border-radius:4px;border:1px solid var(--border);font-size:.63rem}
+.setup-row{display:flex;gap:10px;align-items:stretch}
+.setup-input{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:8px;font-family:var(--mono);font-size:.75rem;padding:10px 13px;color:var(--text);outline:none;transition:border-color .15s}
+.setup-input:focus{border-color:var(--green)}
+.setup-save{background:var(--green);color:#fff;border:none;border-radius:8px;font-family:var(--mono);font-size:.68rem;padding:10px 18px;cursor:pointer;white-space:nowrap;transition:opacity .15s;font-weight:500}
+.setup-save:hover{opacity:.87}
+.setup-skip{background:none;border:1px solid var(--border);color:var(--muted);border-radius:8px;font-family:var(--mono);font-size:.68rem;padding:10px 14px;cursor:pointer;transition:all .15s}
+.setup-skip:hover{color:var(--text);border-color:var(--muted)}
+.setup-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:18px}
+.step{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px 14px}
+.step-num{font-family:var(--mono);font-size:.6rem;color:var(--muted);margin-bottom:4px;letter-spacing:.05em}
+.step-text{font-family:var(--mono);font-size:.67rem;color:var(--text);line-height:1.5}
+.step-text code{background:var(--white);padding:1px 5px;border-radius:3px;border:1px solid var(--border);font-size:.62rem}
+
+/* ── Sync pill ── */
+.sync-pill{font-family:var(--mono);font-size:.61rem;padding:4px 10px;border-radius:99px;display:inline-flex;align-items:center;gap:5px;transition:all .2s}
+.sync-pill.local  {background:#f3f4f6;color:var(--muted)}
+.sync-pill.ok     {background:var(--green-l);color:var(--green)}
+.sync-pill.err    {background:var(--red-l);color:var(--red)}
+.sync-pill.syncing{background:var(--blue-l);color:var(--blue)}
+
+/* ── Header ── */
+header{display:flex;align-items:center;justify-content:space-between;padding:26px 0 22px;border-bottom:1px solid var(--border);margin-bottom:24px}
+.logo-main{font-family:var(--serif);font-size:1.18rem}
+.logo-sub{font-family:var(--mono);font-size:.59rem;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;margin-top:3px}
+.live-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--green);margin-right:5px;animation:blink 2.5s ease-in-out infinite;vertical-align:middle}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.18}}
+.hright{display:flex;align-items:center;gap:10px}
+.cur-toggle{display:flex;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:3px;gap:2px}
+.cur-toggle button{background:none;border:none;font-family:var(--mono);font-size:.66rem;padding:5px 11px;border-radius:5px;cursor:pointer;color:var(--muted);transition:all .15s}
+.cur-toggle button.active{background:var(--white);color:var(--text);box-shadow:var(--sh)}
+.hbtn{display:flex;align-items:center;gap:6px;background:var(--white);border:1px solid var(--border);border-radius:8px;font-family:var(--mono);font-size:.65rem;color:var(--muted);padding:7px 13px;cursor:pointer;transition:all .15s;box-shadow:var(--sh)}
+.hbtn:hover{color:var(--green);border-color:var(--green)}
+.hbtn:disabled{opacity:.45;cursor:not-allowed}
+.spin{animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.last-upd{font-family:var(--mono);font-size:.59rem;color:var(--faint)}
+
+/* ── KPI ── */
+.kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:11px;margin-bottom:20px}
+.kpi{background:var(--white);border:1px solid var(--border);border-radius:11px;padding:18px 20px;box-shadow:var(--sh);position:relative;overflow:hidden;animation:fadeUp .4s ease both}
+.kpi::before{content:'';position:absolute;left:0;top:13px;bottom:13px;width:3px;border-radius:0 2px 2px 0;background:var(--border)}
+.kpi.k-green::before{background:var(--green)}.kpi.k-red::before{background:var(--red)}
+.kpi.k-blue::before{background:var(--blue)} .kpi.k-teal::before{background:var(--teal)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.kpi-label{font-family:var(--mono);font-size:.57rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:8px}
+.kpi-value{font-family:var(--mono);font-size:1.4rem;font-weight:500;line-height:1;margin-bottom:5px}
+.kpi-sub{font-family:var(--mono);font-size:.65rem}
+.pos{color:var(--green)}.neg{color:var(--red)}.neu{color:var(--muted)}
+
+/* ── Section nav ── */
+.snav-bar{display:flex;gap:4px;margin-bottom:20px;border-bottom:1px solid var(--border)}
+.snav{font-family:var(--mono);font-size:.68rem;padding:9px 16px;border:none;background:none;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s}
+.snav.active{color:var(--text);border-bottom-color:var(--text)}
+.snav:hover:not(.active){color:var(--text)}
+.page{display:none}.page.active{display:block}
+
+/* ── Main grid ── */
+.main-grid{display:grid;grid-template-columns:1fr 298px;gap:17px;align-items:start}
+.left{display:flex;flex-direction:column;gap:17px}
+.sidebar{display:flex;flex-direction:column;gap:17px}
+
+/* ── Card ── */
+.card{background:var(--white);border:1px solid var(--border);border-radius:11px;box-shadow:var(--sh);overflow:hidden}
+.card-header{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--border-light)}
+.card-title{font-family:var(--serif);font-size:.84rem}
+.tabs{display:flex;gap:2px}
+.tab{font-family:var(--mono);font-size:.6rem;padding:4px 9px;border-radius:5px;cursor:pointer;color:var(--muted);background:none;border:none;transition:all .12s}
+.tab:hover{color:var(--text);background:var(--bg)}
+.tab.active{background:var(--bg);color:var(--text);border:1px solid var(--border)}
+.add-btn{display:flex;align-items:center;gap:5px;color:#fff;border:none;border-radius:7px;font-family:var(--mono);font-size:.62rem;padding:7px 12px;cursor:pointer;transition:opacity .15s}
+.add-btn:hover{opacity:.84}
+.add-btn.g{background:var(--green)}.add-btn.r{background:var(--red)}
+
+/* ── Table ── */
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{font-family:var(--mono);font-size:.56rem;text-transform:uppercase;letter-spacing:.09em;color:var(--faint);padding:10px 20px;text-align:right;border-bottom:1px solid var(--border-light);font-weight:400;white-space:nowrap}
+.tbl th:first-child{text-align:left}
+.tbl td{padding:12px 20px;font-family:var(--mono);font-size:.75rem;text-align:right;border-bottom:1px solid var(--border-light)}
+.tbl td:first-child{text-align:left}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tbody tr:hover td{background:var(--bg)}
+.cell-name{font-family:var(--sans);font-weight:500;font-size:.81rem;margin-bottom:2px}
+.cell-sub{font-family:var(--mono);font-size:.61rem;color:var(--muted)}
+.badge{display:inline-block;font-family:var(--mono);font-size:.5rem;letter-spacing:.07em;padding:2px 6px;border-radius:3px;text-transform:uppercase;margin-left:6px;vertical-align:middle;font-weight:500}
+.b-tw    {background:var(--blue-l);  color:var(--blue)}
+.b-us    {background:var(--green-l); color:var(--green)}
+.b-fund  {background:var(--gold-l);  color:var(--gold)}
+.b-crypto{background:var(--purple-l);color:var(--purple)}
+.pill-loading{color:var(--faint);font-size:.62rem}
+.icon-btn{background:none;border:none;cursor:pointer;color:var(--faint);padding:4px 5px;border-radius:5px;transition:all .12s;line-height:0}
+.icon-btn:hover{color:var(--red);background:var(--red-l)}
+.empty-td{text-align:center !important;padding:46px 20px !important;color:var(--faint);font-family:var(--mono);font-size:.68rem;border-bottom:none !important}
+.prog-track{width:68px;height:4px;background:var(--border-light);border-radius:99px;overflow:hidden;display:inline-block;vertical-align:middle;margin-left:6px}
+.prog-fill{height:100%;border-radius:99px;background:var(--red)}
+
+/* ── Footer bars ── */
+.foot-bar{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--border-light)}
+.foot-cell{padding:12px 20px;border-right:1px solid var(--border-light)}
+.foot-cell:last-child{border-right:none}
+.foot-label{font-family:var(--mono);font-size:.56rem;text-transform:uppercase;letter-spacing:.09em;color:var(--faint);margin-bottom:4px}
+.foot-val{font-family:var(--mono);font-size:.79rem;font-weight:500}
+
+/* ── Donut ── */
+.donut-area{padding:20px;display:flex;flex-direction:column;align-items:center;gap:16px}
+.donut-svg{width:144px;height:144px}
+.d-legend{width:100%;display:flex;flex-direction:column;gap:7px}
+.d-row{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:.66rem}
+.d-sw{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+.d-name{flex:1;color:var(--text)}
+.d-pct{color:var(--muted);min-width:34px;text-align:right}
+.d-amt{color:var(--faint);min-width:68px;text-align:right;font-size:.61rem}
+
+/* ── Alloc ── */
+.alloc-area{padding:16px 20px;display:flex;flex-direction:column;gap:12px}
+.alloc-meta{display:flex;justify-content:space-between;margin-bottom:5px;font-family:var(--mono);font-size:.65rem}
+.alloc-name{color:var(--text)}.alloc-pct{color:var(--muted)}
+.bar-track{height:4px;background:var(--border-light);border-radius:99px;overflow:hidden}
+.bar-fill{height:100%;border-radius:99px;transition:width .7s cubic-bezier(.16,1,.3,1)}
+.alloc-amt{font-family:var(--mono);font-size:.58rem;color:var(--faint);margin-top:3px;text-align:right}
+
+/* ── Debt reminders ── */
+.remind-list{padding:0 20px;display:flex;flex-direction:column}
+.remind-item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border-light)}
+.remind-item:last-child{border-bottom:none}
+.remind-name{font-family:var(--sans);font-weight:500;font-size:.79rem}
+.remind-sub{font-family:var(--mono);font-size:.59rem;color:var(--faint);margin-top:2px}
+.remind-val{font-family:var(--mono);font-size:.74rem;color:var(--muted)}
+
+/* ── Modal ── */
+.backdrop{position:fixed;inset:0;background:rgba(26,25,22,.32);backdrop-filter:blur(4px);z-index:200;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
+.backdrop.open{opacity:1;pointer-events:all}
+.modal{background:var(--white);border:1px solid var(--border);border-radius:14px;width:520px;max-height:92vh;overflow-y:auto;padding:28px;box-shadow:0 20px 60px rgba(0,0,0,.11);transform:translateY(10px) scale(.99);transition:transform .25s cubic-bezier(.16,1,.3,1)}
+.backdrop.open .modal{transform:translateY(0) scale(1)}
+.modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.modal-title{font-family:var(--serif);font-size:.98rem}
+.modal-close{background:none;border:none;color:var(--faint);font-size:1.25rem;cursor:pointer;transition:color .12s}
+.modal-close:hover{color:var(--text)}
+.fg{margin-bottom:13px}
+.fl{font-family:var(--mono);font-size:.59rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);display:block;margin-bottom:5px}
+.fi,.fs{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;font-family:var(--mono);font-size:.78rem;color:var(--text);padding:9px 11px;outline:none;transition:border-color .15s;appearance:none}
+.fi:focus,.fs:focus{border-color:var(--green);background:var(--white)}
+.fs option{background:var(--white)}
+.fhint{font-family:var(--mono);font-size:.59rem;color:var(--faint);margin-top:4px;line-height:1.5}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.modal-footer{display:flex;gap:9px;justify-content:flex-end;margin-top:20px;padding-top:17px;border-top:1px solid var(--border-light)}
+.btn{font-family:var(--mono);font-size:.68rem;padding:9px 18px;border-radius:8px;cursor:pointer;border:none;transition:all .14s}
+.btn-ghost{background:none;border:1px solid var(--border);color:var(--muted)}
+.btn-ghost:hover{border-color:var(--text);color:var(--text)}
+.btn-green{background:var(--green);color:#fff;font-weight:500}
+.btn-green:hover{opacity:.87}
+.btn-red{background:var(--red);color:#fff;font-weight:500}
+.btn-red:hover{opacity:.87}
+
+/* ── Settings slide-in ── */
+.settings-panel{position:fixed;right:0;top:0;bottom:0;width:340px;background:var(--white);border-left:1px solid var(--border);z-index:300;padding:28px;box-shadow:-8px 0 32px rgba(0,0,0,.07);transform:translateX(100%);transition:transform .28s cubic-bezier(.16,1,.3,1);overflow-y:auto}
+.settings-panel.open{transform:translateX(0)}
+.settings-overlay{position:fixed;inset:0;z-index:299;display:none}
+.settings-overlay.open{display:block}
+.settings-title{font-family:var(--serif);font-size:1rem;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between}
+.settings-close{background:none;border:none;color:var(--faint);font-size:1.25rem;cursor:pointer}
+.settings-section{margin-bottom:22px}
+.settings-section-title{font-family:var(--mono);font-size:.6rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:10px}
+.status-badge{display:flex;align-items:center;gap:8px;padding:10px 13px;background:var(--bg);border-radius:8px;border:1px solid var(--border);margin-bottom:10px}
+.status-dot{width:7px;height:7px;border-radius:50%}
+.status-dot.green{background:var(--green)}.status-dot.red{background:var(--red)}.status-dot.gray{background:var(--faint)}
+.status-text{font-family:var(--mono);font-size:.68rem;color:var(--text)}
+
+@media(max-width:1100px){.main-grid{grid-template-columns:1fr}.sidebar{flex-direction:row;flex-wrap:wrap}.sidebar .card{flex:1;min-width:255px}}
+@media(max-width:700px){.kpi-row{grid-template-columns:repeat(3,1fr)}.shell{padding:0 14px 48px}.foot-bar{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- ── Setup Card ── -->
+<div id="setupCard">
+  <div class="setup-title">🔗 連線 N8N Cloud + Google Sheets</div>
+  <div class="setup-sub">
+    在 N8N Cloud 匯入 Workflow 並啟用後，複製 Production Webhook URL（格式：<code>https://xxx.app.n8n.cloud/webhook/portfolio</code>）貼入下方。<br>
+    未設定則使用本機 localStorage 離線模式，資料不會跨裝置同步。
+  </div>
+  <div class="setup-row">
+    <input class="setup-input" id="n8nInput" type="url" placeholder="https://xxx.app.n8n.cloud/webhook/portfolio">
+    <button class="setup-save" onclick="saveN8nUrl()">儲存並連線</button>
+    <button class="setup-skip" onclick="skipSetup()">離線使用</button>
+  </div>
+  <div class="setup-steps">
+    <div class="step"><div class="step-num">Step 1</div><div class="step-text">在 Google Sheets 建立試算表，新增兩個工作表：<code>assets</code> 和 <code>liabilities</code></div></div>
+    <div class="step"><div class="step-num">Step 2</div><div class="step-text">在 N8N Cloud 匯入 <code>portfolio-n8n-cloud-workflow.json</code>，填入試算表 ID 和 Google 憑證</div></div>
+    <div class="step"><div class="step-num">Step 3</div><div class="step-text">點 Workflow 右上角 <code>Activate</code>，複製 Production Webhook URL</div></div>
+    <div class="step"><div class="step-num">Step 4</div><div class="step-text">將 URL 貼入上方輸入框，點「儲存並連線」。手機和電腦使用同一個 HTML 即可同步</div></div>
+  </div>
+</div>
+
+<!-- ── Header ── -->
+<header>
+  <div>
+    <div class="logo-main">財務儀表板</div>
+    <div class="logo-sub"><span class="live-dot"></span>資產 · 負債 · 淨值</div>
+  </div>
+  <div class="hright">
+    <span id="syncPill" class="sync-pill local">● 本機模式</span>
+    <span class="last-upd" id="lastUpd"></span>
+    <div class="cur-toggle">
+      <button id="twdBtn" class="active" onclick="setCur('TWD')">NT$</button>
+      <button id="usdBtn" onclick="setCur('USD')">USD</button>
+    </div>
+    <button class="hbtn" id="refreshBtn" onclick="refreshAll()">
+      <svg id="refreshIcon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+        <path d="M1 4v6h6M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10M23 14l-4.64 4.36A9 9 0 0 1 3.51 15"/>
+      </svg>更新報價
+    </button>
+    <button class="hbtn" onclick="openSettings()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>設定
+    </button>
+  </div>
+</header>
+
+<!-- ── KPI ── -->
+<div class="kpi-row">
+  <div class="kpi k-green" style="animation-delay:.00s"><div class="kpi-label">總資產現值</div><div class="kpi-value" id="kTotal">—</div><div class="kpi-sub neu" id="kTotalC">TWD</div></div>
+  <div class="kpi" style="animation-delay:.05s"><div class="kpi-label">投入成本</div><div class="kpi-value" id="kCost">—</div><div class="kpi-sub neu">TWD</div></div>
+  <div class="kpi" id="kPnLCard" style="animation-delay:.10s"><div class="kpi-label">未實現損益</div><div class="kpi-value" id="kPnL">—</div><div class="kpi-sub" id="kPnLPct">—</div></div>
+  <div class="kpi k-red" style="animation-delay:.15s"><div class="kpi-label">總負債</div><div class="kpi-value" id="kDebt">—</div><div class="kpi-sub neu" id="kMonthly">月還款 —</div></div>
+  <div class="kpi k-teal" style="animation-delay:.20s"><div class="kpi-label">淨資產（資產 − 負債）</div><div class="kpi-value" id="kNet">—</div><div class="kpi-sub" id="kNetSub">—</div></div>
+</div>
+
+<!-- ── Tabs ── -->
+<div class="snav-bar">
+  <button class="snav active" onclick="showPage('assets',this)">資產</button>
+  <button class="snav" onclick="showPage('liabilities',this)">負債</button>
+</div>
+
+<!-- ══ Assets Page ══ -->
+<div class="page active" id="page-assets">
+  <div class="main-grid">
+    <div class="left">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">持倉明細</div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div class="tabs">
+              <button class="tab active" onclick="filterTab(this,'all')">全部</button>
+              <button class="tab" onclick="filterTab(this,'tw')">台股</button>
+              <button class="tab" onclick="filterTab(this,'us')">美股</button>
+              <button class="tab" onclick="filterTab(this,'fund')">基金</button>
+              <button class="tab" onclick="filterTab(this,'crypto')">加密</button>
+            </div>
+            <button class="add-btn g" onclick="openModal('assetModal')">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>新增資產
+            </button>
+          </div>
+        </div>
+        <table class="tbl"><thead><tr>
+          <th>名稱</th><th>現價</th><th>持有量</th><th>現值</th><th>成本</th><th>損益</th><th>報酬率</th><th></th>
+        </tr></thead><tbody id="assetBody"></tbody></table>
+        <div class="foot-bar" id="pnlBar" style="display:none">
+          <div class="foot-cell"><div class="foot-label">最佳績效</div><div class="foot-val pos" id="pBest">—</div></div>
+          <div class="foot-cell"><div class="foot-label">最差績效</div><div class="foot-val neg" id="pWorst">—</div></div>
+          <div class="foot-cell"><div class="foot-label">平均報酬</div><div class="foot-val" id="pAvg">—</div></div>
+          <div class="foot-cell"><div class="foot-label">獲利 / 虧損</div><div class="foot-val" id="pRatio">—</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="sidebar">
+      <div class="card">
+        <div class="card-header"><div class="card-title">資產配置</div></div>
+        <div class="donut-area">
+          <svg class="donut-svg" viewBox="0 0 144 144" id="donutSvg">
+            <circle cx="72" cy="72" r="54" fill="none" stroke="#f0eeea" stroke-width="22"/>
+            <text x="72" y="76" text-anchor="middle" fill="#c8c5bf" font-family="IBM Plex Mono" font-size="9.5">無資料</text>
+          </svg>
+          <div class="d-legend" id="donutLegend"><div class="d-row" style="color:var(--faint);font-size:.65rem">新增資產後顯示</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">類別水位</div></div>
+        <div class="alloc-area" id="allocArea"><div style="font-family:var(--mono);font-size:.65rem;color:var(--faint)">新增資產後顯示</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ Liabilities Page ══ -->
+<div class="page" id="page-liabilities">
+  <div class="main-grid">
+    <div class="left">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">負債明細</div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div class="tabs">
+              <button class="tab active" onclick="filterLiabTab(this,'all')">全部</button>
+              <button class="tab" onclick="filterLiabTab(this,'mortgage')">房貸</button>
+              <button class="tab" onclick="filterLiabTab(this,'car')">車貸</button>
+              <button class="tab" onclick="filterLiabTab(this,'credit')">信貸</button>
+              <button class="tab" onclick="filterLiabTab(this,'student')">學貸</button>
+              <button class="tab" onclick="filterLiabTab(this,'other')">其他</button>
+            </div>
+            <button class="add-btn r" onclick="openModal('liabModal')">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>新增負債
+            </button>
+          </div>
+        </div>
+        <table class="tbl"><thead><tr>
+          <th>項目</th><th>類型</th><th>剩餘本金</th><th>月還款</th><th>年利率</th><th>還款日</th><th>剩餘期數</th><th>還清進度</th><th></th>
+        </tr></thead><tbody id="liabBody"></tbody></table>
+        <div class="foot-bar" id="liabFooter" style="display:none">
+          <div class="foot-cell"><div class="foot-label">負債總額</div><div class="foot-val neg" id="lTotal">—</div></div>
+          <div class="foot-cell"><div class="foot-label">每月總還款</div><div class="foot-val" id="lMonthly">—</div></div>
+          <div class="foot-cell"><div class="foot-label">平均年利率</div><div class="foot-val" id="lAvgRate">—</div></div>
+          <div class="foot-cell"><div class="foot-label">最快還清</div><div class="foot-val" id="lSoonest">—</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="sidebar">
+      <div class="card">
+        <div class="card-header"><div class="card-title">負債結構</div></div>
+        <div class="donut-area">
+          <svg class="donut-svg" viewBox="0 0 144 144" id="liabDonut">
+            <circle cx="72" cy="72" r="54" fill="none" stroke="#f0eeea" stroke-width="22"/>
+            <text x="72" y="76" text-anchor="middle" fill="#c8c5bf" font-family="IBM Plex Mono" font-size="9.5">無資料</text>
+          </svg>
+          <div class="d-legend" id="liabLegend"><div class="d-row" style="color:var(--faint);font-size:.65rem">新增負債後顯示</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">還款提醒</div></div>
+        <div class="remind-list" id="remindList"><div style="padding:16px 0;font-family:var(--mono);font-size:.65rem;color:var(--faint)">新增負債後顯示</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /shell -->
+
+<!-- ── Settings Panel ── -->
+<div class="settings-overlay" id="settingsOverlay" onclick="closeSettings()"></div>
+<div class="settings-panel" id="settingsPanel">
+  <div class="settings-title">
+    設定
+    <button class="settings-close" onclick="closeSettings()">×</button>
+  </div>
+
+  <div class="settings-section">
+    <div class="settings-section-title">N8N Cloud 連線狀態</div>
+    <div class="status-badge">
+      <div class="status-dot" id="sdot"></div>
+      <div class="status-text" id="stext">未連線</div>
+    </div>
+    <div class="fg">
+      <label class="fl">Webhook URL</label>
+      <input class="fi" id="settingsN8nInput" placeholder="https://xxx.app.n8n.cloud/webhook/portfolio">
+      <div class="fhint">N8N Cloud Production Webhook URL</div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <button class="btn btn-green" onclick="saveSettingsUrl()" style="flex:1">儲存</button>
+      <button class="btn btn-ghost" onclick="testConnection()" style="flex:1">測試連線</button>
+    </div>
+  </div>
+
+  <div class="settings-section">
+    <div class="settings-section-title">資料管理</div>
+    <button class="btn btn-ghost" onclick="forceSync()" style="width:100%;margin-bottom:8px">強制從 N8N 重新載入</button>
+    <button class="btn btn-ghost" onclick="exportJSON()" style="width:100%;margin-bottom:8px">匯出 JSON 備份</button>
+    <button class="btn" onclick="clearAll()" style="width:100%;background:var(--red-l);color:var(--red);border:1px solid #fecaca">清除所有本機資料</button>
+  </div>
+
+  <div class="settings-section">
+    <div class="settings-section-title">Google Sheets 設定說明</div>
+    <div style="font-family:var(--mono);font-size:.65rem;color:var(--muted);line-height:1.7">
+      試算表需有兩個工作表：<br>
+      • <code style="background:var(--bg);padding:1px 5px;border-radius:3px;border:1px solid var(--border)">assets</code> — 存放資產資料<br>
+      • <code style="background:var(--bg);padding:1px 5px;border-radius:3px;border:1px solid var(--border)">liabilities</code> — 存放負債資料<br><br>
+      第一列需為欄位標題，Workflow 匯入後會自動寫入。
+    </div>
+  </div>
+</div>
+
+<!-- ── Asset Modal ── -->
+<div class="backdrop" id="assetModal">
+  <div class="modal">
+    <div class="modal-head"><div class="modal-title">新增資產</div><button class="modal-close" onclick="closeModal('assetModal')">×</button></div>
+    <div class="fg">
+      <label class="fl">資產類型</label>
+      <select class="fs" id="aType" onchange="onAssetTypeChange()">
+        <option value="tw">台股 / 台灣 ETF</option>
+        <option value="us">美股 / 美國 ETF</option>
+        <option value="fund">境外基金 / 境內基金</option>
+        <option value="crypto">虛擬貨幣</option>
+      </select>
+    </div>
+    <div class="frow">
+      <div class="fg">
+        <label class="fl">代碼 / Ticker</label>
+        <input class="fi" id="aTicker" placeholder="如 0050、BTC">
+        <div class="fhint" id="aHint">台股代號：2330、0050、006208</div>
+      </div>
+      <div class="fg">
+        <label class="fl">名稱（選填）</label>
+        <input class="fi" id="aName" placeholder="如 台積電">
+      </div>
+    </div>
+    <div class="frow">
+      <div class="fg">
+        <label class="fl">持有數量</label>
+        <input class="fi" type="number" id="aQty" placeholder="0" min="0" step="any">
+      </div>
+      <div class="fg">
+        <label class="fl">平均成本（每單位）</label>
+        <input class="fi" type="number" id="aCost" placeholder="0.00" min="0" step="any">
+      </div>
+    </div>
+    <div class="fg" id="navFg" style="display:none">
+      <label class="fl">目前淨值 NAV（手動輸入）</label>
+      <input class="fi" type="number" id="aNav" placeholder="0.0000" step="any">
+      <div class="fhint">請至台灣基金資訊觀測站 fundclear.com.tw 查詢最新 NAV</div>
+    </div>
+    <div class="fg">
+      <label class="fl">計價幣別</label>
+      <select class="fs" id="aCur"><option value="TWD">TWD 新台幣</option><option value="USD">USD 美元</option></select>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('assetModal')">取消</button>
+      <button class="btn btn-green" onclick="addAsset()">新增</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Liability Modal ── -->
+<div class="backdrop" id="liabModal">
+  <div class="modal">
+    <div class="modal-head"><div class="modal-title">新增負債</div><button class="modal-close" onclick="closeModal('liabModal')">×</button></div>
+    <div class="frow">
+      <div class="fg">
+        <label class="fl">項目名稱</label>
+        <input class="fi" id="lName" placeholder="如 玉山房貸、國泰信貸">
+      </div>
+      <div class="fg">
+        <label class="fl">負債類型</label>
+        <select class="fs" id="lType">
+          <option value="mortgage">房貸</option>
+          <option value="car">車貸</option>
+          <option value="credit">信貸 / 個人貸款</option>
+          <option value="student">學貸</option>
+          <option value="personal">信用卡分期</option>
+          <option value="other">其他</option>
+        </select>
+      </div>
+    </div>
+    <div class="frow">
+      <div class="fg">
+        <label class="fl">剩餘本金</label>
+        <input class="fi" type="number" id="lPrincipal" placeholder="0" min="0">
+      </div>
+      <div class="fg">
+        <label class="fl">原始貸款總額</label>
+        <input class="fi" type="number" id="lOriginal" placeholder="0" min="0">
+        <div class="fhint">用於計算還款進度 %</div>
+      </div>
+    </div>
+    <div class="frow">
+      <div class="fg">
+        <label class="fl">每月還款金額</label>
+        <input class="fi" type="number" id="lMonthly" placeholder="0" min="0">
+      </div>
+      <div class="fg">
+        <label class="fl">年利率 (%)</label>
+        <input class="fi" type="number" id="lRate" placeholder="2.50" min="0" step="0.01">
+      </div>
+    </div>
+    <div class="frow">
+      <div class="fg">
+        <label class="fl">還款日（每月幾號）</label>
+        <input class="fi" type="number" id="lDueDay" placeholder="15" min="1" max="31">
+      </div>
+      <div class="fg">
+        <label class="fl">剩餘期數（月）</label>
+        <input class="fi" type="number" id="lTerms" placeholder="120" min="0">
+      </div>
+    </div>
+    <div class="frow">
+      <div class="fg">
+        <label class="fl">計價幣別</label>
+        <select class="fs" id="lCur"><option value="TWD">TWD 新台幣</option><option value="USD">USD 美元</option></select>
+      </div>
+      <div class="fg">
+        <label class="fl">備註（選填）</label>
+        <input class="fi" id="lNote" placeholder="如 第一銀行、擔保品">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('liabModal')">取消</button>
+      <button class="btn btn-red" onclick="addLiability()">新增負債</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════
+// State
+// ══════════════════════════════════════
+let N8N_URL = localStorage.getItem('n8n_url') || '';
+let assets = [], liabilities = [], prices = {};
+let usdTwd = 32.5, dispCur = 'TWD';
+let assetFilter = 'all', liabFilter = 'all';
+
+const CAT = {
+  tw:    {color:'#2c5f8a',label:'台股/ETF', badge:'b-tw'    },
+  us:    {color:'#2a6b4a',label:'美股/ETF', badge:'b-us'    },
+  fund:  {color:'#b5700a',label:'境外基金', badge:'b-fund'  },
+  crypto:{color:'#5b4a8a',label:'虛擬貨幣', badge:'b-crypto'},
+};
+const LCAT = {
+  mortgage:{color:'#2c5f8a',label:'房貸'},car:{color:'#b5700a',label:'車貸'},
+  credit:  {color:'#c0392b',label:'信貸'},student:{color:'#5b4a8a',label:'學貸'},
+  personal:{color:'#1a7a7a',label:'信用卡分期'},other:{color:'#8a8680',label:'其他'},
+};
+const CGID = {
+  BTC:'bitcoin',ETH:'ethereum',SOL:'solana',BNB:'binancecoin',XRP:'ripple',
+  ADA:'cardano',AVAX:'avalanche-2',DOT:'polkadot',DOGE:'dogecoin',
+  MATIC:'matic-network',LINK:'chainlink',UNI:'uniswap',LTC:'litecoin',
+  ATOM:'cosmos',NEAR:'near',ARB:'arbitrum',OP:'optimism',SUI:'sui',
+  TON:'the-open-network',USDT:'tether',USDC:'usd-coin',
+};
+
+// ══════════════════════════════════════
+// Setup / Settings
+// ══════════════════════════════════════
+function initUI() {
+  const card = document.getElementById('setupCard');
+  if (N8N_URL) {
+    card.classList.add('hidden');
+    document.getElementById('n8nInput').value = N8N_URL;
+  }
+  document.getElementById('settingsN8nInput').value = N8N_URL;
+  updateSyncPill(N8N_URL ? 'connected' : 'local');
+}
+
+function saveN8nUrl() {
+  const v = document.getElementById('n8nInput').value.trim();
+  if (!v) { alert('請輸入 Webhook URL'); return; }
+  N8N_URL = v; localStorage.setItem('n8n_url', v);
+  document.getElementById('setupCard').classList.add('hidden');
+  document.getElementById('settingsN8nInput').value = v;
+  updateSyncPill('connected');
+  loadData();
+}
+
+function skipSetup() {
+  document.getElementById('setupCard').classList.add('hidden');
+  loadData();
+}
+
+function saveSettingsUrl() {
+  const v = document.getElementById('settingsN8nInput').value.trim();
+  N8N_URL = v; localStorage.setItem('n8n_url', v);
+  updateSyncPill(v ? 'connected' : 'local');
+  if (v) loadData();
+}
+
+async function testConnection() {
+  if (!N8N_URL) { alert('請先輸入 URL'); return; }
+  updateSyncPill('syncing');
+  const ok = await n8nGet();
+  updateSyncPill(ok ? 'ok' : 'err');
+  alert(ok ? '✅ 連線成功！N8N 回應正常。' : '❌ 連線失敗。請確認 Workflow 已啟用且 URL 正確。');
+}
+
+function updateSyncPill(state) {
+  const el = document.getElementById('syncPill');
+  const dot = document.getElementById('sdot');
+  const txt = document.getElementById('stext');
+  const states = {
+    local:    {pill:'local',  label:'● 本機模式',dot:'gray',  stxt:'未連線 N8N'},
+    connected:{pill:'ok',    label:'● N8N 連線', dot:'green', stxt:'已設定 Webhook URL'},
+    syncing:  {pill:'syncing',label:'⟳ 同步中…', dot:'gray',  stxt:'同步中…'},
+    ok:       {pill:'ok',    label:'● 已同步',   dot:'green', stxt:'同步成功'},
+    err:      {pill:'err',   label:'● 同步失敗', dot:'red',   stxt:'請確認 N8N Workflow 已啟用'},
+  };
+  const s = states[state] || states.local;
+  el.className='sync-pill '+s.pill; el.textContent=s.label;
+  if(dot){dot.className='status-dot '+s.dot;} if(txt){txt.textContent=s.stxt;}
+}
+
+function openSettings() {
+  document.getElementById('settingsPanel').classList.add('open');
+  document.getElementById('settingsOverlay').classList.add('open');
+}
+function closeSettings() {
+  document.getElementById('settingsPanel').classList.remove('open');
+  document.getElementById('settingsOverlay').classList.remove('open');
+}
+
+async function forceSync() {
+  updateSyncPill('syncing');
+  const d = await n8nGet();
+  if (d) { assets=d.assets||[]; liabilities=d.liabilities||[]; saveLocal(); renderAll(); updateSyncPill('ok'); }
+  else updateSyncPill('err');
+}
+
+function exportJSON() {
+  const blob = new Blob([JSON.stringify({assets,liabilities},null,2)],{type:'application/json'});
+  const a = document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download=`portfolio-backup-${new Date().toISOString().slice(0,10)}.json`; a.click();
+}
+
+function clearAll() {
+  if (!confirm('確認清除所有本機資料？此動作不會影響 N8N/Google Sheets 中的資料。')) return;
+  localStorage.removeItem('pf_assets_v3'); localStorage.removeItem('pf_liabs_v1');
+  assets=[]; liabilities=[]; prices={}; renderAll();
+}
+
+// ══════════════════════════════════════
+// N8N API
+// ══════════════════════════════════════
+async function n8nGet() {
+  if (!N8N_URL) return null;
+  try {
+    const r = await fetch(N8N_URL,{method:'GET',signal:AbortSignal.timeout(10000)});
+    if (!r.ok) return null;
+    return await r.json();
+  } catch { return null; }
+}
+
+async function n8nPost(body) {
+  if (!N8N_URL) return;
+  try {
+    updateSyncPill('syncing');
+    const r = await fetch(N8N_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal:AbortSignal.timeout(10000)});
+    updateSyncPill(r.ok?'ok':'err');
+  } catch { updateSyncPill('err'); }
+}
+
+async function n8nDelete(type,id) {
+  if (!N8N_URL) return;
+  try {
+    updateSyncPill('syncing');
+    const r = await fetch(N8N_URL,{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({type,id}),signal:AbortSignal.timeout(10000)});
+    updateSyncPill(r.ok?'ok':'err');
+  } catch { updateSyncPill('err'); }
+}
+
+// ══════════════════════════════════════
+// Data loading
+// ══════════════════════════════════════
+function saveLocal() {
+  localStorage.setItem('pf_assets_v3',JSON.stringify(assets));
+  localStorage.setItem('pf_liabs_v1',JSON.stringify(liabilities));
+}
+function loadLocal() {
+  assets      = JSON.parse(localStorage.getItem('pf_assets_v3')||'[]');
+  liabilities = JSON.parse(localStorage.getItem('pf_liabs_v1') ||'[]');
+}
+
+async function loadData() {
+  if (N8N_URL) {
+    updateSyncPill('syncing');
+    const d = await n8nGet();
+    if (d) {
+      assets      = Array.isArray(d.assets)?d.assets:[];
+      liabilities = Array.isArray(d.liabilities)?d.liabilities:[];
+      saveLocal(); updateSyncPill('ok');
+    } else { loadLocal(); updateSyncPill('err'); }
+  } else { loadLocal(); }
+  renderAll();
+  if (assets.length) await fetchPrices();
+}
+
+// ══════════════════════════════════════
+// Price APIs
+// ══════════════════════════════════════
+async function fetchYahoo(ticker) {
+  const url   = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?interval=1d&range=1d`;
+  const proxy = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+  try {
+    const r=await fetch(proxy,{signal:AbortSignal.timeout(8000)});
+    const d=await r.json(); const m=d?.chart?.result?.[0]?.meta; if(!m)return null;
+    return {price:m.regularMarketPrice||m.chartPreviousClose,currency:m.currency,name:m.shortName||''};
+  } catch {return null;}
+}
+async function fetchCoinGecko(symbol) {
+  const id=CGID[symbol.toUpperCase()]||symbol.toLowerCase();
+  try {
+    const r=await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${id}&vs_currencies=usd,twd`,{signal:AbortSignal.timeout(8000)});
+    const d=await r.json(); if(!d[id])return null;
+    return {usd:d[id].usd,twd:d[id].twd};
+  } catch {return null;}
+}
+async function fetchPrices() {
+  const rr=await fetchYahoo('USDTWD=X');
+  if(rr?.price&&rr.price>20&&rr.price<60)usdTwd=rr.price;
+  await Promise.all(assets.map(async a=>{
+    if(a.type==='fund'){if(a.nav)prices[a.id]={price:a.nav,currency:a.currency};return;}
+    if(a.type==='crypto'){const r=await fetchCoinGecko(a.ticker);if(r)prices[a.id]={price:a.currency==='TWD'?r.twd:r.usd,currency:a.currency};return;}
+    const t=a.type==='tw'?a.ticker+'.TW':a.ticker;
+    const r=await fetchYahoo(t);
+    if(r){prices[a.id]={price:r.price,currency:r.currency||a.currency};if(!a.name&&r.name)a.name=r.name;}
+  }));
+}
+async function refreshAll() {
+  const btn=document.getElementById('refreshBtn'),icon=document.getElementById('refreshIcon');
+  btn.disabled=true;icon.classList.add('spin');
+  await fetchPrices(); saveLocal(); renderAll();
+  const n=new Date();
+  document.getElementById('lastUpd').textContent=`更新 ${n.getHours().toString().padStart(2,'0')}:${n.getMinutes().toString().padStart(2,'0')}`;
+  btn.disabled=false;icon.classList.remove('spin');
+}
+
+// ══════════════════════════════════════
+// Currency helpers
+// ══════════════════════════════════════
+function setCur(c){
+  dispCur=c;
+  document.getElementById('twdBtn').classList.toggle('active',c==='TWD');
+  document.getElementById('usdBtn').classList.toggle('active',c==='USD');
+  renderAll();
+}
+function toD(n,from){
+  if(!n)return 0;if(from===dispCur)return n;
+  if(from==='USD'&&dispCur==='TWD')return n*usdTwd;
+  if(from==='TWD'&&dispCur==='USD')return n/usdTwd;
+  return n;
+}
+const SYM=()=>dispCur==='TWD'?'NT$':'$';
+function fmt(n,d=0){if(n===null||n===undefined||isNaN(n))return '—';return new Intl.NumberFormat('zh-TW',{minimumFractionDigits:d,maximumFractionDigits:d}).format(n);}
+function fmtM(n,d=0){if(n===null||n===undefined||isNaN(n))return '—';return SYM()+fmt(Math.abs(n),d);}
+
+// ══════════════════════════════════════
+// Render
+// ══════════════════════════════════════
+function renderAll(){renderAssetTable();renderKPI();renderDonut();renderAlloc();renderPnL();renderLiabTable();renderLiabDonut();renderLiabFooter();renderReminders();}
+
+function renderAssetTable(){
+  const tbody=document.getElementById('assetBody');
+  const list=assetFilter==='all'?assets:assets.filter(a=>a.type===assetFilter);
+  if(!list.length){tbody.innerHTML=`<tr><td colspan="8" class="empty-td">${assetFilter==='all'?'尚無資產。點擊「新增資產」開始建立投資組合。':'此類別尚無資產'}</td></tr>`;return;}
+  tbody.innerHTML=list.map(a=>{
+    const p=prices[a.id];const price=p?.price;const pCur=p?.currency||a.currency;
+    const cv=price!=null?price*a.qty:null;const costT=(a.costPerUnit||0)*a.qty;
+    const dv=cv!=null?toD(cv,pCur):null;const dc=toD(costT,a.currency);
+    const pnl=dv!=null?dv-dc:null;const pct=dc>0&&pnl!=null?pnl/dc*100:null;
+    const cls=pnl==null?'neu':pnl>=0?'pos':'neg';const sign=v=>v>=0?'+':'−';
+    const pDec=price?(price<10?4:price<1000?2:0):2;
+    const pStr=price!=null?`${fmt(price,pDec)} <span style="color:var(--faint);font-size:.57rem">${pCur}</span>`:`<span class="pill-loading">取得中…</span>`;
+    return `<tr>
+      <td><div class="cell-name">${a.name||a.ticker}<span class="badge ${CAT[a.type].badge}">${CAT[a.type].label}</span></div><div class="cell-sub">${a.ticker}</div></td>
+      <td>${pStr}</td><td>${a.type==='crypto'?fmt(a.qty,6):fmt(a.qty,0)}</td>
+      <td>${dv!=null?fmtM(dv,0):'—'}</td>
+      <td style="color:var(--muted)">${fmtM(dc,0)}</td>
+      <td class="${cls}">${pnl!=null?sign(pnl)+fmtM(Math.abs(pnl),0):'—'}</td>
+      <td class="${cls}">${pct!=null?sign(pct)+Math.abs(pct).toFixed(2)+'%':'—'}</td>
+      <td><button class="icon-btn" onclick="deleteAsset('${a.id}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg></button></td>
+    </tr>`;
+  }).join('');
+}
+
+function renderLiabTable(){
+  const tbody=document.getElementById('liabBody');
+  const list=liabFilter==='all'?liabilities:liabilities.filter(l=>l.type===liabFilter);
+  if(!list.length){tbody.innerHTML=`<tr><td colspan="9" class="empty-td">${liabFilter==='all'?'尚無負債。點擊「新增負債」開始整理。':'此類別尚無負債'}</td></tr>`;return;}
+  const today=new Date().getDate();
+  tbody.innerHTML=list.map(l=>{
+    const cat=LCAT[l.type]||LCAT.other;
+    const dp=toD(l.principal||0,l.currency);const dm=toD(l.monthly||0,l.currency);
+    const prog=l.original>0?Math.max(0,Math.min(100,(1-l.principal/l.original)*100)):0;
+    const days=l.dueDay?(l.dueDay>=today?l.dueDay-today:30-today+l.dueDay):null;
+    const urgent=days!=null&&days<=5;
+    return `<tr>
+      <td><div class="cell-name">${l.name}</div>${l.note?`<div class="cell-sub">${l.note}</div>`:''}</td>
+      <td><span style="font-family:var(--mono);font-size:.7rem;color:${cat.color}">${cat.label}</span></td>
+      <td class="neg">${fmtM(dp,0)}</td><td>${fmtM(dm,0)}</td>
+      <td style="color:var(--muted)">${l.rate!=null?l.rate.toFixed(2)+'%':'—'}</td>
+      <td style="${urgent?'color:var(--red);font-weight:500':'color:var(--muted)'}">${l.dueDay?`每月 ${l.dueDay} 日`:'—'}${days!=null?`<div style="font-size:.58rem;color:${urgent?'var(--red)':'var(--faint)'}">${days}天後</div>`:''}</td>
+      <td style="color:var(--muted)">${l.terms!=null?l.terms+'期':'—'}</td>
+      <td><div style="display:flex;align-items:center;justify-content:flex-end;gap:5px"><span style="font-size:.65rem;color:var(--muted)">${prog.toFixed(0)}%</span><div class="prog-track"><div class="prog-fill" style="width:${prog}%"></div></div></div></td>
+      <td><button class="icon-btn" onclick="deleteLiab('${l.id}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg></button></td>
+    </tr>`;
+  }).join('');
+}
+
+function renderKPI(){
+  let tv=0,tc=0;
+  for(const a of assets){const p=prices[a.id];if(p)tv+=toD(p.price*a.qty,p.currency||a.currency);tc+=toD((a.costPerUnit||0)*a.qty,a.currency);}
+  const pnl=tv-tc,pct=tc>0?pnl/tc*100:0;
+  let td=0,tm=0;
+  for(const l of liabilities){td+=toD(l.principal||0,l.currency);tm+=toD(l.monthly||0,l.currency);}
+  const net=tv-td;const sign=v=>v>=0?'+':'−';
+  document.getElementById('kTotal').textContent=fmtM(tv,0);
+  document.getElementById('kCost').textContent=fmtM(tc,0);
+  document.getElementById('kTotalC').textContent=dispCur;
+  document.getElementById('kPnL').textContent=sign(pnl)+fmtM(Math.abs(pnl),0);
+  document.getElementById('kPnL').className='kpi-value '+(pnl>=0?'pos':'neg');
+  document.getElementById('kPnLPct').textContent=sign(pct)+Math.abs(pct).toFixed(2)+'%';
+  document.getElementById('kPnLPct').className='kpi-sub '+(pnl>=0?'pos':'neg');
+  document.getElementById('kPnLCard').className='kpi '+(pnl>=0?'k-green':'k-red');
+  document.getElementById('kDebt').textContent=liabilities.length?fmtM(td,0):'—';
+  document.getElementById('kMonthly').textContent=liabilities.length?`月還款 ${fmtM(tm,0)}`:'月還款 —';
+  document.getElementById('kNet').textContent=(assets.length||liabilities.length)?sign(net)+fmtM(Math.abs(net),0):'—';
+  document.getElementById('kNet').className='kpi-value '+(net>=0?'pos':'neg');
+  document.getElementById('kNetSub').textContent=(assets.length||liabilities.length)?(net>=0?'資產大於負債':'負債大於資產'):'—';
+  document.getElementById('kNetSub').className='kpi-sub '+(net>=0?'pos':'neg');
+}
+
+function drawDonut(svgId,legendId,total,vals,cats,centerLabel){
+  const svg=document.getElementById(svgId),lg=document.getElementById(legendId);
+  if(!total){
+    svg.innerHTML=`<circle cx="72" cy="72" r="54" fill="none" stroke="#f0eeea" stroke-width="22"/><text x="72" y="76" text-anchor="middle" fill="#c8c5bf" font-family="IBM Plex Mono" font-size="9.5">無資料</text>`;
+    lg.innerHTML=`<div class="d-row" style="color:var(--faint);font-size:.65rem">新增後顯示</div>`;return;
+  }
+  const cx=72,cy=72,r=54,sw=20,c=2*Math.PI*r;
+  const segs=Object.entries(vals).filter(([,v])=>v>0).map(([k,v])=>({key:k,v,pct:v/total}));
+  let h=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#f0eeea" stroke-width="${sw}"/>`;
+  let off=0;
+  for(const s of segs){const dash=s.pct*c;h+=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${cats[s.key].color}" stroke-width="${sw-3}" stroke-dasharray="${dash} ${c-dash}" stroke-dashoffset="${-off*c}" stroke-linecap="butt" transform="rotate(-90 ${cx} ${cy})"/>`;off+=s.pct;}
+  h+=`<text x="${cx}" y="${cy-6}" text-anchor="middle" fill="#c8c5bf" font-family="IBM Plex Mono" font-size="7" letter-spacing="1">${centerLabel}</text>
+    <text x="${cx}" y="${cy+8}" text-anchor="middle" fill="#1a1916" font-family="IBM Plex Mono" font-size="8.5" font-weight="500">${SYM()}${fmt(total,0)}</text>`;
+  svg.innerHTML=h;
+  lg.innerHTML=segs.map(s=>`<div class="d-row"><div class="d-sw" style="background:${cats[s.key].color}"></div><span class="d-name">${cats[s.key].label}</span><span class="d-pct">${(s.pct*100).toFixed(1)}%</span><span class="d-amt">${SYM()}${fmt(s.v,0)}</span></div>`).join('');
+}
+function renderDonut(){let tot=0;const v={};for(const a of assets){const p=prices[a.id];const val=p?toD(p.price*a.qty,p.currency||a.currency):0;v[a.type]=(v[a.type]||0)+val;tot+=val;}drawDonut('donutSvg','donutLegend',tot,v,CAT,'總資產');}
+function renderLiabDonut(){let tot=0;const v={};for(const l of liabilities){const val=toD(l.principal||0,l.currency);v[l.type]=(v[l.type]||0)+val;tot+=val;}drawDonut('liabDonut','liabLegend',tot,v,LCAT,'負債');}
+
+function renderAlloc(){
+  const area=document.getElementById('allocArea');
+  let tot=0;const v={};
+  for(const a of assets){const p=prices[a.id];const val=p?toD(p.price*a.qty,p.currency||a.currency):0;v[a.type]=(v[a.type]||0)+val;tot+=val;}
+  if(!tot){area.innerHTML=`<div style="font-family:var(--mono);font-size:.65rem;color:var(--faint)">新增資產後顯示</div>`;return;}
+  area.innerHTML=['tw','us','fund','crypto'].filter(k=>v[k]).map(k=>{
+    const val=v[k]||0,pct=tot>0?val/tot*100:0;
+    return `<div><div class="alloc-meta"><span class="alloc-name">${CAT[k].label}</span><span class="alloc-pct">${pct.toFixed(1)}%</span></div><div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${CAT[k].color}"></div></div><div class="alloc-amt">${SYM()}${fmt(val,0)}</div></div>`;
+  }).join('');
+}
+
+function renderPnL(){
+  const bar=document.getElementById('pnlBar');
+  const pnls=assets.map(a=>{const p=prices[a.id];if(!p)return null;const dv=toD(p.price*a.qty,p.currency||a.currency);const dc=toD((a.costPerUnit||0)*a.qty,a.currency);return{name:a.name||a.ticker,pnl:dv-dc,pct:dc>0?(dv-dc)/dc*100:0};}).filter(Boolean);
+  if(!pnls.length){bar.style.display='none';return;}
+  bar.style.display='grid';pnls.sort((a,b)=>b.pct-a.pct);
+  const best=pnls[0],worst=pnls[pnls.length-1],avgPct=pnls.reduce((s,x)=>s+x.pct,0)/pnls.length;
+  const sign=v=>v>=0?'+':'';
+  document.getElementById('pBest').textContent=`${best.name} (${sign(best.pct)}${best.pct.toFixed(2)}%)`;
+  document.getElementById('pWorst').textContent=`${worst.name} (${worst.pct.toFixed(2)}%)`;
+  document.getElementById('pAvg').textContent=sign(avgPct)+avgPct.toFixed(2)+'%';
+  document.getElementById('pAvg').className='foot-val '+(avgPct>=0?'pos':'neg');
+  document.getElementById('pRatio').textContent=`${pnls.filter(x=>x.pnl>=0).length} / ${pnls.filter(x=>x.pnl<0).length}`;
+}
+
+function renderLiabFooter(){
+  const bar=document.getElementById('liabFooter');
+  if(!liabilities.length){bar.style.display='none';return;}
+  bar.style.display='grid';
+  let totP=0,totM=0,totR=0;const today=new Date().getDate();let soonest=null,minD=999;
+  for(const l of liabilities){
+    totP+=toD(l.principal||0,l.currency);totM+=toD(l.monthly||0,l.currency);if(l.rate)totR+=l.rate;
+    if(l.dueDay){const d=l.dueDay>=today?l.dueDay-today:30-today+l.dueDay;if(d<minD){minD=d;soonest=l;}}
+  }
+  document.getElementById('lTotal').textContent=fmtM(totP,0);
+  document.getElementById('lMonthly').textContent=fmtM(totM,0);
+  document.getElementById('lAvgRate').textContent=(totR/liabilities.length).toFixed(2)+'%';
+  document.getElementById('lSoonest').textContent=soonest?`${soonest.name} (${minD}天後)`:'—';
+}
+
+function renderReminders(){
+  const el=document.getElementById('remindList');
+  if(!liabilities.length){el.innerHTML=`<div style="padding:14px 0;font-family:var(--mono);font-size:.65rem;color:var(--faint)">新增負債後顯示</div>`;return;}
+  const today=new Date().getDate();
+  const sorted=[...liabilities].sort((a,b)=>{
+    const da=a.dueDay?(a.dueDay>=today?a.dueDay-today:30-today+a.dueDay):999;
+    const db=b.dueDay?(b.dueDay>=today?b.dueDay-today:30-today+b.dueDay):999;
+    return da-db;
+  });
+  el.innerHTML=sorted.slice(0,6).map(l=>{
+    const days=l.dueDay?(l.dueDay>=today?l.dueDay-today:30-today+l.dueDay):null;
+    const urgent=days!=null&&days<=5;
+    return `<div class="remind-item">
+      <div><div class="remind-name" style="${urgent?'color:var(--red)':''}">${l.name}</div>
+      <div class="remind-sub">${days!=null?`${days}天後（每月${l.dueDay}日）`:'未設還款日'}</div></div>
+      <div class="remind-val" style="${urgent?'color:var(--red)':''}">${fmtM(toD(l.monthly||0,l.currency),0)}</div>
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════
+// Page / Tab controls
+// ══════════════════════════════════════
+function showPage(id,btn){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.snav').forEach(b=>b.classList.remove('active'));document.getElementById('page-'+id).classList.add('active');btn.classList.add('active');}
+function filterTab(el,type){document.querySelectorAll('#page-assets .tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');assetFilter=type;renderAssetTable();}
+function filterLiabTab(el,type){document.querySelectorAll('#page-liabilities .tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');liabFilter=type;renderLiabTable();}
+
+// ══════════════════════════════════════
+// Modals
+// ══════════════════════════════════════
+function openModal(id){document.getElementById(id).classList.add('open');if(id==='assetModal')onAssetTypeChange();}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+
+function onAssetTypeChange(){
+  const t=document.getElementById('aType').value;
+  const hints={tw:'台股代號：2330、0050、006208',us:'美股 Ticker：AAPL、MSFT、SPY、QQQ',fund:'輸入基金代號或簡稱（標記識別用）',crypto:'支援：BTC、ETH、SOL、BNB、XRP、ADA…'};
+  document.getElementById('aHint').textContent=hints[t];
+  document.getElementById('navFg').style.display=t==='fund'?'':'none';
+  document.getElementById('aCur').value=(t==='us'||t==='crypto')?'USD':'TWD';
+}
+
+async function addAsset(){
+  const type=document.getElementById('aType').value;
+  const ticker=document.getElementById('aTicker').value.trim().toUpperCase();
+  const name=document.getElementById('aName').value.trim();
+  const qty=parseFloat(document.getElementById('aQty').value);
+  const cost=parseFloat(document.getElementById('aCost').value);
+  const cur=document.getElementById('aCur').value;
+  const nav=parseFloat(document.getElementById('aNav').value)||0;
+  if(!ticker){alert('請輸入代碼');return;}
+  if(isNaN(qty)||qty<=0){alert('請輸入有效持有量');return;}
+  if(isNaN(cost)||cost<0){alert('請輸入有效成本');return;}
+  const a={id:Date.now().toString(),type,ticker,name,qty,costPerUnit:cost,currency:cur};
+  if(type==='fund')a.nav=nav;
+  assets.push(a);
+  if(type==='fund'&&nav>0)prices[a.id]={price:nav,currency:cur};
+  closeModal('assetModal');
+  ['aTicker','aName','aQty','aCost','aNav'].forEach(id=>document.getElementById(id).value='');
+  saveLocal();renderAll();
+  await n8nPost({action:'save_asset',payload:a});
+  if(type!=='fund'){
+    (async()=>{
+      if(type==='crypto'){const r=await fetchCoinGecko(a.ticker);if(r)prices[a.id]={price:cur==='TWD'?r.twd:r.usd,currency:cur};}
+      else{const t2=type==='tw'?a.ticker+'.TW':a.ticker;const r=await fetchYahoo(t2);if(r){prices[a.id]={price:r.price,currency:r.currency||cur};if(!a.name&&r.name){a.name=r.name;await n8nPost({action:'save_asset',payload:a});}}}
+      saveLocal();renderAll();
+    })();
+  }
+}
+
+async function deleteAsset(id){
+  if(!confirm('確認刪除此資產？'))return;
+  assets=assets.filter(a=>a.id!==id);delete prices[id];
+  saveLocal();renderAll();await n8nDelete('asset',id);
+}
+
+async function addLiability(){
+  const name=document.getElementById('lName').value.trim();
+  const type=document.getElementById('lType').value;
+  const principal=parseFloat(document.getElementById('lPrincipal').value)||0;
+  const original=parseFloat(document.getElementById('lOriginal').value)||principal;
+  const monthly=parseFloat(document.getElementById('lMonthly').value)||0;
+  const rate=parseFloat(document.getElementById('lRate').value)||0;
+  const dueDay=parseInt(document.getElementById('lDueDay').value)||null;
+  const terms=parseInt(document.getElementById('lTerms').value)||null;
+  const cur=document.getElementById('lCur').value;
+  const note=document.getElementById('lNote').value.trim();
+  if(!name){alert('請輸入項目名稱');return;}
+  if(principal<=0){alert('請輸入剩餘本金');return;}
+  const l={id:Date.now().toString(),name,type,principal,original,monthly,rate,dueDay,terms,currency:cur,note};
+  liabilities.push(l);
+  closeModal('liabModal');
+  ['lName','lPrincipal','lOriginal','lMonthly','lRate','lDueDay','lTerms','lNote'].forEach(id=>document.getElementById(id).value='');
+  saveLocal();renderAll();await n8nPost({action:'save_liability',payload:l});
+}
+
+async function deleteLiab(id){
+  if(!confirm('確認刪除此負債？'))return;
+  liabilities=liabilities.filter(l=>l.id!==id);
+  saveLocal();renderAll();await n8nDelete('liability',id);
+}
+
+// ══════════════════════════════════════
+// Init
+// ══════════════════════════════════════
+(async()=>{initUI();await loadData();})();
+</script>
+</body>
+</html>
