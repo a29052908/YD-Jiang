@@ -644,13 +644,40 @@ function clearAll() {
 // ══════════════════════════════════════
 // N8N API
 // ══════════════════════════════════════
+// 欄位對應（原本在 n8n Code node，現在移到前端）
+const COL_ASSET_MAP = {
+  '識別碼':'id','類型':'type','代碼':'ticker','名稱':'name',
+  '持有量':'qty','平均成本':'costPerUnit','計價幣別':'currency','基金淨值':'nav'
+};
+const COL_LIAB_MAP = {
+  '識別碼':'id','項目名稱':'name','負債類型':'type','剩餘本金':'principal',
+  '原始貸款':'original','月還款':'monthly','年利率':'rate','還款日':'dueDay',
+  '剩餘期數':'terms','計價幣別':'currency','備註':'note'
+};
+const NUM_ASSET_F = ['qty','costPerUnit','nav'];
+const NUM_LIAB_F  = ['principal','original','monthly','rate','dueDay','terms'];
+function remapRow(row, colMap, numF) {
+  const out={};
+  for(const [zh,en] of Object.entries(colMap)){
+    const v=row[zh];
+    out[en]=numF.includes(en)?(v===''||v==null?null:Number(v)):(v??null);
+  }
+  return out;
+}
+
 async function n8nGet() {
   if (!N8N_URL) return null;
   try {
-    const r = await fetch(N8N_URL,{method:'GET',signal:AbortSignal.timeout(10000)});
-    if (!r.ok) return null;
-    return await r.json();
-  } catch { return null; }
+    const [r1,r2] = await Promise.all([
+      fetch(N8N_URL+'/assets',  {signal:AbortSignal.timeout(10000)}),
+      fetch(N8N_URL+'/liabilities',{signal:AbortSignal.timeout(10000)})
+    ]);
+    if (!r1.ok||!r2.ok) return null;
+    const rawA=await r1.json(), rawL=await r2.json();
+    const assets      = rawA.filter(r=>r['識別碼']&&r['識別碼']!=='').map(r=>remapRow(r,COL_ASSET_MAP,NUM_ASSET_F));
+    const liabilities = rawL.filter(r=>r['識別碼']&&r['識別碼']!=='').map(r=>remapRow(r,COL_LIAB_MAP,NUM_LIAB_F));
+    return {assets,liabilities};
+  } catch {return null;}
 }
 
 async function n8nPost(body) {
