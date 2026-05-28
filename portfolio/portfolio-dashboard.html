@@ -198,6 +198,23 @@ header{display:flex;align-items:center;justify-content:space-between;padding:26p
 .status-dot.green{background:var(--green)}.status-dot.red{background:var(--red)}.status-dot.gray{background:var(--faint)}
 .status-text{font-family:var(--mono);font-size:.68rem;color:var(--text)}
 
+/* ── AI Panel ── */
+.ai-panel{position:fixed;right:0;top:0;bottom:0;width:460px;background:var(--white);border-left:1px solid var(--border);z-index:300;padding:28px;box-shadow:-8px 0 32px rgba(0,0,0,.07);transform:translateX(100%);transition:transform .28s cubic-bezier(.16,1,.3,1);overflow-y:auto;display:flex;flex-direction:column;gap:0}
+.ai-panel.open{transform:translateX(0)}
+.ai-overlay{position:fixed;inset:0;z-index:299;display:none}
+.ai-overlay.open{display:block}
+.ai-title{font-family:var(--serif);font-size:1rem;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between}
+.ai-sub{font-family:var(--mono);font-size:.6rem;color:var(--muted);margin-bottom:18px}
+.ai-income-row{display:flex;gap:8px;margin-bottom:18px;align-items:stretch}
+.ai-income-input{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:8px;font-family:var(--mono);font-size:.78rem;padding:9px 11px;color:var(--text);outline:none;transition:border-color .15s}
+.ai-income-input:focus{border-color:var(--green)}
+.ai-run-btn{background:var(--green);color:#fff;border:none;border-radius:8px;font-family:var(--mono);font-size:.68rem;padding:10px 16px;cursor:pointer;white-space:nowrap;transition:opacity .15s;font-weight:500}
+.ai-run-btn:hover{opacity:.87}.ai-run-btn:disabled{opacity:.45;cursor:not-allowed}
+.ai-result{font-family:var(--sans);font-size:.8rem;line-height:1.75;color:var(--text);white-space:pre-wrap;flex:1}
+.ai-result .ai-section{background:var(--bg);border-radius:8px;padding:14px 16px;margin-bottom:12px;border:1px solid var(--border-light)}
+.ai-result .ai-section-title{font-family:var(--mono);font-size:.6rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:8px}
+.ai-placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:40px 20px;color:var(--faint);font-family:var(--mono);font-size:.68rem;text-align:center}
+.ai-spinner{width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto}
 @media(max-width:1100px){.main-grid{grid-template-columns:1fr}.sidebar{flex-direction:row;flex-wrap:wrap}.sidebar .card{flex:1;min-width:255px}}
 @media(max-width:700px){.kpi-row{grid-template-columns:repeat(3,1fr)}.shell{padding:0 14px 48px}.foot-bar{grid-template-columns:1fr 1fr}}
 </style>
@@ -242,6 +259,9 @@ header{display:flex;align-items:center;justify-content:space-between;padding:26p
       <svg id="refreshIcon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
         <path d="M1 4v6h6M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10M23 14l-4.64 4.36A9 9 0 0 1 3.51 15"/>
       </svg>更新報價
+    </button>
+    <button class="hbtn" onclick="openAI()" style="color:var(--purple);border-color:var(--purple-l);background:var(--purple-l)">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 8v4l3 3"/><circle cx="18" cy="6" r="3" fill="currentColor"/></svg>AI 分析
     </button>
     <button class="hbtn" onclick="openSettings()">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>設定
@@ -406,6 +426,23 @@ header{display:flex;align-items:center;justify-content:space-between;padding:26p
       • <code style="background:var(--bg);padding:1px 5px;border-radius:3px;border:1px solid var(--border)">assets</code> — 存放資產資料<br>
       • <code style="background:var(--bg);padding:1px 5px;border-radius:3px;border:1px solid var(--border)">liabilities</code> — 存放負債資料<br><br>
       第一列需為欄位標題，Workflow 匯入後會自動寫入。
+    </div>
+  </div>
+</div>
+
+<!-- ── AI Panel ── -->
+<div class="ai-overlay" id="aiOverlay" onclick="closeAI()"></div>
+<div class="ai-panel" id="aiPanel">
+  <div class="ai-title">AI 財務分析<button style="background:none;border:none;color:var(--faint);font-size:1.25rem;cursor:pointer" onclick="closeAI()">×</button></div>
+  <div class="ai-sub">輸入月收入後點「開始分析」，AI 將評估資產配置、股息現金流、負債清償時序</div>
+  <div class="ai-income-row">
+    <input class="ai-income-input" id="aiIncome" type="number" placeholder="月收入（NT$）" min="0">
+    <button class="ai-run-btn" id="aiRunBtn" onclick="runAI()">開始分析</button>
+  </div>
+  <div id="aiResult">
+    <div class="ai-placeholder">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--faint)" stroke-width="1.5"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 8v4l3 3"/><circle cx="18" cy="6" r="3"/></svg>
+      輸入月收入後開始分析
     </div>
   </div>
 </div>
@@ -1067,6 +1104,87 @@ async function deleteLiab(id){
   if(!confirm('確認刪除此負債？'))return;
   liabilities=liabilities.filter(l=>l.id!==id);
   saveLocal();renderAll();await n8nDelete('liability',id);
+}
+
+// ══════════════════════════════════════
+// AI Analysis
+// ══════════════════════════════════════
+function openAI(){document.getElementById('aiPanel').classList.add('open');document.getElementById('aiOverlay').classList.add('open');}
+function closeAI(){document.getElementById('aiPanel').classList.remove('open');document.getElementById('aiOverlay').classList.remove('open');}
+
+function buildPortfolioPayload(income) {
+  const sym = dispCur==='TWD'?'NT$':'$';
+  const fmt = n=>new Intl.NumberFormat('zh-TW').format(Math.round(n||0));
+  let tv=0,tc=0,td=0,tm=0;
+  for(const a of assets){const p=prices[a.id];if(p)tv+=toD(p.price*a.qty,p.currency||a.currency);tc+=toD((a.costPerUnit||0)*a.qty,a.currency);}
+  for(const l of liabilities){td+=toD(l.principal||0,l.currency);tm+=toD(l.monthly||0,l.currency);}
+  const pnl=tv-tc,net=tv-td;
+
+  // 股息估算（台股/美股 ETF 以 3% 殖利率估，境外基金 2%，加密 0%）
+  const YIELD={tw:.03,us:.025,fund:.02,crypto:0};
+  let annualDividend=0;
+  for(const a of assets){const p=prices[a.id];if(!p)continue;const val=toD(p.price*a.qty,p.currency||a.currency);annualDividend+=val*(YIELD[a.type]||0);}
+
+  // 負債清償預測
+  const today=new Date();
+  const liabTimeline=liabilities.map(l=>{
+    const mo=l.monthly>0&&l.principal>0?Math.ceil(l.principal/l.monthly):null;
+    const clearDate=mo?new Date(today.getFullYear(),today.getMonth()+mo,1):null;
+    return {...l,estMonths:mo,estClearDate:clearDate?`${clearDate.getFullYear()}/${String(clearDate.getMonth()+1).padStart(2,'0')}`:null};
+  });
+
+  const assetLines=assets.map(a=>{
+    const p=prices[a.id];const val=p?toD(p.price*a.qty,p.currency||a.currency):0;
+    const cost=toD((a.costPerUnit||0)*a.qty,a.currency);const pnlA=val-cost;
+    return `・${a.name||a.ticker}（${CAT[a.type]?.label||a.type}）：現值 ${sym}${fmt(val)}，損益 ${pnlA>=0?'+':''}${sym}${fmt(Math.abs(pnlA))}（${cost>0?(pnlA/cost*100).toFixed(1):0}%），估年化股息 ${sym}${fmt(val*(YIELD[a.type]||0))}`;
+  }).join('\n')||'（無資產）';
+
+  const liabLines=liabTimeline.map(l=>
+    `・${l.name}（${LCAT[l.type]?.label||l.type}）：剩餘 ${sym}${fmt(toD(l.principal||0,l.currency))}，月還款 ${sym}${fmt(toD(l.monthly||0,l.currency))}，年利率 ${(l.rate||0).toFixed(2)}%${l.estClearDate?`，預計 ${l.estClearDate} 清償`:''}`
+  ).join('\n')||'（無負債）';
+
+  const incomeNum=parseFloat(income)||0;
+  const debtRatio=incomeNum>0?tm/incomeNum*100:null;
+
+  return {
+    assets:assetLines, liabilities:liabLines,
+    summary:{
+      totalAssets:tv, totalCost:tc, pnl, pnlPct:tc>0?pnl/tc*100:0,
+      totalLiabilities:td, netWorth:net, monthlyPayment:tm,
+      annualDividend, monthlyDividend:annualDividend/12,
+      monthlyIncome:incomeNum, debtToIncomeRatio:debtRatio
+    },
+    currency:dispCur
+  };
+}
+
+async function runAI(){
+  const income=document.getElementById('aiIncome').value;
+  const btn=document.getElementById('aiRunBtn');
+  const resultEl=document.getElementById('aiResult');
+  btn.disabled=true;btn.textContent='分析中…';
+  resultEl.innerHTML='<div class="ai-placeholder"><div class="ai-spinner"></div>AI 分析中，請稍候…</div>';
+  const payload=buildPortfolioPayload(income);
+  try{
+    const r=await fetch(N8N_URL+'/analyze',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(payload),signal:AbortSignal.timeout(60000)
+    });
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const d=await r.json();
+    const text=d.analysis||d.text||JSON.stringify(d);
+    // 將 markdown 簡單轉成 HTML
+    const html=text
+      .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+      .replace(/^#+\s(.+)$/gm,'<div class="ai-section-title">$1</div>')
+      .split(/\n\n+/)
+      .map(p=>`<div class="ai-section">${p.replace(/\n/g,'<br>')}</div>`)
+      .join('');
+    resultEl.innerHTML=html;
+  }catch(e){
+    resultEl.innerHTML=`<div class="ai-placeholder" style="color:var(--red)">分析失敗：${e.message}<br><br>請確認 n8n AI workflow 已啟用</div>`;
+  }
+  btn.disabled=false;btn.textContent='重新分析';
 }
 
 // ══════════════════════════════════════
