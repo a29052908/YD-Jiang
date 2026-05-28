@@ -298,13 +298,8 @@ header{display:flex;align-items:center;justify-content:space-between;padding:26p
 <div class="page active" id="page-assets">
   <div class="main-grid">
     <div class="left">
-      <!-- 資產子分類切換 -->
-      <div class="snav-bar" style="margin-bottom:14px">
-        <button class="snav active" id="viewGenBtn" onclick="setAssetView('general',this)">一般資產</button>
-        <button class="snav" id="viewFixBtn" onclick="setAssetView('fixed',this)">固定升息</button>
-      </div>
 
-      <!-- 一般資產 -->
+      <!-- 持倉明細 -->
       <div id="generalCard">
         <div class="card">
           <div class="card-header">
@@ -316,6 +311,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding:26p
                 <button class="tab" onclick="filterTab(this,'us')">美股</button>
                 <button class="tab" onclick="filterTab(this,'fund')">基金</button>
                 <button class="tab" onclick="filterTab(this,'crypto')">加密</button>
+                <button class="tab" onclick="filterTab(this,'cash')">現金</button>
               </div>
               <button class="add-btn g" onclick="openModal('assetModal')">
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>新增資產
@@ -334,13 +330,13 @@ header{display:flex;align-items:center;justify-content:space-between;padding:26p
         </div>
       </div>
 
-      <!-- 固定升息 -->
-      <div id="fixedCard" style="display:none">
+      <!-- 固定生息 -->
+      <div id="fixedCard">
         <div class="card">
           <div class="card-header">
-            <div class="card-title">固定升息資產</div>
+            <div class="card-title">固定生息資產</div>
             <button class="add-btn g" onclick="openModal('fixedModal')" style="background:var(--teal)">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>新增固定升息
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>新增固定生息
             </button>
           </div>
           <table class="tbl"><thead><tr>
@@ -370,9 +366,9 @@ header{display:flex;align-items:center;justify-content:space-between;padding:26p
         <div class="card-header"><div class="card-title">類別水位</div></div>
         <div class="alloc-area" id="allocArea"><div style="font-family:var(--mono);font-size:.65rem;color:var(--faint)">新增資產後顯示</div></div>
       </div>
-      <div class="card" id="sidebarCashflow" style="display:none">
+      <div class="card" id="sidebarCashflow">
         <div class="card-header"><div class="card-title">月現金流預覽</div></div>
-        <div class="alloc-area" id="cashflowArea"><div style="font-family:var(--mono);font-size:.65rem;color:var(--faint)">新增固定升息資產後顯示</div></div>
+        <div class="alloc-area" id="cashflowArea"><div style="font-family:var(--mono);font-size:.65rem;color:var(--faint)">新增固定生息資產後顯示</div></div>
       </div>
     </div>
   </div>
@@ -400,11 +396,11 @@ header{display:flex;align-items:center;justify-content:space-between;padding:26p
           </div>
         </div>
         <table class="tbl"><thead><tr>
-          <th>項目</th><th>類型</th><th>剩餘本金</th><th>月還款</th><th>年利率</th><th>還款日</th><th>剩餘期數</th><th>還清進度</th><th></th>
+          <th>項目</th><th>類型</th><th>還款方式</th><th>剩餘本金</th><th>每期還款</th><th>年利率</th><th>還款日</th><th>剩餘期數</th><th>還清進度</th><th></th>
         </tr></thead><tbody id="liabBody"></tbody></table>
         <div class="foot-bar" id="liabFooter" style="display:none">
           <div class="foot-cell"><div class="foot-label">負債總額</div><div class="foot-val neg" id="lTotal">—</div></div>
-          <div class="foot-cell"><div class="foot-label">每月總還款</div><div class="foot-val" id="lMonthly">—</div></div>
+          <div class="foot-cell"><div class="foot-label">月還款合計</div><div class="foot-val" id="lMonthlyDisplay">—</div></div>
           <div class="foot-cell"><div class="foot-label">平均年利率</div><div class="foot-val" id="lAvgRate">—</div></div>
           <div class="foot-cell"><div class="foot-label">最快還清</div><div class="foot-val" id="lSoonest">—</div></div>
         </div>
@@ -502,6 +498,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding:26p
         <option value="us">美股 / 美國 ETF</option>
         <option value="fund">境外基金 / 境內基金</option>
         <option value="crypto">虛擬貨幣</option>
+        <option value="cash">現金 / 活存</option>
       </select>
     </div>
     <div class="frow">
@@ -535,7 +532,11 @@ header{display:flex;align-items:center;justify-content:space-between;padding:26p
     </div>
     <div class="fg">
       <label class="fl">計價幣別</label>
-      <select class="fs" id="aCur"><option value="TWD">TWD 新台幣</option><option value="USD">USD 美元</option></select>
+      <select class="fs" id="aCur">
+        <option value="TWD">TWD 新台幣</option>
+        <option value="USD">USD 美元</option>
+        <option value="USDT">USDT 穩定幣</option>
+      </select>
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeModal('assetModal')">取消</button>
@@ -578,8 +579,25 @@ header{display:flex;align-items:center;justify-content:space-between;padding:26p
     </div>
     <div class="frow">
       <div class="fg">
-        <label class="fl">每月還款金額</label>
+        <label class="fl">還款方式</label>
+        <select class="fs" id="lRepayType" onchange="onLiabRepayChange()">
+          <option value="principal_interest">本息歸還（本金＋利息）</option>
+          <option value="interest_only">理財型（只還利息，本金不減）</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label class="fl">繳款週期</label>
+        <select class="fs" id="lPayFreq" onchange="onLiabFreqChange()">
+          <option value="monthly">月繳</option>
+          <option value="annual">年繳</option>
+        </select>
+      </div>
+    </div>
+    <div class="frow">
+      <div class="fg">
+        <label class="fl" id="lPayAmtLabel">每期還款金額</label>
         <input class="fi" type="number" id="lMonthly" placeholder="0" min="0">
+        <div class="fhint" id="lPayAmtHint">理財型可留空，系統自動以「本金×年利率」計算</div>
       </div>
       <div class="fg">
         <label class="fl">年利率 (%)</label>
@@ -587,19 +605,32 @@ header{display:flex;align-items:center;justify-content:space-between;padding:26p
       </div>
     </div>
     <div class="frow">
+      <div class="fg" id="lDueMonthFg" style="display:none">
+        <label class="fl">還款月份（年繳）</label>
+        <select class="fs" id="lDueMonth">
+          <option value="1">1 月</option><option value="2">2 月</option><option value="3">3 月</option>
+          <option value="4">4 月</option><option value="5">5 月</option><option value="6">6 月</option>
+          <option value="7">7 月</option><option value="8">8 月</option><option value="9">9 月</option>
+          <option value="10">10 月</option><option value="11">11 月</option><option value="12">12 月</option>
+        </select>
+      </div>
       <div class="fg">
-        <label class="fl">還款日（每月幾號）</label>
+        <label class="fl" id="lDueDayLabel">還款日（每月幾號）</label>
         <input class="fi" type="number" id="lDueDay" placeholder="15" min="1" max="31">
       </div>
       <div class="fg">
-        <label class="fl">剩餘期數（月）</label>
+        <label class="fl" id="lTermsLabel">剩餘期數</label>
         <input class="fi" type="number" id="lTerms" placeholder="120" min="0">
+        <div class="fhint" id="lTermsHint">月繳填月數；年繳填年數</div>
       </div>
     </div>
     <div class="frow">
       <div class="fg">
         <label class="fl">計價幣別</label>
-        <select class="fs" id="lCur"><option value="TWD">TWD 新台幣</option><option value="USD">USD 美元</option></select>
+        <select class="fs" id="lCur">
+          <option value="TWD">TWD 新台幣</option>
+          <option value="USD">USD 美元</option>
+        </select>
       </div>
       <div class="fg">
         <label class="fl">備註（選填）</label>
@@ -616,7 +647,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding:26p
 <!-- ── Fixed Income Modal ── -->
 <div class="backdrop" id="fixedModal">
   <div class="modal">
-    <div class="modal-head"><div class="modal-title">新增固定升息資產</div><button class="modal-close" onclick="closeModal('fixedModal')">×</button></div>
+    <div class="modal-head"><div class="modal-title">新增固定生息資產</div><button class="modal-close" onclick="closeModal('fixedModal')">×</button></div>
     <div class="frow">
       <div class="fg">
         <label class="fl">名稱</label>
@@ -701,6 +732,8 @@ const CAT = {
   us:    {color:'#2a6b4a',label:'美股/ETF', badge:'b-us'    },
   fund:  {color:'#b5700a',label:'境外基金', badge:'b-fund'  },
   crypto:{color:'#5b4a8a',label:'虛擬貨幣', badge:'b-crypto'},
+  cash:  {color:'#1a7a7a',label:'現金',     badge:'b-fixed' },
+  fixed: {color:'#0d7377',label:'固定生息', badge:'b-fixed' },
 };
 const LCAT = {
   mortgage:{color:'#2c5f8a',label:'房貸'},car:{color:'#b5700a',label:'車貸'},
@@ -794,8 +827,8 @@ function exportJSON() {
 
 function clearAll() {
   if (!confirm('確認清除所有本機資料？此動作不會影響 N8N/Google Sheets 中的資料。')) return;
-  localStorage.removeItem('pf_assets_v3'); localStorage.removeItem('pf_liabs_v1');
-  assets=[]; liabilities=[]; prices={}; renderAll();
+  localStorage.removeItem('pf_assets_v3'); localStorage.removeItem('pf_liabs_v1'); localStorage.removeItem('pf_fixed_v1');
+  assets=[]; liabilities=[]; fixedAssets=[]; prices={}; renderAll();
 }
 
 // ══════════════════════════════════════
@@ -883,6 +916,7 @@ async function loadData() {
       updateSyncPill(assets.length||liabilities.length ? 'local' : 'err');
     }
   } else { loadLocal(); }
+  autoDeductLiabilities();
   renderAll();
   if (assets.length) await fetchPrices();
 }
@@ -940,14 +974,20 @@ async function fetchPrices() {
   const er=await fetchExchangeRate();
   if(er){usdTwd=er;}else{const rr=await fetchYahoo('USDTWD=X');if(rr?.price&&rr.price>20&&rr.price<60)usdTwd=rr.price;}
   await Promise.all(assets.map(async a=>{
+    if(a.type==='cash'){prices[a.id]={price:1,currency:a.currency};return;} // 現金面額恆=1
     if(a.type==='fund'){
-      // 嘗試自動抓取 NAV，失敗則沿用手動輸入值
       const fresh=await fetchFundNAV(a.ticker);
       const navToUse=fresh||a.nav;
       if(navToUse){prices[a.id]={price:navToUse,currency:a.currency};if(fresh&&fresh!==a.nav)a.nav=fresh;}
       return;
     }
-    if(a.type==='crypto'){const r=await fetchPionex(a.ticker);if(r)prices[a.id]={price:a.currency==='TWD'?r.twd:r.usd,currency:a.currency};return;}
+    if(a.type==='crypto'){
+      // USDT 為穩定幣，直接以 USD 計
+      if(a.ticker.toUpperCase()==='USDT'){prices[a.id]={price:1,currency:'USD'};return;}
+      const r=await fetchPionex(a.ticker);
+      if(r)prices[a.id]={price:(a.currency==='TWD'||a.currency==='USDT')?r.usd:r.usd,currency:'USD'};
+      return;
+    }
     const t=a.type==='tw'?a.ticker+'.TW':a.ticker;
     const r=await fetchYahoo(t);
     if(r){prices[a.id]={price:r.price,currency:r.currency||a.currency};if(!a.name&&r.name)a.name=r.name;}
@@ -972,9 +1012,11 @@ function setCur(c){
   renderAll();
 }
 function toD(n,from){
-  if(!n)return 0;if(from===dispCur)return n;
-  if(from==='USD'&&dispCur==='TWD')return n*usdTwd;
-  if(from==='TWD'&&dispCur==='USD')return n/usdTwd;
+  if(!n)return 0;
+  const src=from==='USDT'?'USD':from; // USDT treated as USD
+  if(src===dispCur)return n;
+  if(src==='USD'&&dispCur==='TWD')return n*usdTwd;
+  if(src==='TWD'&&dispCur==='USD')return n/usdTwd;
   return n;
 }
 const SYM=()=>dispCur==='TWD'?'NT$':'$';
@@ -997,9 +1039,13 @@ function renderAssetTable(){
     const pnl=dv!=null?dv-dc:null;const pct=dc>0&&pnl!=null?pnl/dc*100:null;
     const cls=pnl==null?'neu':pnl>=0?'pos':'neg';const sign=v=>v>=0?'+':'−';
     const pDec=price?(price<10?4:price<1000?2:0):2;
-    const pStr=price!=null?`${fmt(price,pDec)} <span style="color:var(--faint);font-size:.57rem">${pCur}</span>`:`<span class="pill-loading">取得中…</span>`;
-    const qtyStr=a.type==='tw'?fmt(a.qty,0)+' 股':a.type==='crypto'?fmt(a.qty,6):fmt(a.qty,0);
-    const canSell=price!=null;
+    const isCash=a.type==='cash';
+    const pStr=isCash?`<span style="color:var(--faint);font-size:.65rem">面額</span>`:
+      price!=null?`${fmt(price,pDec)} <span style="color:var(--faint);font-size:.57rem">${pCur}</span>`:`<span class="pill-loading">取得中…</span>`;
+    const qtyStr=a.type==='tw'?fmt(a.qty,0)+' 股':
+      a.type==='crypto'?fmt(a.qty,6):
+      isCash?fmtM(toD(a.qty,a.currency),0):fmt(a.qty,0);
+    const canSell=!isCash&&price!=null;
     return `<tr>
       <td><div class="cell-name">${a.name||a.ticker}<span class="badge ${CAT[a.type].badge}">${CAT[a.type].label}</span></div><div class="cell-sub">${a.ticker}</div></td>
       <td>${pStr}</td><td>${qtyStr}</td>
@@ -1018,21 +1064,36 @@ function renderAssetTable(){
 function renderLiabTable(){
   const tbody=document.getElementById('liabBody');
   const list=liabFilter==='all'?liabilities:liabilities.filter(l=>l.type===liabFilter);
-  if(!list.length){tbody.innerHTML=`<tr><td colspan="9" class="empty-td">${liabFilter==='all'?'尚無負債。點擊「新增負債」開始整理。':'此類別尚無負債'}</td></tr>`;return;}
-  const today=new Date().getDate();
+  if(!list.length){tbody.innerHTML=`<tr><td colspan="10" class="empty-td">${liabFilter==='all'?'尚無負債。點擊「新增負債」開始整理。':'此類別尚無負債'}</td></tr>`;return;}
+  const today=new Date();const todayD=today.getDate();const todayM=today.getMonth()+1;
   tbody.innerHTML=list.map(l=>{
     const cat=LCAT[l.type]||LCAT.other;
     const dp=toD(l.principal||0,l.currency);const dm=toD(l.monthly||0,l.currency);
+    const isInterestOnly=l.repayType==='interest_only';
+    const isAnnual=l.payFreq==='annual';
+    const repayLabel=isInterestOnly?'<span style="color:var(--teal)">理財型</span>':'<span style="color:var(--muted)">本息歸還</span>';
+    const freqLabel=isAnnual?'年繳':'月繳';
     const prog=l.original>0?Math.max(0,Math.min(100,(1-l.principal/l.original)*100)):0;
-    const days=l.dueDay?(l.dueDay>=today?l.dueDay-today:30-today+l.dueDay):null;
-    const urgent=days!=null&&days<=5;
+    let days=null,urgent=false,dueTxt='—';
+    if(isAnnual&&l.dueMonth&&l.dueDay){
+      const nextDue=new Date(today.getFullYear(),l.dueMonth-1,l.dueDay);
+      if(nextDue<today)nextDue.setFullYear(nextDue.getFullYear()+1);
+      days=Math.ceil((nextDue-today)/86400000);urgent=days<=7;
+      dueTxt=`每年 ${l.dueMonth}/${l.dueDay}`;
+    } else if(l.dueDay){
+      days=l.dueDay>=todayD?l.dueDay-todayD:30-todayD+l.dueDay;
+      urgent=days<=5;dueTxt=`每月 ${l.dueDay} 日`;
+    }
+    const termsStr=l.terms!=null?l.terms+(isAnnual?'年':'期'):'—';
+    const autoTag=l.lastDeducted?`<div style="font-size:.54rem;color:var(--teal);margin-top:1px">已自動扣繳</div>`:'';
     return `<tr>
-      <td><div class="cell-name">${l.name}</div>${l.note?`<div class="cell-sub">${l.note}</div>`:''}</td>
+      <td><div class="cell-name">${l.name}</div>${l.note?`<div class="cell-sub">${l.note}</div>`:''}${autoTag}</td>
       <td><span style="font-family:var(--mono);font-size:.7rem;color:${cat.color}">${cat.label}</span></td>
+      <td style="font-family:var(--mono);font-size:.7rem">${repayLabel}<div style="font-size:.58rem;color:var(--faint)">${freqLabel}</div></td>
       <td class="neg">${fmtM(dp,0)}</td><td>${fmtM(dm,0)}</td>
       <td style="color:var(--muted)">${l.rate!=null?l.rate.toFixed(2)+'%':'—'}</td>
-      <td style="${urgent?'color:var(--red);font-weight:500':'color:var(--muted)'}">${l.dueDay?`每月 ${l.dueDay} 日`:'—'}${days!=null?`<div style="font-size:.58rem;color:${urgent?'var(--red)':'var(--faint)'}">${days}天後</div>`:''}</td>
-      <td style="color:var(--muted)">${l.terms!=null?l.terms+'期':'—'}</td>
+      <td style="${urgent?'color:var(--red);font-weight:500':'color:var(--muted)'}">${dueTxt}${days!=null?`<div style="font-size:.58rem;color:${urgent?'var(--red)':'var(--faint)'}">${days}天後</div>`:''}</td>
+      <td style="color:var(--muted)">${termsStr}</td>
       <td><div style="display:flex;align-items:center;justify-content:flex-end;gap:5px"><span style="font-size:.65rem;color:var(--muted)">${prog.toFixed(0)}%</span><div class="prog-track"><div class="prog-fill" style="width:${prog}%"></div></div></div></td>
       <td><button class="icon-btn" onclick="deleteLiab('${l.id}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg></button></td>
     </tr>`;
@@ -1042,6 +1103,7 @@ function renderLiabTable(){
 function renderKPI(){
   let tv=0,tc=0;
   for(const a of assets){const p=prices[a.id];if(p)tv+=toD(p.price*a.qty,p.currency||a.currency);tc+=toD((a.costPerUnit||0)*a.qty,a.currency);}
+  for(const fx of fixedAssets){const v=toD(fx.principal||0,fx.currency);tv+=v;tc+=v;}
   const pnl=tv-tc,pct=tc>0?pnl/tc*100:0;
   let td=0,tm=0;
   for(const l of liabilities){td+=toD(l.principal||0,l.currency);tm+=toD(l.monthly||0,l.currency);}
@@ -1078,15 +1140,21 @@ function drawDonut(svgId,legendId,total,vals,cats,centerLabel){
   svg.innerHTML=h;
   lg.innerHTML=segs.map(s=>`<div class="d-row"><div class="d-sw" style="background:${cats[s.key].color}"></div><span class="d-name">${cats[s.key].label}</span><span class="d-pct">${(s.pct*100).toFixed(1)}%</span><span class="d-amt">${SYM()}${fmt(s.v,0)}</span></div>`).join('');
 }
-function renderDonut(){let tot=0;const v={};for(const a of assets){const p=prices[a.id];const val=p?toD(p.price*a.qty,p.currency||a.currency):0;v[a.type]=(v[a.type]||0)+val;tot+=val;}drawDonut('donutSvg','donutLegend',tot,v,CAT,'總資產');}
+function renderDonut(){
+  let tot=0;const v={};
+  for(const a of assets){const p=prices[a.id];const val=p?toD(p.price*a.qty,p.currency||a.currency):0;v[a.type]=(v[a.type]||0)+val;tot+=val;}
+  for(const fx of fixedAssets){const val=toD(fx.principal||0,fx.currency);v['fixed']=(v['fixed']||0)+val;tot+=val;}
+  drawDonut('donutSvg','donutLegend',tot,v,CAT,'總資產');
+}
 function renderLiabDonut(){let tot=0;const v={};for(const l of liabilities){const val=toD(l.principal||0,l.currency);v[l.type]=(v[l.type]||0)+val;tot+=val;}drawDonut('liabDonut','liabLegend',tot,v,LCAT,'負債');}
 
 function renderAlloc(){
   const area=document.getElementById('allocArea');
   let tot=0;const v={};
   for(const a of assets){const p=prices[a.id];const val=p?toD(p.price*a.qty,p.currency||a.currency):0;v[a.type]=(v[a.type]||0)+val;tot+=val;}
+  for(const fx of fixedAssets){const val=toD(fx.principal||0,fx.currency);v['fixed']=(v['fixed']||0)+val;tot+=val;}
   if(!tot){area.innerHTML=`<div style="font-family:var(--mono);font-size:.65rem;color:var(--faint)">新增資產後顯示</div>`;return;}
-  area.innerHTML=['tw','us','fund','crypto'].filter(k=>v[k]).map(k=>{
+  area.innerHTML=['tw','us','fund','crypto','cash','fixed'].filter(k=>v[k]).map(k=>{
     const val=v[k]||0,pct=tot>0?val/tot*100:0;
     return `<div><div class="alloc-meta"><span class="alloc-name">${CAT[k].label}</span><span class="alloc-pct">${pct.toFixed(1)}%</span></div><div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${CAT[k].color}"></div></div><div class="alloc-amt">${SYM()}${fmt(val,0)}</div></div>`;
   }).join('');
@@ -1110,13 +1178,25 @@ function renderLiabFooter(){
   const bar=document.getElementById('liabFooter');
   if(!liabilities.length){bar.style.display='none';return;}
   bar.style.display='grid';
-  let totP=0,totM=0,totR=0;const today=new Date().getDate();let soonest=null,minD=999;
+  const today=new Date();const todayD=today.getDate();
+  let totP=0,totMo=0,totR=0;let soonest=null,minD=9999;
   for(const l of liabilities){
-    totP+=toD(l.principal||0,l.currency);totM+=toD(l.monthly||0,l.currency);if(l.rate)totR+=l.rate;
-    if(l.dueDay){const d=l.dueDay>=today?l.dueDay-today:30-today+l.dueDay;if(d<minD){minD=d;soonest=l;}}
+    totP+=toD(l.principal||0,l.currency);
+    // 統一換算月付金額（年繳÷12）
+    const mo=l.payFreq==='annual'?toD(l.monthly||0,l.currency)/12:toD(l.monthly||0,l.currency);
+    totMo+=mo;if(l.rate)totR+=l.rate;
+    let d=9999;
+    if(l.payFreq==='annual'&&l.dueMonth&&l.dueDay){
+      const nextDue=new Date(today.getFullYear(),l.dueMonth-1,l.dueDay);
+      if(nextDue<today)nextDue.setFullYear(nextDue.getFullYear()+1);
+      d=Math.ceil((nextDue-today)/86400000);
+    } else if(l.dueDay){
+      d=l.dueDay>=todayD?l.dueDay-todayD:30-todayD+l.dueDay;
+    }
+    if(d<minD){minD=d;soonest=l;}
   }
   document.getElementById('lTotal').textContent=fmtM(totP,0);
-  document.getElementById('lMonthly').textContent=fmtM(totM,0);
+  document.getElementById('lMonthlyDisplay').textContent=fmtM(totMo,0);
   document.getElementById('lAvgRate').textContent=(totR/liabilities.length).toFixed(2)+'%';
   document.getElementById('lSoonest').textContent=soonest?`${soonest.name} (${minD}天後)`:'—';
 }
@@ -1124,19 +1204,27 @@ function renderLiabFooter(){
 function renderReminders(){
   const el=document.getElementById('remindList');
   if(!liabilities.length){el.innerHTML=`<div style="padding:14px 0;font-family:var(--mono);font-size:.65rem;color:var(--faint)">新增負債後顯示</div>`;return;}
-  const today=new Date().getDate();
-  const sorted=[...liabilities].sort((a,b)=>{
-    const da=a.dueDay?(a.dueDay>=today?a.dueDay-today:30-today+a.dueDay):999;
-    const db=b.dueDay?(b.dueDay>=today?b.dueDay-today:30-today+b.dueDay):999;
-    return da-db;
+  const today=new Date();const todayD=today.getDate();
+  const withDays=liabilities.map(l=>{
+    let days=9999,sub='未設還款日';
+    if(l.payFreq==='annual'&&l.dueMonth&&l.dueDay){
+      const nextDue=new Date(today.getFullYear(),l.dueMonth-1,l.dueDay);
+      if(nextDue<today)nextDue.setFullYear(nextDue.getFullYear()+1);
+      days=Math.ceil((nextDue-today)/86400000);
+      sub=`${days}天後（每年${l.dueMonth}/${l.dueDay}）`;
+    } else if(l.dueDay){
+      days=l.dueDay>=todayD?l.dueDay-todayD:30-todayD+l.dueDay;
+      sub=`${days}天後（每月${l.dueDay}日）`;
+    }
+    return {...l,_days:days,_sub:sub};
   });
-  el.innerHTML=sorted.slice(0,6).map(l=>{
-    const days=l.dueDay?(l.dueDay>=today?l.dueDay-today:30-today+l.dueDay):null;
-    const urgent=days!=null&&days<=5;
+  withDays.sort((a,b)=>a._days-b._days);
+  el.innerHTML=withDays.slice(0,6).map(l=>{
+    const urgent=l._days<=5;
     return `<div class="remind-item">
       <div><div class="remind-name" style="${urgent?'color:var(--red)':''}">${l.name}</div>
-      <div class="remind-sub">${days!=null?`${days}天後（每月${l.dueDay}日）`:'未設還款日'}</div></div>
-      <div class="remind-val" style="${urgent?'color:var(--red)':''}">${fmtM(toD(l.monthly||0,l.currency),0)}</div>
+      <div class="remind-sub">${l._sub}</div></div>
+      <div class="remind-val" style="${urgent?'color:var(--red)':''}">${fmtM(toD(l.monthly||0,l.currency),0)}${l.payFreq==='annual'?'<div style="font-size:.55rem;color:var(--faint)">年繳</div>':''}</div>
     </div>`;
   }).join('');
 }
@@ -1170,11 +1258,43 @@ function closeModal(id){document.getElementById(id).classList.remove('open');}
 
 function onAssetTypeChange(){
   const t=document.getElementById('aType').value;
-  const hints={tw:'台股代號：2330、0050、006208',us:'美股 Ticker：AAPL、MSFT、SPY、QQQ',fund:'輸入基金代號後點「查詢 NAV」自動填入',crypto:'支援：BTC、ETH、SOL、BNB、XRP、ADA…（派網報價）'};
-  document.getElementById('aHint').textContent=hints[t];
+  const hints={
+    tw:'台股代號：2330、0050、006208',
+    us:'美股 Ticker：AAPL、MSFT、SPY、QQQ',
+    fund:'輸入基金代號後點「查詢 NAV」自動填入',
+    crypto:'支援：BTC、ETH、SOL、BNB、XRP、ADA…（派網報價）',
+    cash:'留空或填入帳戶名稱（如 玉山活存）',
+  };
+  document.getElementById('aHint').textContent=hints[t]||'';
   document.getElementById('navFg').style.display=t==='fund'?'':'none';
-  document.getElementById('aCur').value=(t==='us'||t==='crypto')?'USD':'TWD';
+  // ticker row: hide for cash (not needed)
+  if(t==='cash'){
+    document.getElementById('aTicker').placeholder='帳戶名稱（選填）';
+    document.getElementById('aQty').placeholder='金額';
+    document.getElementById('aCost').placeholder='0（現金成本=面額）';
+    document.getElementById('aCur').value='TWD';
+  } else {
+    document.getElementById('aTicker').placeholder='如 0050、BTC';
+    document.getElementById('aQty').placeholder='0';
+    document.getElementById('aCost').placeholder='0.00';
+    document.getElementById('aCur').value=(t==='us'||t==='crypto')?'USD':'TWD';
+  }
   if(t==='fund'){document.getElementById('navHint').textContent='輸入代碼後點「查詢 NAV」自動填入，或至 fundclear.com.tw 手動查詢';}
+}
+
+function onLiabRepayChange(){
+  const t=document.getElementById('lRepayType').value;
+  document.getElementById('lPayAmtHint').textContent=
+    t==='interest_only'?'理財型可留空，系統自動以「本金×年利率÷12（月）」計算利息':'填入每期實際還款金額';
+}
+function onLiabFreqChange(){
+  const f=document.getElementById('lPayFreq').value;
+  const annual=f==='annual';
+  document.getElementById('lDueMonthFg').style.display=annual?'':'none';
+  document.getElementById('lDueDayLabel').textContent=annual?'還款日（幾號）':'還款日（每月幾號）';
+  document.getElementById('lTermsLabel').textContent=annual?'剩餘年數':'剩餘期數（月）';
+  document.getElementById('lTermsHint').textContent=annual?'填入剩餘年數':'填入剩餘月數';
+  document.getElementById('lPayAmtLabel').textContent=annual?'每年還款金額':'每月還款金額';
 }
 async function queryFundNAV(){
   const ticker=document.getElementById('aTicker').value.trim();
@@ -1189,27 +1309,34 @@ async function queryFundNAV(){
 
 async function addAsset(){
   const type=document.getElementById('aType').value;
-  const ticker=document.getElementById('aTicker').value.trim().toUpperCase();
+  const rawTicker=document.getElementById('aTicker').value.trim();
+  const ticker=type==='cash'?(rawTicker||'CASH'):rawTicker.toUpperCase();
   const name=document.getElementById('aName').value.trim();
   const qty=parseFloat(document.getElementById('aQty').value);
-  const cost=parseFloat(document.getElementById('aCost').value);
+  const cost=parseFloat(document.getElementById('aCost').value)||(type==='cash'?1:0);
   const cur=document.getElementById('aCur').value;
   const nav=parseFloat(document.getElementById('aNav').value)||0;
-  if(!ticker){alert('請輸入代碼');return;}
-  if(isNaN(qty)||qty<=0){alert('請輸入有效持有量');return;}
-  if(isNaN(cost)||cost<0){alert('請輸入有效成本');return;}
-  const a={id:Date.now().toString(),type,ticker,name,qty,costPerUnit:cost,currency:cur};
+  if(type!=='cash'&&!rawTicker){alert('請輸入代碼');return;}
+  if(isNaN(qty)||qty<=0){alert('請輸入有效'+(type==='cash'?'金額':'持有量'));return;}
+  const a={id:Date.now().toString(),type,ticker,name,qty,costPerUnit:type==='cash'?1:cost,currency:cur};
   if(type==='fund')a.nav=nav;
   assets.push(a);
-  if(type==='fund'&&nav>0)prices[a.id]={price:nav,currency:cur};
+  if(type==='cash')prices[a.id]={price:1,currency:cur};
+  else if(type==='fund'&&nav>0)prices[a.id]={price:nav,currency:cur};
   closeModal('assetModal');
   ['aTicker','aName','aQty','aCost','aNav'].forEach(id=>document.getElementById(id).value='');
   saveLocal();renderAll();
   await n8nPost({action:'save_asset',payload:a});
-  if(type!=='fund'){
+  if(type!=='fund'&&type!=='cash'){
     (async()=>{
-      if(type==='crypto'){const r=await fetchPionex(a.ticker);if(r)prices[a.id]={price:cur==='TWD'?r.twd:r.usd,currency:cur};}
-      else{const t2=type==='tw'?a.ticker+'.TW':a.ticker;const r=await fetchYahoo(t2);if(r){prices[a.id]={price:r.price,currency:r.currency||cur};if(!a.name&&r.name){a.name=r.name;await n8nPost({action:'save_asset',payload:a});}}}
+      if(type==='crypto'){
+        if(a.ticker==='USDT'){prices[a.id]={price:1,currency:'USD'};}
+        else{const r=await fetchPionex(a.ticker);if(r)prices[a.id]={price:r.usd,currency:'USD'};}
+      } else {
+        const t2=type==='tw'?a.ticker+'.TW':a.ticker;
+        const r=await fetchYahoo(t2);
+        if(r){prices[a.id]={price:r.price,currency:r.currency||cur};if(!a.name&&r.name){a.name=r.name;await n8nPost({action:'save_asset',payload:a});}}
+      }
       saveLocal();renderAll();
     })();
   }
@@ -1224,17 +1351,24 @@ async function deleteAsset(id){
 async function addLiability(){
   const name=document.getElementById('lName').value.trim();
   const type=document.getElementById('lType').value;
+  const repayType=document.getElementById('lRepayType').value;
+  const payFreq=document.getElementById('lPayFreq').value;
   const principal=parseFloat(document.getElementById('lPrincipal').value)||0;
   const original=parseFloat(document.getElementById('lOriginal').value)||principal;
-  const monthly=parseFloat(document.getElementById('lMonthly').value)||0;
   const rate=parseFloat(document.getElementById('lRate').value)||0;
   const dueDay=parseInt(document.getElementById('lDueDay').value)||null;
+  const dueMonth=payFreq==='annual'?(parseInt(document.getElementById('lDueMonth').value)||1):null;
   const terms=parseInt(document.getElementById('lTerms').value)||null;
   const cur=document.getElementById('lCur').value;
   const note=document.getElementById('lNote').value.trim();
+  // 每期還款金額：理財型若未填寫則自動計算
+  let payAmt=parseFloat(document.getElementById('lMonthly').value)||0;
+  if(!payAmt&&repayType==='interest_only'&&principal&&rate){
+    payAmt=payFreq==='annual'?principal*rate/100:principal*rate/100/12;
+  }
   if(!name){alert('請輸入項目名稱');return;}
   if(principal<=0){alert('請輸入剩餘本金');return;}
-  const l={id:Date.now().toString(),name,type,principal,original,monthly,rate,dueDay,terms,currency:cur,note};
+  const l={id:Date.now().toString(),name,type,repayType,payFreq,principal,original,monthly:payAmt,rate,dueDay,dueMonth,terms,currency:cur,note,lastDeducted:null};
   liabilities.push(l);
   closeModal('liabModal');
   ['lName','lPrincipal','lOriginal','lMonthly','lRate','lDueDay','lTerms','lNote'].forEach(id=>document.getElementById(id).value='');
@@ -1329,13 +1463,57 @@ async function runAI(){
 }
 
 // ══════════════════════════════════════
+// Auto-deduct liabilities
+// ══════════════════════════════════════
+function autoDeductLiabilities(){
+  const today=new Date();
+  let changed=false;
+  for(const l of liabilities){
+    if(!l.dueDay||!l.terms||l.terms<=0)continue;
+    const isAnnual=l.payFreq==='annual';
+    const isInterestOnly=l.repayType==='interest_only';
+    if(isAnnual){
+      // 年繳：到了該月該日才扣
+      const dueM=l.dueMonth||1;
+      const thisYear=today.getFullYear();
+      const dueDate=new Date(thisYear,dueM-1,l.dueDay);
+      const lastKey=l.lastDeducted||0; // stores year e.g. 2026
+      if(today>=dueDate&&lastKey<thisYear){
+        l.terms=Math.max(0,l.terms-1);
+        if(!isInterestOnly&&l.monthly>0){
+          const interestPart=l.principal*(l.rate||0)/100;
+          const principalPart=Math.max(0,l.monthly-interestPart);
+          l.principal=Math.max(0,l.principal-principalPart);
+        }
+        l.lastDeducted=thisYear;changed=true;
+      }
+    } else {
+      // 月繳
+      const thisYM=today.getFullYear()*100+today.getMonth()+1;
+      const lastYM=l.lastDeducted||0;
+      const dueDate=new Date(today.getFullYear(),today.getMonth(),l.dueDay);
+      if(today>=dueDate&&lastYM<thisYM){
+        l.terms=Math.max(0,l.terms-1);
+        if(!isInterestOnly&&l.monthly>0){
+          const interestPart=l.principal*(l.rate||0)/100/12;
+          const principalPart=Math.max(0,l.monthly-interestPart);
+          l.principal=Math.max(0,l.principal-principalPart);
+        }
+        l.lastDeducted=thisYM;changed=true;
+      }
+    }
+  }
+  if(changed)saveLocal();
+}
+
+// ══════════════════════════════════════
 // Fixed Income
 // ══════════════════════════════════════
 function renderFixedTable(){
   const tbody=document.getElementById('fixedBody');
   const footer=document.getElementById('fixedFooter');
   if(!fixedAssets.length){
-    tbody.innerHTML=`<tr><td colspan="7" class="empty-td">尚無固定升息資產。點擊「新增固定升息」開始新增。</td></tr>`;
+    tbody.innerHTML=`<tr><td colspan="7" class="empty-td">尚無固定生息資產。點擊「新增固定生息」開始新增。</td></tr>`;
     footer.style.display='none';return;
   }
   let totP=0,totM=0,totR=0;
@@ -1365,7 +1543,7 @@ function renderCashflow(){
   const area=document.getElementById('cashflowArea');
   const card=document.getElementById('sidebarCashflow');
   if(!fixedAssets.length){
-    area.innerHTML=`<div style="font-family:var(--mono);font-size:.65rem;color:var(--faint)">新增固定升息資產後顯示</div>`;
+    area.innerHTML=`<div style="font-family:var(--mono);font-size:.65rem;color:var(--faint)">新增固定生息資產後顯示</div>`;
     return;
   }
   let totM=0;
@@ -1395,7 +1573,7 @@ async function addFixedIncome(){
 }
 
 async function deleteFixed(id){
-  if(!confirm('確認刪除此固定升息資產？'))return;
+  if(!confirm('確認刪除此固定生息資產？'))return;
   fixedAssets=fixedAssets.filter(f=>f.id!==id);
   saveLocal();renderAll();
 }
