@@ -318,12 +318,10 @@ const USER = window.TANDRY_USER || {};
 const IS_SALES = USER.role === 'sales';
 const IS_ADMIN = USER.role === 'admin' || USER.role === 'manager';
 
-if (USER.role === 'admin' || USER.role === 'manager') {
-  ['trackBtn','editRequestBtn','reviewBtn','pickupBtn'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.style.display = 'flex';
-  });
-}
+['trackBtn','editRequestBtn','reviewBtn','pickupBtn'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.style.display = 'flex';
+});
 
 function toggleMenu(e) {
   e.stopPropagation();

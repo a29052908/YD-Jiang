@@ -204,17 +204,10 @@ document.addEventListener('click', () => {
 });
 
 // 顯示 admin/manager 選單項目
-(function() {
-  try {
-    const u = JSON.parse(localStorage.getItem('tandry_user') || '{}');
-    if (u.role === 'admin' || u.role === 'manager') {
-      ['editRequestBtn','reviewBtn','pickupBtn'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.style.display = 'flex';
-      });
-    }
-  } catch(e) {}
-})();
+['editRequestBtn','reviewBtn','pickupBtn'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.style.display = 'flex';
+});
 
 // ── 常數 ────────────────────────────────────
 const WEBHOOK_SUBMIT = 'https://ydj.zeabur.app/webhook/submit-track';

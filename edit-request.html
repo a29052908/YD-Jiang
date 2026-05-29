@@ -323,17 +323,10 @@ document.addEventListener('click', () => {
   if (m) m.classList.remove('open');
 });
 
-(function() {
-  try {
-    const u = JSON.parse(localStorage.getItem('tandry_user') || '{}');
-    if (u.role === 'admin' || u.role === 'manager') {
-      ['trackBtn','reviewBtn','pickupBtn'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.style.display = 'flex';
-      });
-    }
-  } catch(e) {}
-})();
+['trackBtn','reviewBtn','pickupBtn'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.style.display = 'flex';
+});
 
 const WEBHOOK_SUBMIT = 'https://ydj.zeabur.app/webhook/submit-edit';
 const WEBHOOK_GET    = 'https://ydj.zeabur.app/webhook/get-edit-requests';

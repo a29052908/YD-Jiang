@@ -516,18 +516,11 @@ const WEBHOOK_URL = 'https://ydj.zeabur.app/webhook/manual-baodao';
 const WEEKDAYS = ['日','一','二','三','四','五','六'];
 let currentDate = new Date();
 let selectedHospital = '', innerCode = '';
-// 根據角色顯示選單項目
-(function() {
-  const user = window.TANDRY_USER || {};
-  if (user.role === 'admin' || user.role === 'manager') {
-    ['trackBtn','editRequestBtn','reviewBtn','pickupBtn'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.style.display = 'flex';
-    });
-    // admin/manager 清除舊的業務殘留
-    localStorage.setItem('tandry_sales_current', user.displayName || user.username);
-  }
-})();
+// 選單項目全部開放
+['trackBtn','editRequestBtn','reviewBtn','pickupBtn'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.style.display = 'flex';
+});
 let currentSales = (() => {
   const user = window.TANDRY_USER || {};
   if (user.role === 'sales' && user.displayName) {
