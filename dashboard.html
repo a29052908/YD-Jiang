@@ -117,6 +117,54 @@ tr:hover td { background: #faf9f7; cursor: pointer; }
 .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--accent); color: white; padding: 11px 20px; border-radius: 24px; font-size: 13px; font-weight: 500; opacity: 0; transition: all 0.3s; z-index: 999; white-space: nowrap; pointer-events: none; }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
+/* view toggle */
+.view-toggle { display: flex; gap: 0; margin-bottom: 14px; border-radius: 10px; overflow: hidden; border: 1.5px solid var(--border); width: fit-content; }
+.view-toggle-btn { padding: 8px 18px; border: none; background: var(--card); font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'Noto Sans TC', sans-serif; color: var(--muted); transition: all 0.15s; }
+.view-toggle-btn.active { background: var(--accent); color: white; }
+.view-toggle-btn + .view-toggle-btn { border-left: 1.5px solid var(--border); }
+
+/* sales filter for stats view */
+.stats-filter-bar { background: var(--card); border-radius: var(--radius); padding: 12px 16px; margin-bottom: 12px; box-shadow: var(--shadow); border: 1px solid var(--border); display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.stats-filter-label { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-family: 'JetBrains Mono', monospace; }
+.stats-filter-select { padding: 7px 12px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 13px; font-family: 'Noto Sans TC', sans-serif; outline: none; background: var(--bg); color: var(--text); cursor: pointer; }
+.stats-filter-select:focus { border-color: var(--accent); }
+
+/* pivot table */
+.pt-wrap { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid var(--border); overflow: hidden; }
+.pt-scroll { overflow-x: auto; }
+.pt { width: 100%; border-collapse: collapse; min-width: 540px; }
+.pt thead tr { background: var(--accent); }
+.pt th { padding: 10px 14px; text-align: left; font-size: 11px; font-weight: 600; letter-spacing: 0.5px; white-space: nowrap; font-family: 'JetBrains Mono', monospace; color: white; }
+.pt th.num { text-align: right; }
+.pt td { padding: 8px 14px; font-size: 13px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.pt td.num { text-align: right; font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+.pt td.num-zero { color: var(--dim); text-align: right; font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+.pt tr:last-child td { border-bottom: none; }
+
+/* pivot row levels */
+.pt-zone td:first-child { font-weight: 700; font-size: 13px; color: var(--accent); letter-spacing: 0.3px; }
+.pt-zone { background: #f0f0f7; }
+.pt-hosp { background: #f9f8f5; }
+.pt-hosp td:first-child { padding-left: 14px; font-weight: 600; }
+.pt-doc { background: var(--card); }
+.pt-doc td:first-child { padding-left: 28px; color: var(--muted); font-size: 12px; }
+.pt-buwei td:first-child { padding-left: 42px; color: var(--text); font-size: 12px; }
+.pt-buwei:hover td { background: #faf9f7; }
+.pt-total { background: var(--accent); }
+.pt-total td { color: white; font-weight: 700; border-bottom: none; }
+.pt-total td.num, .pt-total td.num-zero { color: rgba(255,255,255,0.85); }
+
+/* collapse toggle */
+.pt-toggle { background: none; border: 1px solid currentColor; border-radius: 3px; width: 16px; height: 16px; line-height: 14px; text-align: center; font-size: 11px; cursor: pointer; margin-right: 7px; display: inline-block; opacity: 0.6; flex-shrink: 0; vertical-align: middle; font-family: monospace; }
+.pt-toggle:hover { opacity: 1; }
+
+/* totals row per sales */
+.pt-sales-head { background: #1a1a3e; }
+.pt-sales-head td { color: white; font-weight: 700; font-size: 13px; padding: 11px 14px; border-bottom: none; }
+
+/* tag in stats */
+.pt-badge { display: inline-block; padding: 1px 7px; border-radius: 4px; font-size: 10px; font-weight: 700; margin-left: 6px; vertical-align: middle; }
+
 @media (max-width: 480px) {
   .filter-bar { gap: 8px; }
   .filter-input { min-width: 100px; }
@@ -161,6 +209,14 @@ tr:hover td { background: #faf9f7; cursor: pointer; }
   <!-- 月份切換 -->
   <div class="month-bar" id="monthBar"></div>
 
+  <!-- 視圖切換 -->
+  <div class="view-toggle">
+    <button class="view-toggle-btn active" id="viewListBtn" onclick="setView('list')">📋 報刀清單</button>
+    <button class="view-toggle-btn" id="viewStatsBtn" onclick="setView('stats')">📊 業績統計</button>
+  </div>
+
+  <!-- ── 清單視圖 ── -->
+  <div id="listView">
   <!-- 篩選 -->
   <div class="filter-bar">
     <div class="filter-field">
@@ -196,6 +252,42 @@ tr:hover td { background: #faf9f7; cursor: pointer; }
           </td></tr>
         </tbody>
       </table>
+    </div>
+  </div>
+  </div><!-- /listView -->
+
+  <!-- ── 業績統計視圖 ── -->
+  <div id="statsView" style="display:none">
+    <!-- admin 業務篩選 -->
+    <div class="stats-filter-bar" id="statsFilterBar" style="display:none">
+      <span class="stats-filter-label">業務</span>
+      <select class="stats-filter-select" id="statsSalesSelect" onchange="renderStatsView()">
+        <option value="">全部業務</option>
+      </select>
+      <span class="stats-filter-label" style="margin-left:8px">月份</span>
+      <span style="font-size:13px;font-weight:600;font-family:'JetBrains Mono',monospace;" id="statsMonthLabel"></span>
+    </div>
+    <!-- 樞紐統計表 -->
+    <div class="pt-wrap">
+      <div class="pt-scroll">
+        <table class="pt" id="pivotTable">
+          <thead>
+            <tr>
+              <th style="min-width:120px">通路</th>
+              <th style="min-width:110px">客戶簡稱</th>
+              <th style="min-width:90px">留生</th>
+              <th style="min-width:80px">部位</th>
+              <th class="num" style="min-width:52px">刀數</th>
+              <th class="num" style="min-width:52px">另洽</th>
+              <th class="num" id="supportColHead" style="min-width:56px">Support</th>
+              <th class="num" style="min-width:52px">總計</th>
+            </tr>
+          </thead>
+          <tbody id="pivotBody">
+            <tr><td colspan="8"><div class="state-box"><div class="spinner"></div><p>載入中...</p></div></td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 </div>
@@ -321,6 +413,7 @@ function applyFilter() {
   renderTable();
   renderStats();
   renderSummary();
+  if (currentView === 'stats') renderStatsView();
 }
 
 function clearFilter() {
@@ -331,6 +424,7 @@ function clearFilter() {
   renderTable();
   renderStats();
   renderSummary();
+  if (currentView === 'stats') renderStatsView();
 }
 
 // ── 統計 ──────────────────────────────────────
@@ -506,6 +600,217 @@ function requestEdit(index) {
     報損:   row['報損'] || '',
   }));
   window.location.href = `edit-request.html?serial=${row['流水號']}`;
+}
+
+// ══════════════════════════════════════════════
+// 視圖切換
+// ══════════════════════════════════════════════
+let currentView = 'list';
+
+function setView(v) {
+  currentView = v;
+  document.getElementById('viewListBtn').classList.toggle('active', v === 'list');
+  document.getElementById('viewStatsBtn').classList.toggle('active', v === 'stats');
+  document.getElementById('listView').style.display  = v === 'list'  ? '' : 'none';
+  document.getElementById('statsView').style.display = v === 'stats' ? '' : 'none';
+  if (v === 'stats') renderStatsView();
+}
+
+// ══════════════════════════════════════════════
+// 業績統計 ── 資料建構
+// ══════════════════════════════════════════════
+function buildPivot(data, salesFilter) {
+  // tree: zone → hospital → doctor → buwei → { r, a, s }
+  // r=刀數, a=另洽, s=support
+  const tree = {};
+
+  for (const row of data) {
+    const rowSales   = row['業務'] || '';
+    const rowRespSales = row['負責業務'] || rowSales;
+    if (salesFilter && rowSales !== salesFilter) continue;
+
+    // 判斷整筆是否為 support（操刀者 ≠ 負責業務）
+    const rowIsSupport = rowRespSales && rowSales && rowSales !== rowRespSales;
+
+    for (const item of (row['品項'] || [])) {
+      const zone     = item['大區'] || row['大區'] || '未分區';
+      const hospital = row['醫院']  || '未知';
+      const doctor   = row['醫師']  || '-';
+      const buwei    = item['部位'] || '未知';
+      const qty      = parseInt(item['數量']) || 1;
+      const isAnother = item['另洽'] === '是' || item['另洽'] === true;
+
+      tree[zone] ??= {};
+      tree[zone][hospital] ??= {};
+      tree[zone][hospital][doctor] ??= {};
+      tree[zone][hospital][doctor][buwei] ??= { r: 0, a: 0, s: 0 };
+      const cell = tree[zone][hospital][doctor][buwei];
+
+      if (rowIsSupport)      cell.s += qty;
+      else if (isAnother)    cell.a += qty;
+      else                   cell.r += qty;
+    }
+  }
+  return tree;
+}
+
+// 計算某層的合計
+function sumNode(node) {
+  let r=0, a=0, s=0;
+  const recurse = (n) => {
+    if (n && typeof n === 'object' && 'r' in n) { r+=n.r; a+=n.a; s+=n.s; return; }
+    if (typeof n === 'object') Object.values(n).forEach(recurse);
+  };
+  recurse(node);
+  return { r, a, s };
+}
+
+// ══════════════════════════════════════════════
+// 業績統計 ── 渲染
+// ══════════════════════════════════════════════
+// collapse 狀態: key → bool (true=collapsed)
+const collapseState = {};
+
+function ptToggle(key) {
+  collapseState[key] = !collapseState[key];
+  renderStatsView();
+}
+
+function numCell(n) {
+  return n > 0
+    ? `<td class="num">${n}</td>`
+    : `<td class="num-zero">—</td>`;
+}
+
+function renderStatsView() {
+  document.getElementById('statsMonthLabel').textContent = `${currentYear} 年 ${currentMonth} 月`;
+
+  // admin：顯示業務下拉，填充選項
+  const salesSelect = document.getElementById('statsSalesSelect');
+  if (IS_ADMIN) {
+    document.getElementById('statsFilterBar').style.display = 'flex';
+    document.getElementById('supportColHead').style.display = '';
+    const allSales = [...new Set(allData.map(r => r['業務']).filter(Boolean))].sort();
+    const prevVal = salesSelect.value;
+    salesSelect.innerHTML = '<option value="">全部業務</option>' +
+      allSales.map(s => `<option value="${s}" ${s===prevVal?'selected':''}>${s}</option>`).join('');
+  } else {
+    document.getElementById('supportColHead').style.display = 'none';
+  }
+
+  const salesFilter = IS_ADMIN ? salesSelect.value : (USER.displayName || USER.username || '');
+  const tree = buildPivot(filteredData, IS_ADMIN ? salesFilter : null);
+  const rows = [];
+  let grandR=0, grandA=0, grandS=0;
+
+  // 若 admin 且選「全部業務」，依業務分組顯示 header
+  const showByEachSales = IS_ADMIN && !salesFilter;
+  if (showByEachSales) {
+    // 先按業務重新分組
+    const bySales = {};
+    for (const row of filteredData) {
+      const s = row['業務'] || '未知';
+      (bySales[s] ??= []).push(row);
+    }
+    for (const [sales, sRows] of Object.entries(bySales).sort()) {
+      const sTree = buildPivot(sRows, null);
+      const st = sumNode(sTree);
+      grandR+=st.r; grandA+=st.a; grandS+=st.s;
+      rows.push(`<tr class="pt-sales-head">
+        <td colspan="4">${sales}</td>
+        ${numCell(st.r)}${numCell(st.a)}${numCell(st.s)}
+        <td class="num" style="color:white;font-weight:700">${st.r+st.a+st.s}</td>
+      </tr>`);
+      rows.push(...buildZoneRows(sTree, sales+'||'));
+    }
+  } else {
+    // 單一業務或 sales 自己看
+    const tot = sumNode(tree);
+    grandR=tot.r; grandA=tot.a; grandS=tot.s;
+    rows.push(...buildZoneRows(tree, ''));
+  }
+
+  // 總計列
+  const grandTotal = grandR+grandA+grandS;
+  if (grandTotal === 0) {
+    document.getElementById('pivotBody').innerHTML =
+      `<tr><td colspan="8"><div class="state-box"><div class="icon">📭</div><p>${currentMonth}月 沒有統計資料</p></div></td></tr>`;
+    return;
+  }
+
+  rows.push(`<tr class="pt-total">
+    <td colspan="4" style="letter-spacing:.5px">總計</td>
+    ${numCell(grandR)}${numCell(grandA)}${numCell(grandS)}
+    <td class="num">${grandTotal}</td>
+  </tr>`);
+
+  document.getElementById('pivotBody').innerHTML = rows.join('');
+}
+
+function buildZoneRows(tree, prefix) {
+  const rows = [];
+  for (const [zone, hospMap] of Object.entries(tree).sort()) {
+    const zKey  = prefix + zone;
+    const zt    = sumNode(hospMap);
+    const zTotal= zt.r+zt.a+zt.s;
+    const zOpen = !collapseState[zKey];
+    rows.push(`<tr class="pt-zone" onclick="ptToggle('${zKey}')" style="cursor:pointer">
+      <td colspan="4">
+        <button class="pt-toggle" tabindex="-1">${zOpen?'−':'+'}</button>${zone}
+        <span class="pt-badge" style="background:var(--blue-light);color:var(--blue)">${zTotal}</span>
+      </td>
+      ${numCell(zt.r)}${numCell(zt.a)}${numCell(zt.s)}
+      <td class="num" style="font-weight:600">${zTotal}</td>
+    </tr>`);
+
+    if (!zOpen) continue;
+
+    for (const [hosp, docMap] of Object.entries(hospMap).sort()) {
+      const hKey  = zKey+'||'+hosp;
+      const ht    = sumNode(docMap);
+      const hTotal= ht.r+ht.a+ht.s;
+      const hOpen = !collapseState[hKey];
+      rows.push(`<tr class="pt-hosp" onclick="ptToggle('${hKey}')" style="cursor:pointer">
+        <td></td>
+        <td colspan="3">
+          <button class="pt-toggle" tabindex="-1">${hOpen?'−':'+'}</button>${hosp}
+        </td>
+        ${numCell(ht.r)}${numCell(ht.a)}${numCell(ht.s)}
+        <td class="num" style="font-weight:600">${hTotal}</td>
+      </tr>`);
+
+      if (!hOpen) continue;
+
+      for (const [doc, buweiMap] of Object.entries(docMap).sort()) {
+        const dKey  = hKey+'||'+doc;
+        const dt    = sumNode(buweiMap);
+        const dTotal= dt.r+dt.a+dt.s;
+        const dOpen = !collapseState[dKey];
+        rows.push(`<tr class="pt-doc" onclick="ptToggle('${dKey}')" style="cursor:pointer">
+          <td></td><td></td>
+          <td colspan="2">
+            <button class="pt-toggle" tabindex="-1">${dOpen?'−':'+'}</button>${doc}
+          </td>
+          ${numCell(dt.r)}${numCell(dt.a)}${numCell(dt.s)}
+          <td class="num">${dTotal}</td>
+        </tr>`);
+
+        if (!dOpen) continue;
+
+        // 部位明細
+        for (const [buwei, cell] of Object.entries(buweiMap).sort()) {
+          const bTotal = cell.r+cell.a+cell.s;
+          rows.push(`<tr class="pt-buwei">
+            <td></td><td></td><td></td>
+            <td>${buwei}</td>
+            ${numCell(cell.r)}${numCell(cell.a)}${numCell(cell.s)}
+            <td class="num">${bTotal}</td>
+          </tr>`);
+        }
+      }
+    }
+  }
+  return rows;
 }
 
 // ── 狀態顯示 ──────────────────────────────────
