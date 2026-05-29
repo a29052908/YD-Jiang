@@ -227,7 +227,7 @@ tr:hover td { background: #faf9f7; cursor: pointer; }
       <label>醫師</label>
       <input class="filter-input" id="filterDoctor" placeholder="全部" style="min-width:100px;">
     </div>
-    <div id="filterSalesWrap" class="filter-field" style="display:none;">
+    <div id="filterSalesWrap" class="filter-field">
       <label>業務</label>
       <input class="filter-input" id="filterSales" placeholder="全部" style="min-width:100px;">
     </div>
@@ -345,10 +345,32 @@ let currentYear = new Date().getFullYear();
 // ── 初始化 ────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
   renderMonthBar();
-  if (IS_ADMIN) document.getElementById('filterSalesWrap').style.display = 'flex';
+  initSalesFilter();
   renderTableHead();
   loadData();
 });
+
+function initSalesFilter() {
+  const input = document.getElementById('filterSales');
+  if (IS_ADMIN) {
+    // admin：可自由輸入篩選任意業務
+    input.removeAttribute('disabled');
+    input.removeAttribute('readonly');
+    input.style.removeProperty('background');
+    input.style.removeProperty('color');
+    input.style.removeProperty('cursor');
+    input.placeholder = '全部';
+  } else {
+    // 非 admin：固定顯示自己的名稱，不可更改
+    const name = USER.displayName || USER.username || '';
+    input.value = name;
+    input.setAttribute('readonly', true);
+    input.style.background = '#f0f0f0';
+    input.style.color = 'var(--muted)';
+    input.style.cursor = 'default';
+    input.placeholder = name;
+  }
+}
 
 // ── 月份列 ────────────────────────────────────
 function renderMonthBar() {
@@ -419,7 +441,7 @@ function applyFilter() {
 function clearFilter() {
   document.getElementById('filterHospital').value = '';
   document.getElementById('filterDoctor').value = '';
-  document.getElementById('filterSales').value = '';
+  if (IS_ADMIN) document.getElementById('filterSales').value = '';
   filteredData = [...allData];
   renderTable();
   renderStats();
