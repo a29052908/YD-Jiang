@@ -245,6 +245,9 @@ function tandryLogout() {
   localStorage.removeItem('tandry_token');
   localStorage.removeItem('tandry_token_exp');
   localStorage.removeItem('tandry_user');
+  localStorage.removeItem('tandry_sales_current');
+  localStorage.removeItem('tandry_warehouse_current');
+  localStorage.removeItem('tandry_sales_warehouse_map');
   window.location.href = 'login.html';
 }
 function toggleMenu(e) {
@@ -523,7 +526,7 @@ let selectedHospital = '', innerCode = '';
 });
 let currentSales = (() => {
   const user = window.TANDRY_USER || {};
-  if (user.role === 'sales' && user.displayName) {
+  if (user.displayName) {
     localStorage.setItem('tandry_sales_current', user.displayName);
     return user.displayName;
   }
