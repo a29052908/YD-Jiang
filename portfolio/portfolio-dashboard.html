@@ -234,21 +234,13 @@ header{display:flex;align-items:center;justify-content:space-between;padding:26p
 
 <!-- ── Setup Card ── -->
 <div id="setupCard">
-  <div class="setup-title">🔗 連線 N8N Cloud + Google Sheets</div>
+  <div class="setup-title">💾 本機儲存模式</div>
   <div class="setup-sub">
-    在 N8N Cloud 匯入 Workflow 並啟用後，複製 Production Webhook URL（格式：<code>https://xxx.app.n8n.cloud/webhook/portfolio</code>）貼入下方。<br>
-    未設定則使用本機 localStorage 離線模式，資料不會跨裝置同步。
+    所有資料儲存於瀏覽器 <code>localStorage</code>，不需要任何後端設定。<br>
+    換裝置或清除瀏覽器資料前，請至「設定」匯出 JSON 備份。
   </div>
-  <div class="setup-row">
-    <input class="setup-input" id="n8nInput" type="url" placeholder="https://xxx.app.n8n.cloud/webhook/portfolio">
-    <button class="setup-save" onclick="saveN8nUrl()">儲存並連線</button>
-    <button class="setup-skip" onclick="skipSetup()">離線使用</button>
-  </div>
-  <div class="setup-steps">
-    <div class="step"><div class="step-num">Step 1</div><div class="step-text">在 Google Sheets 建立試算表，新增兩個工作表：<code>assets</code> 和 <code>liabilities</code></div></div>
-    <div class="step"><div class="step-num">Step 2</div><div class="step-text">在 N8N Cloud 匯入 <code>portfolio-n8n-cloud-workflow.json</code>，填入試算表 ID 和 Google 憑證</div></div>
-    <div class="step"><div class="step-num">Step 3</div><div class="step-text">點 Workflow 右上角 <code>Activate</code>，複製 Production Webhook URL</div></div>
-    <div class="step"><div class="step-num">Step 4</div><div class="step-text">將 URL 貼入上方輸入框，點「儲存並連線」。手機和電腦使用同一個 HTML 即可同步</div></div>
+  <div class="setup-row" style="max-width:240px">
+    <button class="setup-save" onclick="skipSetup()">開始使用</button>
   </div>
 </div>
 
@@ -436,37 +428,21 @@ header{display:flex;align-items:center;justify-content:space-between;padding:26p
   </div>
 
   <div class="settings-section">
-    <div class="settings-section-title">N8N Cloud 連線狀態</div>
+    <div class="settings-section-title">儲存模式</div>
     <div class="status-badge">
-      <div class="status-dot" id="sdot"></div>
-      <div class="status-text" id="stext">未連線</div>
+      <div class="status-dot green"></div>
+      <div class="status-text">本機 localStorage 模式</div>
     </div>
-    <div class="fg">
-      <label class="fl">Webhook URL</label>
-      <input class="fi" id="settingsN8nInput" placeholder="https://xxx.app.n8n.cloud/webhook/portfolio">
-      <div class="fhint">N8N Cloud Production Webhook URL</div>
-    </div>
-    <div style="display:flex;gap:8px;margin-top:4px">
-      <button class="btn btn-green" onclick="saveSettingsUrl()" style="flex:1">儲存</button>
-      <button class="btn btn-ghost" onclick="testConnection()" style="flex:1">測試連線</button>
+    <div style="font-family:var(--mono);font-size:.65rem;color:var(--muted);line-height:1.7;margin-top:8px">
+      資料儲存於瀏覽器 localStorage，換裝置或清除瀏覽器快取前請先備份。
     </div>
   </div>
 
   <div class="settings-section">
     <div class="settings-section-title">資料管理</div>
-    <button class="btn btn-ghost" onclick="forceSync()" style="width:100%;margin-bottom:8px">強制從 N8N 重新載入</button>
     <button class="btn btn-ghost" onclick="exportJSON()" style="width:100%;margin-bottom:8px">匯出 JSON 備份</button>
+    <button class="btn btn-ghost" onclick="importJSON()" style="width:100%;margin-bottom:8px;color:var(--blue);border-color:var(--blue-l)">匯入 JSON 備份</button>
     <button class="btn" onclick="clearAll()" style="width:100%;background:var(--red-l);color:var(--red);border:1px solid #fecaca">清除所有本機資料</button>
-  </div>
-
-  <div class="settings-section">
-    <div class="settings-section-title">Google Sheets 設定說明</div>
-    <div style="font-family:var(--mono);font-size:.65rem;color:var(--muted);line-height:1.7">
-      試算表需有兩個工作表：<br>
-      • <code style="background:var(--bg);padding:1px 5px;border-radius:3px;border:1px solid var(--border)">assets</code> — 存放資產資料<br>
-      • <code style="background:var(--bg);padding:1px 5px;border-radius:3px;border:1px solid var(--border)">liabilities</code> — 存放負債資料<br><br>
-      第一列需為欄位標題，Workflow 匯入後會自動寫入。
-    </div>
   </div>
 </div>
 
@@ -720,8 +696,6 @@ header{display:flex;align-items:center;justify-content:space-between;padding:26p
 // ══════════════════════════════════════
 // State
 // ══════════════════════════════════════
-const N8N_BASE = 'https://ydj.zeabur.app/webhook/portfolio';
-let N8N_URL = localStorage.getItem('n8n_url') || N8N_BASE;
 let assets = [], liabilities = [], fixedAssets = [], prices = {};
 let usdTwd = 32.5, dispCur = 'TWD';
 let assetFilter = 'all', liabFilter = 'all';
@@ -749,58 +723,20 @@ const FXCAT = {
 // ══════════════════════════════════════
 function initUI() {
   const card = document.getElementById('setupCard');
-  if (N8N_URL) {
+  if (localStorage.getItem('pf_visited') || localStorage.getItem('pf_assets_v3')) {
     card.classList.add('hidden');
-    document.getElementById('n8nInput').value = N8N_URL;
   }
-  document.getElementById('settingsN8nInput').value = N8N_URL;
-  updateSyncPill(N8N_URL ? 'connected' : 'local');
-}
-
-function saveN8nUrl() {
-  const v = document.getElementById('n8nInput').value.trim();
-  if (!v) { alert('請輸入 Webhook URL'); return; }
-  N8N_URL = v; localStorage.setItem('n8n_url', v);
-  document.getElementById('setupCard').classList.add('hidden');
-  document.getElementById('settingsN8nInput').value = v;
-  updateSyncPill('connected');
-  loadData();
+  updateSyncPill();
 }
 
 function skipSetup() {
+  localStorage.setItem('pf_visited','1');
   document.getElementById('setupCard').classList.add('hidden');
-  loadData();
 }
 
-function saveSettingsUrl() {
-  const v = document.getElementById('settingsN8nInput').value.trim();
-  N8N_URL = v; localStorage.setItem('n8n_url', v);
-  updateSyncPill(v ? 'connected' : 'local');
-  if (v) loadData();
-}
-
-async function testConnection() {
-  if (!N8N_URL) { alert('請先輸入 URL'); return; }
-  updateSyncPill('syncing');
-  const ok = await n8nGet();
-  updateSyncPill(ok ? 'ok' : 'err');
-  alert(ok ? '✅ 連線成功！N8N 回應正常。' : '❌ 連線失敗。請確認 Workflow 已啟用且 URL 正確。');
-}
-
-function updateSyncPill(state) {
+function updateSyncPill() {
   const el = document.getElementById('syncPill');
-  const dot = document.getElementById('sdot');
-  const txt = document.getElementById('stext');
-  const states = {
-    local:    {pill:'local',  label:'● 本機模式',dot:'gray',  stxt:'未連線 N8N'},
-    connected:{pill:'ok',    label:'● N8N 連線', dot:'green', stxt:'已設定 Webhook URL'},
-    syncing:  {pill:'syncing',label:'⟳ 同步中…', dot:'gray',  stxt:'同步中…'},
-    ok:       {pill:'ok',    label:'● 已同步',   dot:'green', stxt:'同步成功'},
-    err:      {pill:'err',   label:'● 同步失敗', dot:'red',   stxt:'請確認 N8N Workflow 已啟用'},
-  };
-  const s = states[state] || states.local;
-  el.className='sync-pill '+s.pill; el.textContent=s.label;
-  if(dot){dot.className='status-dot '+s.dot;} if(txt){txt.textContent=s.stxt;}
+  el.className='sync-pill local'; el.textContent='● 本機模式';
 }
 
 function openSettings() {
@@ -812,81 +748,41 @@ function closeSettings() {
   document.getElementById('settingsOverlay').classList.remove('open');
 }
 
-async function forceSync() {
-  updateSyncPill('syncing');
-  const d = await n8nGet();
-  if (d) { assets=d.assets||[]; liabilities=d.liabilities||[]; saveLocal(); renderAll(); updateSyncPill('ok'); }
-  else updateSyncPill('err');
-}
-
 function exportJSON() {
-  const blob = new Blob([JSON.stringify({assets,liabilities},null,2)],{type:'application/json'});
+  const blob = new Blob([JSON.stringify({assets,liabilities,fixedAssets},null,2)],{type:'application/json'});
   const a = document.createElement('a'); a.href=URL.createObjectURL(blob);
   a.download=`portfolio-backup-${new Date().toISOString().slice(0,10)}.json`; a.click();
 }
 
+function importJSON() {
+  const input = document.createElement('input');
+  input.type='file'; input.accept='.json';
+  input.onchange = e => {
+    const file=e.target.files[0]; if(!file)return;
+    const reader=new FileReader();
+    reader.onload = ev => {
+      try {
+        const d=JSON.parse(ev.target.result);
+        if(Array.isArray(d.assets))assets=d.assets;
+        if(Array.isArray(d.liabilities))liabilities=d.liabilities;
+        if(Array.isArray(d.fixedAssets))fixedAssets=d.fixedAssets;
+        saveLocal(); renderAll();
+        if(assets.length)fetchPrices();
+        alert('✅ 匯入成功');
+      } catch { alert('❌ 檔案格式錯誤，請確認是本系統匯出的 JSON'); }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
 function clearAll() {
-  if (!confirm('確認清除所有本機資料？此動作不會影響 N8N/Google Sheets 中的資料。')) return;
-  localStorage.removeItem('pf_assets_v3'); localStorage.removeItem('pf_liabs_v1'); localStorage.removeItem('pf_fixed_v1');
+  if (!confirm('確認清除所有本機資料？此動作無法復原。')) return;
+  localStorage.removeItem('pf_assets_v3'); localStorage.removeItem('pf_liabs_v1');
+  localStorage.removeItem('pf_fixed_v1'); localStorage.removeItem('pf_visited');
   assets=[]; liabilities=[]; fixedAssets=[]; prices={}; renderAll();
 }
 
-// ══════════════════════════════════════
-// N8N API
-// ══════════════════════════════════════
-// 欄位對應（原本在 n8n Code node，現在移到前端）
-const COL_ASSET_MAP = {
-  '識別碼':'id','類型':'type','代碼':'ticker','名稱':'name',
-  '持有量':'qty','平均成本':'costPerUnit','計價幣別':'currency','基金淨值':'nav'
-};
-const COL_LIAB_MAP = {
-  '識別碼':'id','項目名稱':'name','負債類型':'type','剩餘本金':'principal',
-  '原始貸款':'original','月還款':'monthly','年利率':'rate','還款日':'dueDay',
-  '剩餘期數':'terms','計價幣別':'currency','備註':'note'
-};
-const NUM_ASSET_F = ['qty','costPerUnit','nav'];
-const NUM_LIAB_F  = ['principal','original','monthly','rate','dueDay','terms'];
-function remapRow(row, colMap, numF) {
-  const out={};
-  for(const [zh,en] of Object.entries(colMap)){
-    const v=row[zh];
-    out[en]=numF.includes(en)?(v===''||v==null?null:Number(v)):(v??null);
-  }
-  return out;
-}
-
-async function n8nGet() {
-  if (!N8N_URL) return null;
-  try {
-    const [r1,r2] = await Promise.all([
-      fetch(N8N_URL+'/assets',  {signal:AbortSignal.timeout(10000)}),
-      fetch(N8N_URL+'/liabilities',{signal:AbortSignal.timeout(10000)})
-    ]);
-    if (!r1.ok||!r2.ok) return null;
-    const rawA=await r1.json(), rawL=await r2.json();
-    const assets      = rawA.filter(r=>r['識別碼']&&r['識別碼']!=='').map(r=>remapRow(r,COL_ASSET_MAP,NUM_ASSET_F));
-    const liabilities = rawL.filter(r=>r['識別碼']&&r['識別碼']!=='').map(r=>remapRow(r,COL_LIAB_MAP,NUM_LIAB_F));
-    return {assets,liabilities};
-  } catch {return null;}
-}
-
-async function n8nPost(body) {
-  if (!N8N_URL) return;
-  try {
-    updateSyncPill('syncing');
-    const r = await fetch(N8N_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal:AbortSignal.timeout(10000)});
-    updateSyncPill(r.ok?'ok':'err');
-  } catch { updateSyncPill('err'); }
-}
-
-async function n8nDelete(type,id) {
-  if (!N8N_URL) return;
-  try {
-    updateSyncPill('syncing');
-    const r = await fetch(N8N_URL,{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({type,id}),signal:AbortSignal.timeout(10000)});
-    updateSyncPill(r.ok?'ok':'err');
-  } catch { updateSyncPill('err'); }
-}
 
 // ══════════════════════════════════════
 // Data loading
@@ -903,19 +799,7 @@ function loadLocal() {
 }
 
 async function loadData() {
-  if (N8N_URL) {
-    updateSyncPill('syncing');
-    const d = await n8nGet();
-    if (d) {
-      assets      = Array.isArray(d.assets)?d.assets:[];
-      liabilities = Array.isArray(d.liabilities)?d.liabilities:[];
-      saveLocal(); updateSyncPill('ok');
-    } else {
-      loadLocal();
-      // n8n 失敗時靜默降級：有本機資料就顯示本機模式，不顯示紅色錯誤
-      updateSyncPill(assets.length||liabilities.length ? 'local' : 'err');
-    }
-  } else { loadLocal(); }
+  loadLocal();
   autoDeductLiabilities();
   renderAll();
   if (assets.length) await fetchPrices();
@@ -1326,7 +1210,6 @@ async function addAsset(){
   closeModal('assetModal');
   ['aTicker','aName','aQty','aCost','aNav'].forEach(id=>document.getElementById(id).value='');
   saveLocal();renderAll();
-  await n8nPost({action:'save_asset',payload:a});
   if(type!=='fund'&&type!=='cash'){
     (async()=>{
       if(type==='crypto'){
@@ -1335,17 +1218,17 @@ async function addAsset(){
       } else {
         const t2=type==='tw'?a.ticker+'.TW':a.ticker;
         const r=await fetchYahoo(t2);
-        if(r){prices[a.id]={price:r.price,currency:r.currency||cur};if(!a.name&&r.name){a.name=r.name;await n8nPost({action:'save_asset',payload:a});}}
+        if(r){prices[a.id]={price:r.price,currency:r.currency||cur};if(!a.name&&r.name)a.name=r.name;}
       }
       saveLocal();renderAll();
     })();
   }
 }
 
-async function deleteAsset(id){
+function deleteAsset(id){
   if(!confirm('確認刪除此資產？'))return;
   assets=assets.filter(a=>a.id!==id);delete prices[id];
-  saveLocal();renderAll();await n8nDelete('asset',id);
+  saveLocal();renderAll();
 }
 
 async function addLiability(){
@@ -1372,13 +1255,13 @@ async function addLiability(){
   liabilities.push(l);
   closeModal('liabModal');
   ['lName','lPrincipal','lOriginal','lMonthly','lRate','lDueDay','lTerms','lNote'].forEach(id=>document.getElementById(id).value='');
-  saveLocal();renderAll();await n8nPost({action:'save_liability',payload:l});
+  saveLocal();renderAll();
 }
 
-async function deleteLiab(id){
+function deleteLiab(id){
   if(!confirm('確認刪除此負債？'))return;
   liabilities=liabilities.filter(l=>l.id!==id);
-  saveLocal();renderAll();await n8nDelete('liability',id);
+  saveLocal();renderAll();
 }
 
 // ══════════════════════════════════════
@@ -1433,33 +1316,13 @@ function buildPortfolioPayload(income) {
   };
 }
 
-async function runAI(){
-  const income=document.getElementById('aiIncome').value;
-  const btn=document.getElementById('aiRunBtn');
+function runAI(){
   const resultEl=document.getElementById('aiResult');
-  btn.disabled=true;btn.textContent='分析中…';
-  resultEl.innerHTML='<div class="ai-placeholder"><div class="ai-spinner"></div>AI 分析中，請稍候…</div>';
-  const payload=buildPortfolioPayload(income);
-  try{
-    const r=await fetch(N8N_URL+'/analyze',{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify(payload),signal:AbortSignal.timeout(60000)
-    });
-    if(!r.ok)throw new Error('HTTP '+r.status);
-    const d=await r.json();
-    const text=d.analysis||d.text||JSON.stringify(d);
-    // 將 markdown 簡單轉成 HTML
-    const html=text
-      .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
-      .replace(/^#+\s(.+)$/gm,'<div class="ai-section-title">$1</div>')
-      .split(/\n\n+/)
-      .map(p=>`<div class="ai-section">${p.replace(/\n/g,'<br>')}</div>`)
-      .join('');
-    resultEl.innerHTML=html;
-  }catch(e){
-    resultEl.innerHTML=`<div class="ai-placeholder" style="color:var(--red)">分析失敗：${e.message}<br><br>請確認 n8n AI workflow 已啟用</div>`;
-  }
-  btn.disabled=false;btn.textContent='重新分析';
+  resultEl.innerHTML=`<div class="ai-placeholder">
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--faint)" stroke-width="1.5"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 8v4l3 3"/><circle cx="18" cy="6" r="3"/></svg>
+    <span>本機模式不支援 AI 分析</span>
+    <span style="font-size:.6rem;color:var(--faint)">需連接後端服務才能使用</span>
+  </div>`;
 }
 
 // ══════════════════════════════════════
@@ -1655,7 +1518,6 @@ async function confirmSell(){
   }
   closeModal('sellModal');
   saveLocal();renderAll();
-  await n8nPost({action:'save_asset',payload:assets.find(x=>x.id===sellTargetId)||{id:sellTargetId,_deleted:true}});
   alert(resultMsg);
 }
 
