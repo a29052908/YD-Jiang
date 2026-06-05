@@ -2176,7 +2176,7 @@ function renderAllDamageScrewBoards(){
     }).join('');
     return`<div style="margin-bottom:10px;border:1px solid var(--border);border-radius:10px;overflow:hidden;">
       <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg);cursor:pointer;" onclick="toggleDamageScrewBoard('${id}')">
-        <div style="font-size:13px;font-weight:700;color:var(--accent);"><span id="arrow_${id}">▼</span> ⌀ ${dia} mm</div>
+        <div style="font-size:13px;font-weight:700;color:var(--accent);"><span id="arrow_${id}">▼</span> ⌀ ${dia==='VA'?'2.4VA':dia} mm</div>
         <button onclick="event.stopPropagation();removeDamageScrewBoard('${id}')" style="padding:3px 10px;border-radius:6px;border:1px solid var(--accent2);background:white;color:var(--accent2);font-size:11px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;">移除</button>
       </div>
       <div id="body_${id}" style="padding:12px;">${typesHtml}</div>
@@ -2207,7 +2207,7 @@ function renderAllScrewBoards(){
     }).join('');
     return`<div style="margin-bottom:10px;border:1px solid var(--border);border-radius:10px;overflow:hidden;">
       <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg);cursor:pointer;" onclick="toggleScrewBoard('${id}')">
-        <div style="font-size:13px;font-weight:700;color:var(--accent);"><span id="arrow_${id}">▼</span> ⌀ ${dia} mm</div>
+        <div style="font-size:13px;font-weight:700;color:var(--accent);"><span id="arrow_${id}">▼</span> ⌀ ${dia==='VA'?'2.4VA':dia} mm</div>
         <button onclick="event.stopPropagation();removeScrewBoard('${id}')" style="padding:3px 10px;border-radius:6px;border:1px solid var(--accent2);background:white;color:var(--accent2);font-size:11px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;">移除</button>
       </div>
       <div id="body_${id}" style="padding:12px;">${typesHtml}</div>
