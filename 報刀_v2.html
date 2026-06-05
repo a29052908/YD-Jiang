@@ -822,6 +822,8 @@ const rulesDb = [
 window.onload = () => {
   renderDate(); renderSalesBadge(); renderWarehouseList();
   renderHospitals(); renderBuwei();
+  // 預熱 n8n，避免冷啟動拖慢送出
+  fetch('https://ydj.zeabur.app/webhook/verify-token',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'}).catch(()=>{});
 };
 
 // ── 選品層級邏輯 ──────────────────────────────────────────────
