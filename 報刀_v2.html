@@ -2142,8 +2142,8 @@ async function confirmSubmit(){
       const res=await fetch(WEBHOOK_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(row),signal:ctrl.signal});
       clearTimeout(t);
       console.log('[confirmSubmit] response status:', res.status);
-      if(!res.ok){console.error('[confirmSubmit] HTTP error:', res.status); anyFailed=true;}
       if(isFirst){try{const json=await res.json();serialNo=json.serialNo||json.流水號||'';console.log('[confirmSubmit] serialNo:', serialNo);}catch(e){console.warn('[confirmSubmit] parse json failed:', e);}}
+      if(!res.ok && !serialNo){console.error('[confirmSubmit] HTTP error:', res.status); anyFailed=true;}
     }catch(e){console.error('報刀資料送出失敗',e);anyFailed=true;}
   }
   if(anyFailed){showToast('部分資料送出失敗，請檢查網路','error');btn.disabled=false;btn.textContent='✅ 確認送出';return;}
