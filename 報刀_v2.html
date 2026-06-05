@@ -2165,8 +2165,8 @@ function renderAllDamageScrewBoards(){
     const def=screwBoardDefs[dia];if(!def)return'';
     const typesHtml=def.types.map(({type,color,dark})=>{
       const lengths=def.lengthsL?(type==='L'?def.lengthsL:def.lengthsC):def.lengths;
-      if(!lengths.length)return`<div style="color:var(--muted);font-size:12px;padding:6px 0;">${type==='L'?'QL':type} — 尺寸待補齊</div>`;
-      return`<div class="screw-type-label" style="color:${color};margin-top:8px;">● ${type==='L'?'QL':type} — ${type==='L'?'Locking':'Cortex'}</div>
+      if(!lengths.length)return`<div style="color:var(--muted);font-size:12px;padding:6px 0;">${(dia==='VA'&&type==='L')?'QL':type} — 尺寸待補齊</div>`;
+      return`<div class="screw-type-label" style="color:${color};margin-top:8px;">● ${(dia==='VA'&&type==='L')?'QL':type} — ${type==='L'?'Locking':'Cortex'}</div>
       <div class="screw-row">${lengths.map(len=>`
         <div class="screw-dot-wrap">
           <div class="screw-len">${len}</div>
@@ -2196,8 +2196,8 @@ function renderAllScrewBoards(){
     const def=screwBoardDefs[dia];if(!def)return'';
     const typesHtml=def.types.map(({type,color,dark})=>{
       const lengths=def.lengthsL?(type==='L'?def.lengthsL:def.lengthsC):def.lengths;
-      if(!lengths.length)return`<div style="color:var(--muted);font-size:12px;padding:6px 0;">${type==='L'?'QL':type} — 尺寸待補齊</div>`;
-      return`<div class="screw-type-label" style="color:${color};margin-top:8px;">● ${type==='L'?'QL':type} — ${type==='L'?'Locking':'Cortex'}</div>
+      if(!lengths.length)return`<div style="color:var(--muted);font-size:12px;padding:6px 0;">${(dia==='VA'&&type==='L')?'QL':type} — 尺寸待補齊</div>`;
+      return`<div class="screw-type-label" style="color:${color};margin-top:8px;">● ${(dia==='VA'&&type==='L')?'QL':type} — ${type==='L'?'Locking':'Cortex'}</div>
       <div class="screw-row">${lengths.map(len=>`
         <div class="screw-dot-wrap">
           <div class="screw-len">${len}</div>
@@ -2231,7 +2231,7 @@ function updateComponentFromScrews(){
       const entries=[];
       for(const len of lengths){const cnt=screwState[`${id}_${type}_${len}`]||0;if(cnt>0)entries.push(`${len}x${toZheng(cnt)}`);}
       if(entries.length>0){
-      const prefix=`${dia==='VA'?'2.4':dia}${dia==='VA'?'':' '}${type==='L'?'QL':type}: `;
+      const prefix=`${dia==='VA'?'2.4':dia}${dia==='VA'?'':' '}${(dia==='VA'&&type==='L')?'QL':type}: `;
       const indent=' '.repeat(prefix.length);
       const rows=[];
       for(let i=0;i<entries.length;i+=6){rows.push(entries.slice(i,i+6).join('・'));}
@@ -2288,7 +2288,7 @@ function buildScrewText(){
       const entries=[];
       for(const len of lengths){const cnt=screwState[`${id}_${type}_${len}`]||0;if(cnt>0)entries.push(`${len}x${toZheng(cnt)}`);}
       if(entries.length>0){
-        const prefix=`${dia==='VA'?'2.4':dia}${dia==='VA'?'':' '}${type==='L'?'QL':type}: `;
+        const prefix=`${dia==='VA'?'2.4':dia}${dia==='VA'?'':' '}${(dia==='VA'&&type==='L')?'QL':type}: `;
         const indent=' '.repeat(prefix.length);
         const rows=[];
         for(let i=0;i<entries.length;i+=6){rows.push(entries.slice(i,i+6).join('・'));}
@@ -2310,7 +2310,7 @@ function buildDamageScrewText(){
       const entries=[];
       for(const len of lengths){const cnt=damageScrewState[`${id}_${type}_${len}`]||0;if(cnt>0)entries.push(`${len}x${toZheng(cnt)}`);}
       if(entries.length>0){
-        const prefix=`${dia==='VA'?'2.4':dia}${dia==='VA'?'':' '}${type==='L'?'QL':type}: `;
+        const prefix=`${dia==='VA'?'2.4':dia}${dia==='VA'?'':' '}${(dia==='VA'&&type==='L')?'QL':type}: `;
         const indent=' '.repeat(prefix.length);
         const rows=[];
         for(let i=0;i<entries.length;i+=6){rows.push(entries.slice(i,i+6).join('・'));}
@@ -2344,7 +2344,7 @@ function _buildZhengHTML(boards, state){
         }
       }
       if(entries.length>0){
-        const label=`<span style="font-weight:700;color:${tc};font-family:'Inconsolata',monospace;">${dia==='VA'?'2.4':dia}${dia==='VA'?'':' '}${type==='L'?'QL':type}:</span>`;
+        const label=`<span style="font-weight:700;color:${tc};font-family:'Inconsolata',monospace;">${dia==='VA'?'2.4':dia}${dia==='VA'?'':' '}${(dia==='VA'&&type==='L')?'QL':type}:</span>`;
         const sep=`<span style="font-size:13px;color:#bbb;margin:0 4px;">/</span>`;
         const tagged=entries.map((e,i)=>i<entries.length-1?e+sep:e).join('');
         diaLines.push(`<div style="display:block;line-height:2.2;">${label} ${tagged}</div>`);
