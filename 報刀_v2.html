@@ -1132,7 +1132,8 @@ function renderLevels() {
 
   // 一般骨板：V1
   const v1opts = [...new Set(DB.filter(r=>r.部位===b).map(r=>r.v1))];
-  const makeBtnV1 = v => `<button class="sel-btn ${v===sel.v1?'selected':''}" onclick="setV1('${v}')">${v}</button>`;
+  const escQ = v => v.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+  const makeBtnV1 = v => `<button class="sel-btn ${v===sel.v1?'selected':''}" onclick="setV1('${escQ(v)}')">${v}</button>`;
 
   let html;
   if (b === '鎖骨') {
@@ -1175,13 +1176,13 @@ function renderLevels() {
         if (isRL) {
           const sorted = [...v2opts].sort((a,b)=>a.startsWith('L')?-1:b.startsWith('L')?1:0);
           html += levelBlock(2, '左／右側', sorted.map(v =>
-            `<button class="sel-btn rl-${v[0].toLowerCase()} ${v===sel.v2?'selected':''}" onclick="setV2('${v}')">${v}</button>`
+            `<button class="sel-btn rl-${v[0].toLowerCase()} ${v===sel.v2?'selected':''}" onclick="setV2('${escQ(v)}')">${v}</button>`
           ).join(''), 2);
         } else {
           // 板型：直板/Y/T/Z 等，兩欄填滿
           const cols = v2opts.length <= 2 ? v2opts.length : 2;
           html += levelBlock(2, '板型', v2opts.map(v =>
-            `<button class="sel-btn ${v===sel.v2?'selected':''}" onclick="setV2('${v}')">${v}</button>`
+            `<button class="sel-btn ${v===sel.v2?'selected':''}" onclick="setV2('${escQ(v)}')">${v}</button>`
           ).join(''), cols);
         }
       }
@@ -1192,7 +1193,7 @@ function renderLevels() {
         html += levelBlock(2, '左／右側（Head）或無（Neck）',
           `<button class="sel-btn ${''===sel.v2?'selected':''}" onclick="setV2('')">Neck（無側）</button>` +
           v2opts.map(v=>
-            `<button class="sel-btn rl-${v[0].toLowerCase()} ${v===sel.v2?'selected':''}" onclick="setV2('${v}')">${v}</button>`
+            `<button class="sel-btn rl-${v[0].toLowerCase()} ${v===sel.v2?'selected':''}" onclick="setV2('${escQ(v)}')">${v}</button>`
           ).join(''), 2
         );
       }
