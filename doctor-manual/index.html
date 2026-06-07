@@ -58,6 +58,10 @@ body{background:var(--bg);color:var(--ink);font-family:'Noto Sans TC',sans-serif
 .tile-img-ph svg{width:36px;height:36px;opacity:.2}
 .tile-name{padding:7px 10px 9px;font-size:12px;font-weight:600;color:var(--ink);line-height:1.3;border-top:1px solid #f0ede8}
 .tile-price{position:absolute;top:7px;right:7px;background:rgba(20,53,90,.82);color:#fff;font-size:10px;font-family:'DM Mono',monospace;border-radius:5px;padding:2px 7px;letter-spacing:.5px}
+.tile-screw{position:absolute;top:7px;left:7px;background:rgba(26,92,58,.8);color:#fff;font-size:10px;font-family:'DM Mono',monospace;border-radius:5px;padding:2px 7px;letter-spacing:.3px}
+.tile-lr{position:absolute;bottom:46px;right:7px;font-size:10px;font-weight:700;border-radius:5px;padding:2px 7px;letter-spacing:.5px}
+.tile-lr.has-lr{background:rgba(154,114,0,.85);color:#fff}
+.tile-lr.no-lr{background:rgba(80,80,80,.7);color:#fff}
 
 /* ── BOTTOM SHEET MODAL ── */
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:300;opacity:0;pointer-events:none;transition:opacity .25s}
@@ -243,53 +247,53 @@ const CATS = {
   clavicle: {
     code: 'OS0211A',
     items: [
-      { name:'Hook Plate',        imgs:['3.5%20Clavicle%20Hook%20Plate.png'],    price:'$55,000', holes:['4H','6H'],                          note:'Hook深度 15 / 18 mm' },
-      { name:'Superior Clavicle', imgs:['3.5%20Superior%20Clavicle%20Plate.png'],price:'$55,000', holes:['6H','7H','8H'] },
-      { name:'Distal Clavicle',   imgs:['3.5%20Distal%20Clavicle%20Plate.png'],  price:'$55,000', holes:['4H','5H','6H','7H'] },
+      { name:'Hook Plate',        imgs:['3.5%20Clavicle%20Hook%20Plate.png'],    price:'$55,000', holes:['4H','6H'],                          note:'Hook深度 15 / 18 mm', lr:true,  screw:'Ø 3.6mm' },
+      { name:'Superior Clavicle', imgs:['3.5%20Superior%20Clavicle%20Plate.png'],price:'$55,000', holes:['6H','7H','8H'],                                                  lr:true,  screw:'Ø 3.6mm' },
+      { name:'Distal Clavicle',   imgs:['3.5%20Distal%20Clavicle%20Plate.png'],  price:'$55,000', holes:['4H','5H','6H','7H'],                                             lr:true,  screw:'Ø 3.6mm' },
     ]
   },
   upper: {
     code: 'OS0211B',
     items: [
-      { name:'LPHP',    imgs:['3.5%20Proximal%20Humeral%20Plate.png'],        price:'$70,000', holes:['3H','5H','8H'],         note:'無左右' },
-      { name:'Olecranon',imgs:['3.5%20Olecranon%20Plate2.png'],               price:'$70,000', holes:['2H','4H','6H'] },
-      { name:'LDHP 外', imgs:['3.5%20Lateral%20Distal%20Humeral%20Plate.png'],price:'$70,000', holes:['5H','7H','9H'] },
-      { name:'LDHP 內', imgs:['3.5%20Medial%20Humeral%20Plate.png'],          price:'$70,000', holes:['3H','5H','7H'] },
+      { name:'LPHP',    imgs:['3.5%20Proximal%20Humeral%20Plate.png'],        price:'$70,000', holes:['3H','5H','8H'],          lr:false, screw:'Ø 3.6mm' },
+      { name:'Olecranon',imgs:['3.5%20Olecranon%20Plate2.png'],               price:'$70,000', holes:['2H','4H','6H'],          lr:true,  screw:'Ø 3.6mm' },
+      { name:'LDHP 外', imgs:['3.5%20Lateral%20Distal%20Humeral%20Plate.png'],price:'$70,000', holes:['5H','7H','9H'],          lr:true,  screw:'Ø 3.6mm' },
+      { name:'LDHP 內', imgs:['3.5%20Medial%20Humeral%20Plate.png'],          price:'$70,000', holes:['3H','5H','7H'],          lr:true,  screw:'Ø 3.6mm' },
     ]
   },
   long: {
     code: 'OS0211C',
     items: [
-      { name:'3.5 Recon',      imgs:['3.5%20Reconstruction%20Plate.png'],         price:'$55,000', holes:['5H','6H','7H','8H','10H','12H','16H','18H','20H'] },
-      { name:'3.5 1/3 Tubular',imgs:['3.5%20One-thierd%20Tubular%20Plate.png'],   price:'$55,000', holes:['6H','8H','10H'] },
-      { name:'5.0 Broad',      imgs:['5.0%20Straight%20Broad.png'],               price:'$55,000', holes:['6H','8H','10H','12H'] },
-      { name:'3.5 直板',       imgs:['3.5%20Straignt%20Plate.png'],               price:'$55,000', holes:['5H','6H','7H','8H','10H','12H'] },
-      { name:'5.0 Narrow',     imgs:['5.0%20Straight%20Narrow%20Plate.png'],      price:'$55,000', holes:['6H','8H','10H','12H'] },
+      { name:'3.5 Recon',      imgs:['3.5%20Reconstruction%20Plate.png'],         price:'$55,000', holes:['5H','6H','7H','8H','10H','12H','16H','18H','20H'], lr:false, screw:'Ø 3.6mm' },
+      { name:'3.5 1/3 Tubular',imgs:['3.5%20One-thierd%20Tubular%20Plate.png'],   price:'$55,000', holes:['6H','8H','10H'],                                   lr:false, screw:'Ø 3.6mm' },
+      { name:'5.0 Broad',      imgs:['5.0%20Straight%20Broad.png'],               price:'$55,000', holes:['6H','8H','10H','12H'],                             lr:false, screw:'Ø 4.7mm' },
+      { name:'3.5 直板',       imgs:['3.5%20Straignt%20Plate.png'],               price:'$55,000', holes:['5H','6H','7H','8H','10H','12H'],                   lr:false, screw:'Ø 3.6mm' },
+      { name:'5.0 Narrow',     imgs:['5.0%20Straight%20Narrow%20Plate.png'],      price:'$55,000', holes:['6H','8H','10H','12H'],                             lr:false, screw:'Ø 4.7mm' },
     ]
   },
   small: {
     code: 'OS0211D',
     items: [
-      { name:'1.5 直板',        imgs:['1.5%20Plate.png'],                                                     price:'$55,000', holes:['5H','6H','7H','8H','10H','12H'] },
-      { name:'1.5 Y / T / Z',   imgs:['1.5%20Y%20Plate.png','1.5%20T%20Plate.png','1.5%20Z%20Plate.png'],   price:'$55,000', holes:['Y','T','Z'],                    note:'各版型獨立品項' },
-      { name:'2.0 直版',        imgs:['2.0mm%20Locking%20Plate.png'],                                        price:'$55,000', holes:['4H','5H','6H','7H','8H'] },
-      { name:'2.0 Y / T',       imgs:['2.0%20Y%20Plate.png','2.0%20T%20Plate.png'],                          price:'$55,000', holes:['Y','T'],                        note:'各版型獨立品項' },
-      { name:'Volar',           imgs:['2.4%20Volar%20Plate.png'],                                             price:'$55,000', holes:['2H','3H','6H','8H'] },
-      { name:'Juxta',           imgs:['2.4%20Juxta%20Plate.png'],                                             price:'$55,000', holes:['3H','5H'] },
-      { name:'Fibula',          imgs:['3.5%20Distal%20Fibula%20Plate.png'],                                   price:'$55,000', holes:['4H','6H','8H'] },
-      { name:'Radial Head/Neck',imgs:['2.4mm%20Radial%20Head%20Plate.png','2.4%20mm%20Radial%20Neck%20Plate.png'], price:'$55,000', holes:['2H','3H','4H'] },
+      { name:'1.5 直板',        imgs:['1.5%20Plate.png'],                                                     price:'$55,000', holes:['5H','6H','7H','8H','10H','12H'], lr:false, screw:'Ø 2.0mm' },
+      { name:'1.5 Y / T / Z',   imgs:['1.5%20Y%20Plate.png','1.5%20T%20Plate.png','1.5%20Z%20Plate.png'],   price:'$55,000', holes:['Y','T','Z'],  note:'各版型獨立品項',  lr:false, screw:'Ø 2.0mm' },
+      { name:'2.0 直版',        imgs:['2.0mm%20Locking%20Plate.png'],                                        price:'$55,000', holes:['4H','5H','6H','7H','8H'],         lr:false, screw:'Ø 2.8mm' },
+      { name:'2.0 Y / T',       imgs:['2.0%20Y%20Plate.png','2.0%20T%20Plate.png'],                          price:'$55,000', holes:['Y','T'],      note:'各版型獨立品項',  lr:false, screw:'Ø 2.8mm' },
+      { name:'Volar',           imgs:['2.4%20Volar%20Plate.png'],                                             price:'$55,000', holes:['2H','3H','6H','8H'],              lr:true,  screw:'Ø 2.8mm' },
+      { name:'Juxta',           imgs:['2.4%20Juxta%20Plate.png'],                                             price:'$55,000', holes:['3H','5H'],                        lr:true,  screw:'Ø 2.8mm' },
+      { name:'Fibula',          imgs:['3.5%20Distal%20Fibula%20Plate.png'],                                   price:'$55,000', holes:['4H','6H','8H'],                   lr:true,  screw:'Ø 3.6mm' },
+      { name:'Radial Head/Neck',imgs:['2.4mm%20Radial%20Head%20Plate.png','2.4%20mm%20Radial%20Neck%20Plate.png'], price:'$55,000', holes:['2H','3H','4H'],            lr:true,  screw:'Ø 2.8mm' },
     ]
   },
   lower: {
     code: 'OS0211E',
     items: [
-      { name:'Distal Femur',    imgs:['5.0%20Distal%20Femoral%20Plate.png'],          price:'$70,000', holes:['5H','7H','9H','11H','13H'] },
-      { name:'DHS',             imgs:['5.0mm%20Proximal%20Femoral%20Plate.png'],       price:'$70,000', holes:['2H','3H','4H','6H'],      note:'無左右' },
-      { name:'LPTP 外',         imgs:['5.0%20Lateral%20Proximal%20Tibial%20Plate.png'],price:'$70,000', holes:['4H','6H','8H','10H','12H'] },
-      { name:'LPTP 內',         imgs:['5.0%20Medial%20Proximal%20Tibial%20Plate.png'], price:'$70,000', holes:['4H','6H','8H','10H','12H'] },
-      { name:'Distal Tibia 內', imgs:['3.5%20Medial%20Distal%20Tibial%20Plate.png'],   price:'$70,000', holes:['6H','8H','10H','12H','14H'] },
-      { name:'Distal Tibia 前外',imgs:['3.5%20Anterolateral%20Tibial%20Plate.png'],   price:'$70,000', holes:['7H','9H','11H'] },
-      { name:'Calcaneus',       imgs:['3.5%20Calcaneal%20Plate.png'],                  price:'$70,000', holes:['14H'] },
+      { name:'Distal Femur',    imgs:['5.0%20Distal%20Femoral%20Plate.png'],          price:'$70,000', holes:['5H','7H','9H','11H','13H'],  lr:true,  screw:'Ø 4.7mm' },
+      { name:'DHS',             imgs:['5.0mm%20Proximal%20Femoral%20Plate.png'],       price:'$70,000', holes:['2H','3H','4H','6H'],          lr:false, screw:'Ø 7.5mm' },
+      { name:'LPTP 外',         imgs:['5.0%20Lateral%20Proximal%20Tibial%20Plate.png'],price:'$70,000', holes:['4H','6H','8H','10H','12H'],  lr:true,  screw:'Ø 4.7mm' },
+      { name:'LPTP 內',         imgs:['5.0%20Medial%20Proximal%20Tibial%20Plate.png'], price:'$70,000', holes:['4H','6H','8H','10H','12H'],  lr:true,  screw:'Ø 4.7mm' },
+      { name:'Distal Tibia 內', imgs:['3.5%20Medial%20Distal%20Tibial%20Plate.png'],   price:'$70,000', holes:['6H','8H','10H','12H','14H'], lr:true,  screw:'Ø 3.6mm' },
+      { name:'Distal Tibia 前外',imgs:['3.5%20Anterolateral%20Tibial%20Plate.png'],   price:'$70,000', holes:['7H','9H','11H'],              lr:true,  screw:'Ø 3.6mm' },
+      { name:'Calcaneus',       imgs:['3.5%20Calcaneal%20Plate.png'],                  price:'$70,000', holes:['14H'],                        lr:true,  screw:'Ø 3.6mm' },
     ]
   }
 };
@@ -341,8 +345,18 @@ Object.entries(CATS).forEach(([cat, data]) => {
     price.className = 'tile-price';
     price.textContent = item.price;
 
+    const screw = document.createElement('div');
+    screw.className = 'tile-screw';
+    screw.textContent = item.screw;
+
+    const lr = document.createElement('div');
+    lr.className = 'tile-lr ' + (item.lr ? 'has-lr' : 'no-lr');
+    lr.textContent = item.lr ? 'L / R' : '無左右';
+
     tile.appendChild(img);
     tile.appendChild(price);
+    tile.appendChild(screw);
+    tile.appendChild(lr);
     tile.appendChild(name);
     grid.appendChild(tile);
   });
