@@ -5,6 +5,11 @@
 - 後端：n8n，部署在 https://ydj.zeabur.app
 - 資料：Google Sheets（ID: 1z0UJIwXpV1yUTqbbovoH9pcqQNDLMxLIMNwI9h4B7D4）
 
+## Project Skill
+- `.claude/skills/verifier-baodao/` — Playwright headless 驗證腳本
+  - 含 auth 注入、selector 速查、完整報刀流程驅動方式
+  - 使用 `/verify` 或 `/run` 時自動套用此設定
+
 ## 頁面清單
 - login.html：登入
 - 報刀_v2.html：主要報刀頁面（v10+Baodao合併版）
