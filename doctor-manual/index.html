@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#1a5fa8">
+  <title>Tandry 醫師手冊</title>
+  <link rel="manifest" href="./manifest.json">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f4f6f9;
+      color: #222;
+    }
+
+    header {
+      background: #1a5fa8;
+      color: #fff;
+      padding: 14px 16px 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 6px rgba(0,0,0,.25);
+    }
+
+    header h1 {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    /* Tab strip */
+    .tabs {
+      display: flex;
+      gap: 2px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .tabs::-webkit-scrollbar { display: none; }
+
+    .tab-btn {
+      flex-shrink: 0;
+      background: rgba(255,255,255,.18);
+      border: none;
+      color: rgba(255,255,255,.8);
+      padding: 8px 14px;
+      border-radius: 6px 6px 0 0;
+      font-size: 13px;
+      cursor: pointer;
+      transition: background .15s, color .15s;
+      white-space: nowrap;
+    }
+    .tab-btn.active {
+      background: #fff;
+      color: #1a5fa8;
+      font-weight: 600;
+    }
+
+    /* Content */
+    main { padding: 16px; }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    .product-card {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.1);
+      overflow: hidden;
+      transition: box-shadow .2s;
+    }
+    .product-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,.15); }
+
+    .product-card img {
+      width: 100%;
+      aspect-ratio: 4/3;
+      object-fit: contain;
+      background: #fafafa;
+      padding: 12px;
+      display: block;
+    }
+
+    .img-error {
+      width: 100%;
+      aspect-ratio: 4/3;
+      background: #f0f0f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #999;
+      font-size: 13px;
+    }
+
+    .product-name {
+      padding: 10px 14px 12px;
+      font-size: 14px;
+      font-weight: 500;
+      line-height: 1.4;
+      border-top: 1px solid #f0f0f0;
+    }
+
+    /* Mixed-content warning */
+    .mixed-content-notice {
+      background: #fff3cd;
+      border: 1px solid #ffc107;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 13px;
+      margin-bottom: 14px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Tandry 醫師手冊</h1>
+  <div class="tabs" id="tabs">
+    <button class="tab-btn active" data-tab="clavicle">鎖骨 Clavicle</button>
+    <button class="tab-btn" data-tab="upper">上肢 Upper</button>
+    <button class="tab-btn" data-tab="lower">下肢 Lower</button>
+    <button class="tab-btn" data-tab="hand">手足 Hand/Foot</button>
+    <button class="tab-btn" data-tab="straight">直板 Straight</button>
+  </div>
+</header>
+
+<main>
+  <div class="mixed-content-notice" id="mixedNotice">
+    ⚠️ 圖片來自 http 網站，若瀏覽器封鎖請改用 http 開啟本頁，或允許 mixed content。
+  </div>
+
+  <!-- 鎖骨 Clavicle -->
+  <div class="tab-panel active" id="tab-clavicle">
+    <div class="product-grid" id="grid-clavicle"></div>
+  </div>
+
+  <!-- 上肢 Upper Extremity -->
+  <div class="tab-panel" id="tab-upper">
+    <div class="product-grid" id="grid-upper"></div>
+  </div>
+
+  <!-- 下肢 Lower Extremity -->
+  <div class="tab-panel" id="tab-lower">
+    <div class="product-grid" id="grid-lower"></div>
+  </div>
+
+  <!-- 手足 Hand / Foot -->
+  <div class="tab-panel" id="tab-hand">
+    <div class="product-grid" id="grid-hand"></div>
+  </div>
+
+  <!-- 直板 Straight -->
+  <div class="tab-panel" id="tab-straight">
+    <div class="product-grid" id="grid-straight"></div>
+  </div>
+</main>
+
+<script>
+const BASE = 'http://www.tandrymed.com/assets/images/';
+
+const PRODUCTS = {
+  clavicle: [
+    '3.5%20Clavicle%20Hook%20Plate.png',
+    '3.5%20Superior%20Clavicle%20Plate.png',
+    '3.5%20Distal%20Clavicle%20Plate.png',
+  ],
+  upper: [
+    '3.5%20Proximal%20Humeral%20Plate.png',
+    '3.5%20Olecranon%20Plate2.png',
+    '3.5%20Lateral%20Distal%20Humeral%20Plate.png',
+    '3.5%20Medial%20Humeral%20Plate.png',
+  ],
+  lower: [
+    '3.5%20Anterolateral%20Tibial%20Plate.png',
+    '3.5%20Medial%20Distal%20Tibial%20Plate.png',
+    '3.5%20Calcaneal%20Plate.png',
+    '5.0%20Distal%20Femoral%20Plate.png',
+    '5.0mm%20Proximal%20Femoral%20Plate.png',
+    '5.0%20Lateral%20Proximal%20Tibial%20Plate.png',
+    '5.0%20Medial%20Proximal%20Tibial%20Plate.png',
+  ],
+  hand: [
+    '1.5%20Plate.png',
+    '1.5%20Y%20Plate.png',
+    '1.5%20T%20Plate.png',
+    '1.5%20Z%20Plate.png',
+    '2.0mm%20Locking%20Plate.png',
+    '2.0%20Y%20Plate.png',
+    '2.0%20T%20Plate.png',
+    '2.4%20Volar%20Plate.png',
+    '2.4%20Juxta%20Plate.png',
+    '2.4%20mm%20Radial%20Neck%20Plate.png',
+    '2.4mm%20Radial%20Head%20Plate.png',
+    '3.5%20Distal%20Fibula%20Plate.png',
+  ],
+  straight: [
+    '3.5%20Straignt%20Plate.png',          // 官網原始拼字錯誤，照用
+    '3.5%20Reconstruction%20Plate.png',
+    '3.5%20One-thierd%20Tubular%20Plate.png', // 官網原始拼字錯誤，照用
+    '5.0%20Straight%20Broad.png',
+    '5.0%20Straight%20Narrow%20Plate.png',
+  ],
+};
+
+function fileToName(filename) {
+  return decodeURIComponent(filename).replace(/\.png$/i, '');
+}
+
+function buildGrid(tab) {
+  const grid = document.getElementById('grid-' + tab);
+  if (grid.dataset.built) return;
+  grid.dataset.built = '1';
+
+  PRODUCTS[tab].forEach(file => {
+    const url = BASE + file;
+    const name = fileToName(file);
+
+    const card = document.createElement('div');
+    card.className = 'product-card';
+
+    const img = document.createElement('img');
+    img.alt = name;
+    img.loading = 'lazy';
+    img.src = url;
+    img.onerror = function() {
+      const placeholder = document.createElement('div');
+      placeholder.className = 'img-error';
+      placeholder.textContent = '圖片無法載入';
+      this.replaceWith(placeholder);
+    };
+
+    const label = document.createElement('div');
+    label.className = 'product-name';
+    label.textContent = name;
+
+    card.appendChild(img);
+    card.appendChild(label);
+    grid.appendChild(card);
+  });
+}
+
+// Tab switching
+document.getElementById('tabs').addEventListener('click', e => {
+  const btn = e.target.closest('.tab-btn');
+  if (!btn) return;
+  const tab = btn.dataset.tab;
+
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+
+  btn.classList.add('active');
+  document.getElementById('tab-' + tab).classList.add('active');
+  buildGrid(tab);
+});
+
+// Build first tab immediately
+buildGrid('clavicle');
+
+// Mixed-content detection: if page is https but images are http
+if (location.protocol === 'https:') {
+  document.getElementById('mixedNotice').style.display = 'block';
+}
+
+// PWA service worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js');
+}
+</script>
+</body>
+</html>

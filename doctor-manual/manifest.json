@@ -1,0 +1,17 @@
+{
+  "name": "Tandry 醫師手冊",
+  "short_name": "Tandry",
+  "description": "Tandry 植入物產品圖冊",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1a5fa8",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "https://www.tandrymed.com/favicon.ico",
+      "sizes": "64x64",
+      "type": "image/x-icon"
+    }
+  ]
+}
