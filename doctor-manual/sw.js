@@ -1,4 +1,4 @@
-const CACHE = 'tandry-manual-v1';
+const CACHE = 'tandry-manual-v2';
 const SHELL = [
   './index.html',
   './manifest.json'
@@ -21,12 +21,6 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
-  // 外連圖片 (http tandrymed.com) 直接網路抓，不快取（mixed-content 問題由 index.html 處理）
-  if (e.request.url.includes('tandrymed.com')) {
-    e.respondWith(fetch(e.request).catch(() => new Response('')));
-    return;
-  }
-  // Shell：cache first
   e.respondWith(
     caches.match(e.request).then(r => r || fetch(e.request))
   );
