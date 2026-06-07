@@ -150,7 +150,7 @@ body{background:var(--bg);color:var(--ink);font-family:'Noto Sans TC',sans-serif
     </button>
   </div>
   <div style="background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden">
-    <img src="./images/Cortex Screw.png" alt="Cortex Screw"
+    <img src="./images/Cortex Screw.png?v=2" alt="Cortex Screw"
       style="width:100%;display:block;object-fit:contain;background:#f8f8f6;padding:20px;max-height:320px"
       onerror="this.style.display='none'">
   </div>
@@ -242,6 +242,7 @@ body{background:var(--bg);color:var(--ink);font-family:'Noto Sans TC',sans-serif
 
 <script>
 const BASE = './images/';
+const VER = '?v=2';
 
 const CATS = {
   clavicle: {
@@ -302,14 +303,7 @@ const CATS = {
 Object.entries(CATS).forEach(([cat, data]) => {
   const sec = document.getElementById('cat-' + cat);
 
-  // http notice (only once, in first section)
-  if (cat === 'clavicle') {
-    const notice = document.createElement('div');
-    notice.className = 'http-notice';
-    notice.id = 'httpNotice';
-    notice.textContent = '⚠️ 圖片來自 http 網站，若顯示失敗請改用 http:// 版網址開啟。';
-    sec.appendChild(notice);
-  }
+
 
   // banner
   const banner = document.createElement('div');
@@ -327,7 +321,7 @@ Object.entries(CATS).forEach(([cat, data]) => {
 
     const img = document.createElement('img');
     img.className = 'tile-img';
-    img.src = BASE + item.imgs[0];
+    img.src = BASE + item.imgs[0] + VER;
     img.alt = item.name;
     img.loading = 'lazy';
     img.onerror = function() {
@@ -381,7 +375,7 @@ function openSheet(item, code) {
     const slide = document.createElement('div');
     slide.className = 'sheet-slide';
     const img = document.createElement('img');
-    img.src = BASE + src;
+    img.src = BASE + src + VER;
     img.alt = item.name;
     img.onerror = function() { this.style.display='none'; };
     slide.appendChild(img);
