@@ -24,7 +24,7 @@ body{background:var(--bg);color:var(--ink);font-family:'Noto Sans TC',sans-serif
 .brand{font-family:'Bebas Neue',cursive;font-size:22px;letter-spacing:3px;color:#fff;line-height:1}
 .brand-sub{font-size:9px;letter-spacing:2px;color:rgba(255,255,255,.5);margin-top:2px;font-family:'DM Mono',monospace}
 .contact-row{display:flex;gap:6px;justify-content:flex-end;margin-top:4px}
-.cbtn{display:flex;align-items:center;gap:4px;background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.22);border-radius:20px;padding:3px 10px;color:#fff;font-size:11px;text-decoration:none}
+.cbtn{display:flex;align-items:center;gap:4px;background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.22);border-radius:20px;padding:3px 10px;color:#fff;font-size:11px;text-decoration:none;cursor:pointer;font-family:inherit}
 .cbtn svg{width:11px;height:11px;fill:currentColor}
 .rep{font-size:12px;color:rgba(255,255,255,.85);font-weight:500;text-align:right}
 
@@ -112,9 +112,9 @@ body{background:var(--bg);color:var(--ink);font-family:'Noto Sans TC',sans-serif
     <div class="brand-sub">ORTHOPEDIC · TAIWAN</div>
   </div>
   <div>
-    <div class="rep">業務：江YD</div>
+    <div class="rep">業務：江育德 阿德</div>
     <div class="contact-row">
-      <a class="cbtn" href="tel:0900000000"><svg viewBox="0 0 24 24"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/></svg>電話</a>
+      <button class="cbtn" onclick="copyPhone()"><svg viewBox="0 0 24 24"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z" fill="currentColor"/></svg>0976-736-282</button>
       <a class="cbtn" href="https://line.me/ti/p/~YOUR_LINE_ID" target="_blank"><svg viewBox="0 0 24 24"><path d="M19.365 9.89c.5 0 .866.37.866.87s-.366.87-.866.87h-2.55v1.27h2.55c.5 0 .866.37.866.87s-.366.87-.866.87H15.95c-.5 0-.866-.37-.866-.87V8.14c0-.5.366-.87.866-.87h3.415zm-5.7 4.73c0 .48-.366.87-.866.87-.29 0-.55-.14-.71-.36l-2.55-3.36v2.85c0 .48-.366.87-.866.87s-.866-.39-.866-.87V8.14c0-.48.366-.87.866-.87.29 0 .55.14.71.36l2.55 3.36V8.14c0-.48.366-.87.866-.87s.866.39.866.87v6.48zM7.2 14.62c-.5 0-.866-.39-.866-.87V8.14c0-.48.366-.87.866-.87s.866.39.866.87v5.61c0 .48-.366.87-.866.87zm-2.7 0H1.085c-.5 0-.866-.39-.866-.87V8.14c0-.48.366-.87.866-.87s.866.39.866.87v4.74H4.5c.5 0 .866.39.866.87s-.366.87-.866.87zM24 10.31C24 4.62 18.615 0 12 0S0 4.62 0 10.31c0 5.1 4.52 9.37 10.63 10.18.41.09.98.28 1.12.63.13.33.08.84.04 1.17l-.18 1.1c-.05.33-.26 1.28 1.12.7 1.38-.58 7.44-4.38 10.15-7.5C23.13 14.63 24 12.58 24 10.31z"/></svg>LINE</a>
     </div>
   </div>
@@ -165,12 +165,12 @@ body{background:var(--bg);color:var(--ink);font-family:'Noto Sans TC',sans-serif
     <div style="flex:1;background:var(--gold-bg);border:1px solid var(--gold-border);border-radius:8px;padding:8px 12px;text-align:center">
       <div style="font-size:10px;font-weight:700;color:var(--gold);margin-bottom:3px">自費</div>
       <div style="font-family:'DM Mono',monospace;font-size:16px;font-weight:700;color:var(--gold)">$14,000</div>
-      <div style="font-size:10px;color:var(--gold)">元/顆</div>
+      <div style="font-size:10px;color:var(--gold)">元/支</div>
     </div>
     <div style="flex:1;background:#eef2f7;border:1px solid #c5d5e8;border-radius:8px;padding:8px 12px;text-align:center">
       <div style="font-size:10px;font-weight:700;color:var(--accent);margin-bottom:3px">健保給付</div>
       <div style="font-family:'DM Mono',monospace;font-size:16px;font-weight:700;color:var(--accent)">12,000</div>
-      <div style="font-size:10px;color:var(--accent)">點/顆</div>
+      <div style="font-size:10px;color:var(--accent)">點/支</div>
     </div>
   </div>
 
@@ -479,6 +479,11 @@ function showToast(msg) {
 if (location.protocol === 'https:') {
   const n = document.getElementById('httpNotice');
   if (n) n.style.display = 'block';
+}
+
+function copyPhone() {
+  doCopy('0976736282');
+  showToast('已複製：0976-736-282');
 }
 
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
