@@ -156,14 +156,22 @@ body{background:var(--bg);color:var(--ink);font-family:'Noto Sans TC',sans-serif
 <div class="sec" id="cat-compression">
   <div class="banner">
     <span class="banner-lbl">院內碼</span>
-    <span class="banner-code">OS0211G</span>
-    <button class="copy-btn" onclick="copyBanner(this,'OS0211G')">
+    <span class="banner-code">MHRSTF</span>
+    <button class="copy-btn" onclick="copyBanner(this,'MHRSTF')">
       <svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>複製
     </button>
   </div>
-  <div style="background:var(--gold-bg);border:1px solid var(--gold-border);border-radius:8px;padding:7px 12px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between">
-    <span style="font-size:11px;font-weight:700;color:var(--gold)">健保給付價</span>
-    <span style="font-family:'DM Mono',monospace;font-size:16px;font-weight:700;color:var(--gold)">$3,600 <span style="font-size:11px">元/顆</span></span>
+  <div style="display:flex;gap:8px;margin-bottom:14px">
+    <div style="flex:1;background:var(--gold-bg);border:1px solid var(--gold-border);border-radius:8px;padding:8px 12px;text-align:center">
+      <div style="font-size:10px;font-weight:700;color:var(--gold);margin-bottom:3px">自費</div>
+      <div style="font-family:'DM Mono',monospace;font-size:16px;font-weight:700;color:var(--gold)">$14,000</div>
+      <div style="font-size:10px;color:var(--gold)">元/顆</div>
+    </div>
+    <div style="flex:1;background:#eef2f7;border:1px solid #c5d5e8;border-radius:8px;padding:8px 12px;text-align:center">
+      <div style="font-size:10px;font-weight:700;color:var(--accent);margin-bottom:3px">健保給付</div>
+      <div style="font-family:'DM Mono',monospace;font-size:16px;font-weight:700;color:var(--accent)">12,000</div>
+      <div style="font-size:10px;color:var(--accent)">點/顆</div>
+    </div>
   </div>
 
   <div class="screw-group">
