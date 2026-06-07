@@ -9,115 +9,110 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Noto+Sans+TC:wght@300;400;500;700&family=Bebas+Neue&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#f4f3f0;--white:#fff;--ink:#181818;--ink2:#444;--ink3:#999;
-  --border:#e2e0db;--accent:#14355a;--accent-light:#e8eef5;
+  --bg:#f0efec;--white:#fff;--ink:#181818;--ink2:#555;--ink3:#999;
+  --border:#e2e0db;--accent:#14355a;--accent2:#1a4a78;
   --gold:#9a7200;--gold-bg:#fdf6e3;--gold-border:#e8d48a;
   --green:#1a5c3a;--green-bg:#e8f5ef;
-  --radius:13px;--shadow:0 2px 10px rgba(0,0,0,0.07);
+  --radius:12px;--shadow:0 2px 8px rgba(0,0,0,0.09);
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{scroll-behavior:smooth}
 body{background:var(--bg);color:var(--ink);font-family:'Noto Sans TC',sans-serif;max-width:480px;margin:0 auto;min-height:100vh;font-size:14px}
 
 /* HEADER */
-.header{background:var(--accent);padding:14px 18px 12px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;box-shadow:0 2px 8px rgba(0,0,0,0.2)}
-.brand{font-family:'Bebas Neue',cursive;font-size:24px;letter-spacing:3px;color:#fff;line-height:1}
-.brand-sub{font-size:9px;letter-spacing:2px;color:rgba(255,255,255,0.5);margin-top:2px;font-family:'DM Mono',monospace}
-.rep-name{font-size:12px;color:rgba(255,255,255,0.85);font-weight:500;text-align:right}
-.contact-row{display:flex;gap:6px;margin-top:4px;justify-content:flex-end}
-.cbtn{display:flex;align-items:center;gap:4px;background:rgba(255,255,255,0.13);border:1px solid rgba(255,255,255,0.22);border-radius:20px;padding:3px 10px;color:#fff;font-size:11px;text-decoration:none}
+.hdr{background:var(--accent);padding:12px 16px 10px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;box-shadow:0 2px 8px rgba(0,0,0,.22)}
+.brand{font-family:'Bebas Neue',cursive;font-size:22px;letter-spacing:3px;color:#fff;line-height:1}
+.brand-sub{font-size:9px;letter-spacing:2px;color:rgba(255,255,255,.5);margin-top:2px;font-family:'DM Mono',monospace}
+.contact-row{display:flex;gap:6px;justify-content:flex-end;margin-top:4px}
+.cbtn{display:flex;align-items:center;gap:4px;background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.22);border-radius:20px;padding:3px 10px;color:#fff;font-size:11px;text-decoration:none}
 .cbtn svg{width:11px;height:11px;fill:currentColor}
+.rep{font-size:12px;color:rgba(255,255,255,.85);font-weight:500;text-align:right}
 
 /* TABS */
-.cat-bar{background:var(--white);border-bottom:2px solid var(--border);display:flex;overflow-x:auto;scrollbar-width:none;position:sticky;top:63px;z-index:190;padding:0 4px}
-.cat-bar::-webkit-scrollbar{display:none}
-.cat-tab{flex-shrink:0;padding:11px 15px;font-size:13px;font-weight:500;color:var(--ink3);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;white-space:nowrap;transition:all .18s;user-select:none}
-.cat-tab.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:700}
+.tabs{background:var(--white);border-bottom:2px solid var(--border);display:flex;overflow-x:auto;scrollbar-width:none;position:sticky;top:58px;z-index:190}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex-shrink:0;padding:10px 16px;font-size:13px;font-weight:500;color:var(--ink3);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;white-space:nowrap;transition:all .18s;user-select:none}
+.tab.on{color:var(--accent);border-bottom-color:var(--accent);font-weight:700}
 
 /* SECTION */
-.cat-section{display:none;padding:14px 0 40px;animation:fadeIn .22s ease}
-.cat-section.active{display:block}
-@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.sec{display:none;padding:12px 12px 50px}
+.sec.on{display:block}
 
 /* 院內碼 BANNER */
-.code-banner{display:flex;align-items:center;justify-content:space-between;background:var(--accent);border-radius:10px;margin:0 14px 14px;padding:10px 14px;gap:10px}
-.code-banner-label{font-size:11px;color:rgba(255,255,255,0.7);letter-spacing:1px;white-space:nowrap}
-.code-banner-val{font-family:'DM Mono',monospace;font-size:17px;font-weight:500;color:#fff;letter-spacing:2px;flex:1;text-align:center}
-.copy-main-btn{display:flex;align-items:center;gap:5px;background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.3);border-radius:8px;padding:6px 12px;color:#fff;font-size:12px;font-weight:700;font-family:'Noto Sans TC',sans-serif;cursor:pointer;white-space:nowrap;transition:all .15s;flex-shrink:0}
-.copy-main-btn:active{background:rgba(255,255,255,0.3)}
-.copy-main-btn.copied{background:rgba(50,180,100,0.4);border-color:rgba(50,180,100,0.5)}
-.copy-main-btn svg{width:12px;height:12px;fill:currentColor}
+.banner{display:flex;align-items:center;background:var(--accent);border-radius:10px;margin-bottom:12px;padding:9px 14px;gap:8px}
+.banner-lbl{font-size:11px;color:rgba(255,255,255,.65);letter-spacing:1px;white-space:nowrap}
+.banner-code{font-family:'DM Mono',monospace;font-size:17px;color:#fff;letter-spacing:2px;flex:1;text-align:center}
+.copy-btn{display:flex;align-items:center;gap:4px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);border-radius:7px;padding:5px 11px;color:#fff;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:background .15s}
+.copy-btn:active{background:rgba(255,255,255,.3)}
+.copy-btn.ok{background:rgba(50,180,100,.4);border-color:rgba(50,180,100,.5)}
+.copy-btn svg{width:11px;height:11px;fill:currentColor}
 
-/* PRODUCT CARD */
-.product-card{background:var(--white);margin:0 14px 12px;border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
-.card-head{background:var(--accent);padding:10px 14px;display:flex;align-items:center;cursor:pointer;user-select:none;gap:8px}
-.card-head h3{font-size:14px;font-weight:700;color:#fff;letter-spacing:.02em;line-height:1.3;flex:1}
-.card-note{font-size:10px;color:rgba(255,255,255,0.6);white-space:nowrap}
-.card-chevron{color:rgba(255,255,255,.65);font-size:16px;transition:transform .25s;flex-shrink:0}
-.product-card.open .card-chevron{transform:rotate(180deg)}
+/* PRODUCT GRID */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 
-/* CAROUSEL */
-.carousel-wrap{position:relative;overflow:hidden;background:#f0f0ee;touch-action:pan-y;display:none}
-.product-card.open .carousel-wrap{display:block}
-.carousel-track{display:flex;transition:transform .3s cubic-bezier(.25,.46,.45,.94)}
-.carousel-slide{min-width:100%;display:flex;align-items:center;justify-content:center;height:175px}
-.carousel-slide img{max-height:100%;max-width:100%;object-fit:contain;padding:10px}
-.img-ph{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:#ccc;width:100%;height:100%}
-.img-ph svg{width:38px;height:38px;opacity:.3}
-.img-ph span{font-size:10px;letter-spacing:1px;font-family:'DM Mono',monospace}
-.carousel-dots{position:absolute;bottom:7px;left:0;right:0;display:flex;justify-content:center;gap:5px;pointer-events:none}
-.cdot{width:6px;height:6px;border-radius:50%;background:rgba(0,0,0,0.18);transition:all .2s}
-.cdot.active{background:var(--accent);width:14px;border-radius:3px}
-.carr-arrow{position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.82);border:none;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.14);z-index:5}
-.carr-arrow.prev{left:7px}.carr-arrow.next{right:7px}
-.carr-arrow svg{width:13px;height:13px;fill:var(--accent)}
-.carr-arrow[hidden]{display:none}
+/* PRODUCT TILE */
+.tile{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;cursor:pointer;transition:transform .15s,box-shadow .15s;-webkit-user-select:none;user-select:none;position:relative}
+.tile:active{transform:scale(.96);box-shadow:0 1px 4px rgba(0,0,0,.1)}
+.tile-img{width:100%;aspect-ratio:1/1;object-fit:contain;background:#f8f8f6;padding:10px;display:block}
+.tile-img-ph{width:100%;aspect-ratio:1/1;background:#f0eeeb;display:flex;align-items:center;justify-content:center}
+.tile-img-ph svg{width:36px;height:36px;opacity:.2}
+.tile-name{padding:7px 10px 9px;font-size:12px;font-weight:600;color:var(--ink);line-height:1.3;border-top:1px solid #f0ede8}
+.tile-price{position:absolute;top:7px;right:7px;background:rgba(20,53,90,.82);color:#fff;font-size:10px;font-family:'DM Mono',monospace;border-radius:5px;padding:2px 7px;letter-spacing:.5px}
 
-/* CARD BODY */
-.card-body{display:none;padding:12px 14px 14px}
-.product-card.open .card-body{display:block}
+/* ── BOTTOM SHEET MODAL ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:300;opacity:0;pointer-events:none;transition:opacity .25s}
+.overlay.show{opacity:1;pointer-events:all}
+.sheet{position:fixed;bottom:0;left:50%;transform:translateX(-50%) translateY(100%);width:100%;max-width:480px;background:var(--white);border-radius:18px 18px 0 0;z-index:301;transition:transform .3s cubic-bezier(.25,.46,.45,.94);max-height:88vh;display:flex;flex-direction:column;overflow:hidden}
+.sheet.show{transform:translateX(-50%) translateY(0)}
+.sheet-handle{width:38px;height:4px;background:#ddd;border-radius:2px;margin:10px auto 0}
+.sheet-img-wrap{position:relative;background:#f5f4f1;flex-shrink:0;height:200px;overflow:hidden;touch-action:pan-y}
+.sheet-track{display:flex;height:100%;transition:transform .3s cubic-bezier(.25,.46,.45,.94)}
+.sheet-slide{min-width:100%;height:100%;display:flex;align-items:center;justify-content:center}
+.sheet-slide img{max-height:100%;max-width:100%;object-fit:contain;padding:14px}
+.sheet-dots{position:absolute;bottom:7px;left:0;right:0;display:flex;justify-content:center;gap:5px;pointer-events:none}
+.sdot{width:6px;height:6px;border-radius:50%;background:rgba(0,0,0,.18);transition:all .2s}
+.sdot.on{background:var(--accent);width:14px;border-radius:3px}
+.sarr{position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.85);border:none;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 5px rgba(0,0,0,.15);z-index:2}
+.sarr.l{left:8px}.sarr.r{right:8px}
+.sarr svg{width:14px;height:14px;fill:var(--accent)}
+.sheet-body{padding:14px 16px 28px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.sheet-title{font-size:17px;font-weight:700;color:var(--ink);margin-bottom:10px}
+.sheet-meta{display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.sheet-code{font-family:'DM Mono',monospace;font-size:12px;background:var(--accent);color:#fff;border-radius:6px;padding:3px 9px;letter-spacing:1px}
+.sheet-price{font-family:'DM Mono',monospace;font-size:14px;font-weight:700;color:var(--gold);background:var(--gold-bg);border:1px solid var(--gold-border);border-radius:6px;padding:3px 10px}
+.sheet-note{font-size:12px;color:var(--ink3);margin-bottom:10px}
+.holes-lbl{font-size:11px;font-weight:700;color:var(--ink3);letter-spacing:1px;margin-bottom:8px}
+.holes{display:flex;flex-wrap:wrap;gap:7px}
+.hole{font-family:'DM Mono',monospace;font-size:13px;background:#eef2f7;border:1px solid #c5d5e8;border-radius:8px;padding:5px 12px;color:var(--accent);font-weight:500}
+.sheet-close{display:block;width:100%;margin-top:18px;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif}
 
-/* PRICE */
-.price-row{display:flex;align-items:center;justify-content:space-between;background:var(--gold-bg);border:1px solid var(--gold-border);border-radius:8px;padding:7px 12px;margin-bottom:10px}
-.price-label{font-size:11px;color:var(--gold);font-weight:700}
-.price-val{font-size:17px;font-weight:700;color:var(--gold);font-family:'DM Mono',monospace}
-.price-unit{font-size:10px;color:var(--gold);margin-left:2px}
-
-/* SPECS TABLE */
-.specs-table{width:100%;border-collapse:collapse}
-.specs-table th{font-size:10px;font-weight:700;color:var(--ink3);letter-spacing:1px;text-align:left;padding:4px 6px;border-bottom:2px solid var(--border)}
-.specs-table tr:not(:last-child) td{border-bottom:1px solid #f0ede8}
-.specs-table td{padding:7px 6px;vertical-align:middle;font-size:13px;color:var(--ink2)}
-.specs-table tr:hover td{background:#f8f7f4}
-
-/* 骨釘 chips */
-.screw-group{margin-bottom:14px}
-.screw-group-title{font-size:12px;font-weight:700;color:var(--accent);background:var(--accent-light);border-radius:6px;padding:5px 10px;margin-bottom:8px;letter-spacing:.5px}
+/* SCREW SECTION */
+.screw-group{margin-bottom:16px}
+.screw-diam{font-size:12px;font-weight:700;color:var(--accent);background:#eef2f7;border-radius:6px;padding:5px 10px;margin-bottom:8px;letter-spacing:.5px}
 .chip-grid{display:flex;flex-wrap:wrap;gap:6px}
-.chip{font-family:'DM Mono',monospace;font-size:12px;background:var(--accent-light);border:1px solid #c5d5e8;border-radius:8px;padding:5px 10px;color:var(--accent);cursor:pointer;transition:all .15s;user-select:none}
-.chip:active{background:#d0dfee;transform:scale(.94)}
-.chip.copied{background:var(--green-bg);border-color:#8cc8a8;color:var(--green)}
+.chip{font-family:'DM Mono',monospace;font-size:12px;background:#eef2f7;border:1px solid #c5d5e8;border-radius:8px;padding:5px 11px;color:var(--accent);cursor:pointer;transition:all .15s;user-select:none}
+.chip:active{transform:scale(.93)}
+.chip.ok{background:var(--green-bg);border-color:#8cc8a8;color:var(--green)}
 
 /* mixed-content notice */
-.mixed-notice{background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:8px 14px;font-size:12px;margin:0 14px 12px;display:none}
+.http-notice{background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:8px 12px;font-size:12px;margin-bottom:10px;display:none}
 
 /* TOAST */
-.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(16px);background:#181818;color:#fff;font-size:13px;padding:9px 20px;border-radius:22px;opacity:0;transition:all .28s;z-index:999;white-space:nowrap;pointer-events:none}
+.toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(12px);background:#181818;color:#fff;font-size:13px;padding:8px 20px;border-radius:22px;opacity:0;transition:all .25s;z-index:500;white-space:nowrap;pointer-events:none}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
-.footer{text-align:center;padding:18px;color:var(--ink3);font-size:10px;letter-spacing:1.5px;font-family:'DM Mono',monospace}
+.footer{text-align:center;padding:16px;color:var(--ink3);font-size:10px;letter-spacing:1.5px;font-family:'DM Mono',monospace}
 </style>
 </head>
 <body>
 
-<!-- HEADER -->
-<div class="header">
+<div class="hdr">
   <div>
     <div class="brand">TANDRY</div>
     <div class="brand-sub">ORTHOPEDIC · TAIWAN</div>
   </div>
   <div>
-    <div class="rep-name">業務：江YD</div>
+    <div class="rep">業務：江YD</div>
     <div class="contact-row">
       <a class="cbtn" href="tel:0900000000"><svg viewBox="0 0 24 24"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/></svg>電話</a>
       <a class="cbtn" href="https://line.me/ti/p/~YOUR_LINE_ID" target="_blank"><svg viewBox="0 0 24 24"><path d="M19.365 9.89c.5 0 .866.37.866.87s-.366.87-.866.87h-2.55v1.27h2.55c.5 0 .866.37.866.87s-.366.87-.866.87H15.95c-.5 0-.866-.37-.866-.87V8.14c0-.5.366-.87.866-.87h3.415zm-5.7 4.73c0 .48-.366.87-.866.87-.29 0-.55-.14-.71-.36l-2.55-3.36v2.85c0 .48-.366.87-.866.87s-.866-.39-.866-.87V8.14c0-.48.366-.87.866-.87.29 0 .55.14.71.36l2.55 3.36V8.14c0-.48.366-.87.866-.87s.866.39.866.87v6.48zM7.2 14.62c-.5 0-.866-.39-.866-.87V8.14c0-.48.366-.87.866-.87s.866.39.866.87v5.61c0 .48-.366.87-.866.87zm-2.7 0H1.085c-.5 0-.866-.39-.866-.87V8.14c0-.48.366-.87.866-.87s.866.39.866.87v4.74H4.5c.5 0 .866.39.866.87s-.366.87-.866.87zM24 10.31C24 4.62 18.615 0 12 0S0 4.62 0 10.31c0 5.1 4.52 9.37 10.63 10.18.41.09.98.28 1.12.63.13.33.08.84.04 1.17l-.18 1.1c-.05.33-.26 1.28 1.12.7 1.38-.58 7.44-4.38 10.15-7.5C23.13 14.63 24 12.58 24 10.31z"/></svg>LINE</a>
@@ -125,923 +120,308 @@ body{background:var(--bg);color:var(--ink);font-family:'Noto Sans TC',sans-serif
   </div>
 </div>
 
-<!-- TABS -->
-<div class="cat-bar">
-  <div class="cat-tab active" data-cat="clavicle">鎖骨</div>
-  <div class="cat-tab" data-cat="upper">上肢</div>
-  <div class="cat-tab" data-cat="long">長骨</div>
-  <div class="cat-tab" data-cat="small">小骨</div>
-  <div class="cat-tab" data-cat="lower">下肢</div>
-  <div class="cat-tab" data-cat="screw">骨釘</div>
+<div class="tabs">
+  <div class="tab on" data-cat="clavicle">鎖骨</div>
+  <div class="tab" data-cat="upper">上肢</div>
+  <div class="tab" data-cat="long">長骨</div>
+  <div class="tab" data-cat="small">小骨</div>
+  <div class="tab" data-cat="lower">下肢</div>
+  <div class="tab" data-cat="screw">骨釘</div>
 </div>
 
-<!-- ═══════════════════════════
-     鎖骨  院內碼 OS0211A
-═══════════════════════════ -->
-<div class="cat-section active" id="cat-clavicle">
-  <div class="mixed-notice" id="mixedNotice">⚠️ 圖片來自 http 網站，若瀏覽器封鎖請改用 http:// 版網址開啟，或允許 mixed content。</div>
-  <div class="code-banner">
-    <span class="code-banner-label">院內碼</span>
-    <span class="code-banner-val">OS0211A</span>
-    <button class="copy-main-btn" onclick="copyBanner(this,'OS0211A')">
+<div class="sec on" id="cat-clavicle"></div>
+<div class="sec" id="cat-upper"></div>
+<div class="sec" id="cat-long"></div>
+<div class="sec" id="cat-small"></div>
+<div class="sec" id="cat-lower"></div>
+
+<!-- 骨釘 (靜態) -->
+<div class="sec" id="cat-screw">
+  <div class="banner">
+    <span class="banner-lbl">院內碼</span>
+    <span class="banner-code">OS0211F</span>
+    <button class="copy-btn" onclick="copyBanner(this,'OS0211F')">
       <svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>複製
     </button>
   </div>
-
-  <div class="product-card open">
-    <div class="card-head" onclick="toggleCard(this)">
-      <h3>Hook Plate</h3>
-      <span class="card-chevron">▾</span>
-    </div>
-    <div class="carousel-wrap">
-      <div class="carousel-track">
-        <div class="carousel-slide"><img src="http://www.tandrymed.com/assets/images/3.5%20Clavicle%20Hook%20Plate.png" alt="3.5 Clavicle Hook Plate" onerror="imgFallback(this)"></div>
-      </div>
-      <div class="carousel-dots"><span class="cdot active"></span></div>
-    </div>
-    <div class="card-body">
-      <div class="price-row"><span class="price-label">健保給付價</span><span><span class="price-val">$55,000</span><span class="price-unit">元/片</span></span></div>
-      <table class="specs-table">
-        <thead><tr><th>左/右</th><th>洞數</th><th>Hook深度</th></tr></thead>
-        <tbody>
-          <tr><td>R't</td><td>4H</td><td>15mm</td></tr>
-          <tr><td>L't</td><td>4H</td><td>15mm</td></tr>
-          <tr><td>R't</td><td>4H</td><td>18mm</td></tr>
-          <tr><td>L't</td><td>4H</td><td>18mm</td></tr>
-          <tr><td>R't</td><td>6H</td><td>15mm</td></tr>
-          <tr><td>L't</td><td>6H</td><td>15mm</td></tr>
-          <tr><td>R't</td><td>6H</td><td>18mm</td></tr>
-          <tr><td>L't</td><td>6H</td><td>18mm</td></tr>
-        </tbody>
-      </table>
-    </div>
+  <div style="background:var(--gold-bg);border:1px solid var(--gold-border);border-radius:8px;padding:7px 12px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between">
+    <span style="font-size:11px;font-weight:700;color:var(--gold)">健保給付價</span>
+    <span style="font-family:'DM Mono',monospace;font-size:16px;font-weight:700;color:var(--gold)">$3,600 <span style="font-size:11px">元/顆</span></span>
   </div>
 
-  <div class="product-card">
-    <div class="card-head" onclick="toggleCard(this)">
-      <h3>Superior Clavicle</h3>
-      <span class="card-chevron">▾</span>
-    </div>
-    <div class="carousel-wrap">
-      <div class="carousel-track">
-        <div class="carousel-slide"><img src="http://www.tandrymed.com/assets/images/3.5%20Superior%20Clavicle%20Plate.png" alt="3.5 Superior Clavicle Plate" onerror="imgFallback(this)"></div>
-      </div>
-      <div class="carousel-dots"><span class="cdot active"></span></div>
-    </div>
-    <div class="card-body">
-      <div class="price-row"><span class="price-label">健保給付價</span><span><span class="price-val">$55,000</span><span class="price-unit">元/片</span></span></div>
-      <table class="specs-table">
-        <thead><tr><th>左/右</th><th>洞數</th></tr></thead>
-        <tbody>
-          <tr><td>R't</td><td>6H</td></tr><tr><td>L't</td><td>6H</td></tr>
-          <tr><td>R't</td><td>7H</td></tr><tr><td>L't</td><td>7H</td></tr>
-          <tr><td>R't</td><td>8H</td></tr><tr><td>L't</td><td>8H</td></tr>
-        </tbody>
-      </table>
+  <div class="screw-group">
+    <div class="screw-diam">Ø 2.0mm</div>
+    <div class="chip-grid">
+      <span class="chip" onclick="copyChip(this,'T0415-007')">7mm</span><span class="chip" onclick="copyChip(this,'T0415-008')">8mm</span><span class="chip" onclick="copyChip(this,'T0415-009')">9mm</span><span class="chip" onclick="copyChip(this,'T0415-010')">10mm</span><span class="chip" onclick="copyChip(this,'T0415-011')">11mm</span><span class="chip" onclick="copyChip(this,'T0415-012')">12mm</span><span class="chip" onclick="copyChip(this,'T0415-014')">14mm</span><span class="chip" onclick="copyChip(this,'T0415-016')">16mm</span><span class="chip" onclick="copyChip(this,'T0415-018')">18mm</span><span class="chip" onclick="copyChip(this,'T0415-020')">20mm</span>
     </div>
   </div>
-
-  <div class="product-card">
-    <div class="card-head" onclick="toggleCard(this)">
-      <h3>Distal Clavicle</h3>
-      <span class="card-chevron">▾</span>
-    </div>
-    <div class="carousel-wrap">
-      <div class="carousel-track">
-        <div class="carousel-slide"><img src="http://www.tandrymed.com/assets/images/3.5%20Distal%20Clavicle%20Plate.png" alt="3.5 Distal Clavicle Plate" onerror="imgFallback(this)"></div>
-      </div>
-      <div class="carousel-dots"><span class="cdot active"></span></div>
-    </div>
-    <div class="card-body">
-      <div class="price-row"><span class="price-label">健保給付價</span><span><span class="price-val">$55,000</span><span class="price-unit">元/片</span></span></div>
-      <table class="specs-table">
-        <thead><tr><th>左/右</th><th>洞數</th></tr></thead>
-        <tbody>
-          <tr><td>R't</td><td>4H</td></tr><tr><td>L't</td><td>4H</td></tr>
-          <tr><td>R't</td><td>5H</td></tr><tr><td>L't</td><td>5H</td></tr>
-          <tr><td>R't</td><td>6H</td></tr><tr><td>L't</td><td>6H</td></tr>
-          <tr><td>R't</td><td>7H</td></tr><tr><td>L't</td><td>7H</td></tr>
-        </tbody>
-      </table>
+  <div class="screw-group">
+    <div class="screw-diam">Ø 2.8mm</div>
+    <div class="chip-grid">
+      <span class="chip" onclick="copyChip(this,'T04280-008')">8mm</span><span class="chip" onclick="copyChip(this,'T04280-009')">9mm</span><span class="chip" onclick="copyChip(this,'T04280-010')">10mm</span><span class="chip" onclick="copyChip(this,'T04280-011')">11mm</span><span class="chip" onclick="copyChip(this,'T04280-012')">12mm</span><span class="chip" onclick="copyChip(this,'T04280-014')">14mm</span><span class="chip" onclick="copyChip(this,'T04280-016')">16mm</span><span class="chip" onclick="copyChip(this,'T04280-018')">18mm</span><span class="chip" onclick="copyChip(this,'T04280-020')">20mm</span><span class="chip" onclick="copyChip(this,'T04280-022')">22mm</span><span class="chip" onclick="copyChip(this,'T04280-024')">24mm</span><span class="chip" onclick="copyChip(this,'T04280-026')">26mm</span><span class="chip" onclick="copyChip(this,'T04280-028')">28mm</span><span class="chip" onclick="copyChip(this,'T04280-030')">30mm</span>
     </div>
   </div>
-</div>
-
-<!-- ═══════════════════════════
-     上肢  院內碼 OS0211B
-═══════════════════════════ -->
-<div class="cat-section" id="cat-upper">
-  <div class="code-banner">
-    <span class="code-banner-label">院內碼</span>
-    <span class="code-banner-val">OS0211B</span>
-    <button class="copy-main-btn" onclick="copyBanner(this,'OS0211B')">
-      <svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>複製
-    </button>
-  </div>
-
-  <div class="product-card">
-    <div class="card-head" onclick="toggleCard(this)">
-      <h3>LPHP</h3><span class="card-note">無左右</span><span class="card-chevron">▾</span>
-    </div>
-    <div class="carousel-wrap">
-      <div class="carousel-track">
-        <div class="carousel-slide"><img src="http://www.tandrymed.com/assets/images/3.5%20Proximal%20Humeral%20Plate.png" alt="3.5 Proximal Humeral Plate" onerror="imgFallback(this)"></div>
-      </div>
-      <div class="carousel-dots"><span class="cdot active"></span></div>
-    </div>
-    <div class="card-body">
-      <div class="price-row"><span class="price-label">健保給付價</span><span><span class="price-val">$70,000</span><span class="price-unit">元/片</span></span></div>
-      <table class="specs-table">
-        <thead><tr><th>洞數</th></tr></thead>
-        <tbody><tr><td>3H</td></tr><tr><td>5H</td></tr><tr><td>8H</td></tr></tbody>
-      </table>
+  <div class="screw-group">
+    <div class="screw-diam">Ø 3.6mm</div>
+    <div class="chip-grid">
+      <span class="chip" onclick="copyChip(this,'T04360-016')">16mm</span><span class="chip" onclick="copyChip(this,'T04360-018')">18mm</span><span class="chip" onclick="copyChip(this,'T04360-020')">20mm</span><span class="chip" onclick="copyChip(this,'T04360-022')">22mm</span><span class="chip" onclick="copyChip(this,'T04360-024')">24mm</span><span class="chip" onclick="copyChip(this,'T04360-026')">26mm</span><span class="chip" onclick="copyChip(this,'T04360-028')">28mm</span><span class="chip" onclick="copyChip(this,'T04360-030')">30mm</span><span class="chip" onclick="copyChip(this,'T04360-032')">32mm</span><span class="chip" onclick="copyChip(this,'T04360-034')">34mm</span><span class="chip" onclick="copyChip(this,'T04360-038')">38mm</span><span class="chip" onclick="copyChip(this,'T04360-042')">42mm</span><span class="chip" onclick="copyChip(this,'T04360-046')">46mm</span><span class="chip" onclick="copyChip(this,'T04360-050')">50mm</span>
     </div>
   </div>
-
-  <div class="product-card">
-    <div class="card-head" onclick="toggleCard(this)">
-      <h3>Olecranon</h3><span class="card-chevron">▾</span>
-    </div>
-    <div class="carousel-wrap">
-      <div class="carousel-track">
-        <div class="carousel-slide"><img src="http://www.tandrymed.com/assets/images/3.5%20Olecranon%20Plate2.png" alt="3.5 Olecranon Plate" onerror="imgFallback(this)"></div>
-      </div>
-      <div class="carousel-dots"><span class="cdot active"></span></div>
-    </div>
-    <div class="card-body">
-      <div class="price-row"><span class="price-label">健保給付價</span><span><span class="price-val">$70,000</span><span class="price-unit">元/片</span></span></div>
-      <table class="specs-table">
-        <thead><tr><th>左/右</th><th>洞數</th></tr></thead>
-        <tbody>
-          <tr><td>R't</td><td>2H</td></tr><tr><td>L't</td><td>2H</td></tr>
-          <tr><td>R't</td><td>4H</td></tr><tr><td>L't</td><td>4H</td></tr>
-          <tr><td>R't</td><td>6H</td></tr><tr><td>L't</td><td>6H</td></tr>
-        </tbody>
-      </table>
+  <div class="screw-group">
+    <div class="screw-diam">Ø 4.7mm</div>
+    <div class="chip-grid">
+      <span class="chip" onclick="copyChip(this,'T04470-030')">30mm</span><span class="chip" onclick="copyChip(this,'T04470-032')">32mm</span><span class="chip" onclick="copyChip(this,'T04470-034')">34mm</span><span class="chip" onclick="copyChip(this,'T04470-036')">36mm</span><span class="chip" onclick="copyChip(this,'T04470-038')">38mm</span><span class="chip" onclick="copyChip(this,'T04470-040')">40mm</span><span class="chip" onclick="copyChip(this,'T04470-042')">42mm</span><span class="chip" onclick="copyChip(this,'T04470-044')">44mm</span><span class="chip" onclick="copyChip(this,'T04470-046')">46mm</span><span class="chip" onclick="copyChip(this,'T04470-048')">48mm</span><span class="chip" onclick="copyChip(this,'T04470-050')">50mm</span><span class="chip" onclick="copyChip(this,'T04470-055')">55mm</span><span class="chip" onclick="copyChip(this,'T04470-060')">60mm</span><span class="chip" onclick="copyChip(this,'T04470-065')">65mm</span><span class="chip" onclick="copyChip(this,'T04470-070')">70mm</span>
     </div>
   </div>
-
-  <div class="product-card">
-    <div class="card-head" onclick="toggleCard(this)">
-      <h3>LDHP 外</h3><span class="card-chevron">▾</span>
-    </div>
-    <div class="carousel-wrap">
-      <div class="carousel-track">
-        <div class="carousel-slide"><img src="http://www.tandrymed.com/assets/images/3.5%20Lateral%20Distal%20Humeral%20Plate.png" alt="3.5 Lateral Distal Humeral Plate" onerror="imgFallback(this)"></div>
-      </div>
-      <div class="carousel-dots"><span class="cdot active"></span></div>
-    </div>
-    <div class="card-body">
-      <div class="price-row"><span class="price-label">健保給付價</span><span><span class="price-val">$70,000</span><span class="price-unit">元/片</span></span></div>
-      <table class="specs-table">
-        <thead><tr><th>左/右</th><th>洞數</th></tr></thead>
-        <tbody>
-          <tr><td>R't</td><td>5H</td></tr><tr><td>L't</td><td>5H</td></tr>
-          <tr><td>R't</td><td>7H</td></tr><tr><td>L't</td><td>7H</td></tr>
-          <tr><td>R't</td><td>9H</td></tr><tr><td>L't</td><td>9H</td></tr>
-        </tbody>
-      </table>
+  <div class="screw-group">
+    <div class="screw-diam">Ø 5.5mm</div>
+    <div class="chip-grid">
+      <span class="chip" onclick="copyChip(this,'T04550-035')">35mm</span><span class="chip" onclick="copyChip(this,'T04550-040')">40mm</span><span class="chip" onclick="copyChip(this,'T04550-045')">45mm</span><span class="chip" onclick="copyChip(this,'T04550-050')">50mm</span><span class="chip" onclick="copyChip(this,'T04550-055')">55mm</span><span class="chip" onclick="copyChip(this,'T04550-060')">60mm</span><span class="chip" onclick="copyChip(this,'T04550-065')">65mm</span><span class="chip" onclick="copyChip(this,'T04550-070')">70mm</span><span class="chip" onclick="copyChip(this,'T04550-075')">75mm</span><span class="chip" onclick="copyChip(this,'T04550-080')">80mm</span>
     </div>
   </div>
-
-  <div class="product-card">
-    <div class="card-head" onclick="toggleCard(this)">
-      <h3>LDHP 內</h3><span class="card-chevron">▾</span>
-    </div>
-    <div class="carousel-wrap">
-      <div class="carousel-track">
-        <div class="carousel-slide"><img src="http://www.tandrymed.com/assets/images/3.5%20Medial%20Humeral%20Plate.png" alt="3.5 Medial Humeral Plate" onerror="imgFallback(this)"></div>
-      </div>
-      <div class="carousel-dots"><span class="cdot active"></span></div>
-    </div>
-    <div class="card-body">
-      <div class="price-row"><span class="price-label">健保給付價</span><span><span class="price-val">$70,000</span><span class="price-unit">元/片</span></span></div>
-      <table class="specs-table">
-        <thead><tr><th>左/右</th><th>洞數</th></tr></thead>
-        <tbody>
-          <tr><td>R't</td><td>3H</td></tr><tr><td>L't</td><td>3H</td></tr>
-          <tr><td>R't</td><td>5H</td></tr><tr><td>L't</td><td>5H</td></tr>
-          <tr><td>R't</td><td>7H</td></tr><tr><td>L't</td><td>7H</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-</div>
-
-<!-- ═══════════════════════════
-     長骨  院內碼 OS0211C
-═══════════════════════════ -->
-<div class="cat-section" id="cat-long">
-  <div class="code-banner">
-    <span class="code-banner-label">院內碼</span>
-    <span class="code-banner-val">OS0211C</span>
-    <button class="copy-main-btn" onclick="copyBanner(this,'OS0211C')">
-      <svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>複製
-    </button>
-  </div>
-
-  <div class="product-card">
-    <div class="card-head" onclick="toggleCard(this)">
-      <h3>3.5 Recon</h3><span class="card-chevron">▾</span>
-    </div>
-    <div class="carousel-wrap">
-      <div class="carousel-track">
-        <div class="carousel-slide"><img src="http://www.tandrymed.com/assets/images/3.5%20Reconstruction%20Plate.png" alt="3.5 Reconstruction Plate" onerror="imgFallback(this)"></div>
-      </div>
-      <div class="carousel-dots"><span class="cdot active"></span></div>
-    </div>
-    <div class="card-body">
-      <div class="price-row"><span class="price-label">健保給付價</span><span><span class="price-val">$55,000</span><span class="price-unit">元/片</span></span></div>
-      <table class="specs-table">
-        <thead><tr><th>洞數</th></tr></thead>
-        <tbody>
-          <tr><td>5H</td></tr><tr><td>6H</td></tr><tr><td>7H</td></tr><tr><td>8H</td></tr>
-          <tr><td>10H</td></tr><tr><td>12H</td></tr><tr><td>16H</td></tr><tr><td>18H</td></tr><tr><td>20H</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <div class="product-card">
-    <div class="card-head" onclick="toggleCard(this)">
-      <h3>3.5 1/3 Tubular</h3><span class="card-chevron">▾</span>
-    </div>
-    <div class="carousel-wrap">
-      <div class="carousel-track">
-        <!-- 官網原始拼字錯誤，照用 -->
-        <div class="carousel-slide"><img src="http://www.tandrymed.com/assets/images/3.5%20One-thierd%20Tubular%20Plate.png" alt="3.5 1/3 Tubular Plate" onerror="imgFallback(this)"></div>
-      </div>
-      <div class="carousel-dots"><span class="cdot active"></span></div>
-    </div>
-    <div class="card-body">
-      <div class="price-row"><span class="price-label">健保給付價</span><span><span class="price-val">$55,000</span><span class="price-unit">元/片</span></span></div>
-      <table class="specs-table">
-        <thead><tr><th>洞數</th></tr></thead>
-        <tbody><tr><td>6H</td></tr><tr><td>8H</td></tr><tr><td>10H</td></tr></tbody>
-      </table>
-    </div>
-  </div>
-
-  <div class="product-card">
-    <div class="card-head" onclick="toggleCard(this)">
-      <h3>5.0 Broad</h3><span class="card-chevron">▾</span>
-    </div>
-    <div class="carousel-wrap">
-      <div class="carousel-track">
-        <div class="carousel-slide"><img src="http://www.tandrymed.com/assets/images/5.0%20Straight%20Broad.png" alt="5.0 Straight Broad" onerror="imgFallback(this)"></div>
-      </div>
-      <div class="carousel-dots"><span class="cdot active"></span></div>
-    </div>
-    <div class="card-body">
-      <div class="price-row"><span class="price-label">健保給付價</span><span><span class="price-val">$55,000</span><span class="price-unit">元/片</span></span></div>
-      <table class="specs-table">
-        <thead><tr><th>洞數</th></tr></thead>
-        <tbody><tr><td>6H</td></tr><tr><td>8H</td></tr><tr><td>10H</td></tr><tr><td>12H</td></tr></tbody>
-      </table>
-    </div>
-  </div>
-
-  <div class="product-card">
-    <div class="card-head" onclick="toggleCard(this)">
-      <h3>3.5 直板</h3><span class="card-chevron">▾</span>
-    </div>
-    <div class="carousel-wrap">
-      <div class="carousel-track">
-        <!-- 官網原始拼字錯誤，照用 -->
-        <div class="carousel-slide"><img src="http://www.tandrymed.com/assets/images/3.5%20Straignt%20Plate.png" alt="3.5 Straight Plate" onerror="imgFallback(this)"></div>
-      </div>
-      <div class="carousel-dots"><span class="cdot active"></span></div>
-    </div>
-    <div class="card-body">
-      <div class="price-row"><span class="price-label">健保給付價</span><span><span class="price-val">$55,000</span><span class="price-unit">元/片</span></span></div>
-      <table class="specs-table">
-        <thead><tr><th>洞數</th></tr></thead>
-        <tbody>
-          <tr><td>5H</td></tr><tr><td>6H</td></tr><tr><td>7H</td></tr>
-          <tr><td>8H</td></tr><tr><td>10H</td></tr><tr><td>12H</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <div class="product-card">
-    <div class="card-head" onclick="toggleCard(this)">
-      <h3>5.0 Narrow</h3><span class="card-chevron">▾</span>
-    </div>
-    <div class="carousel-wrap">
-      <div class="carousel-track">
-        <div class="carousel-slide"><img src="http://www.tandrymed.com/assets/images/5.0%20Straight%20Narrow%20Plate.png" alt="5.0 Straight Narrow Plate" onerror="imgFallback(this)"></div>
-      </div>
-      <div class="carousel-dots"><span class="cdot active"></span></div>
-    </div>
-    <div class="card-body">
-      <div class="price-row"><span class="price-label">健保給付價</span><span><span class="price-val">$55,000</span><span class="price-unit">元/片</span></span></div>
-      <table class="specs-table">
-        <thead><tr><th>洞數</th></tr></thead>
-        <tbody><tr><td>6H</td></tr><tr><td>8H</td></tr><tr><td>10H</td></tr><tr><td>12H</td></tr></tbody>
-      </table>
-    </div>
-  </div>
-</div>
-
-<!-- ═══════════════════════════
-     小骨  院內碼 OS0211D
-═══════════════════════════ -->
-<div class="cat-section" id="cat-small">
-  <div class="code-banner">
-    <span class="code-banner-label">院內碼</span>
-    <span class="code-banner-val">OS0211D</span>
-    <button class="copy-main-btn" onclick="copyBanner(this,'OS0211D')">
-      <svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>複製
-    </button>
-  </div>
-
-  <div class="product-card">
-    <div class="card-head" onclick="toggleCard(this)">
-      <h3>1.5 直板</h3><span class="card-chevron">▾</span>
-    </div>
-    <div class="carousel-wrap">
-      <div class="carousel-track">
-        <div class="carousel-slide"><img src="http://www.tandrymed.com/assets/images/1.5%20Plate.png" alt="1.5 Plate" onerror="imgFallback(this)"></div>
-      </div>
-      <div class="carousel-dots"><span class="cdot active"></span></div>
-    </div>
-    <div class="card-body">
-      <div class="price-row"><span class="price-label">健保給付價</span><span><span class="price-val">$55,000</span><span class="price-unit">元/片</span></span></div>
-      <table class="specs-table">
-        <thead><tr><th>洞數</th></tr></thead>
-        <tbody>
-          <tr><td>5H</td></tr><tr><td>6H</td></tr><tr><td>7H</td></tr>
-          <tr><td>8H</td></tr><tr><td>10H</td></tr><tr><td>12H</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- 1.5 異型：3 張輪播 -->
-  <div class="product-card">
-    <div class="card-head" onclick="toggleCard(this)">
-      <h3>1.5 異型板 (Y / T / Z)</h3><span class="card-chevron">▾</span>
-    </div>
-    <div class="carousel-wrap">
-      <div class="carousel-track">
-        <div class="carousel-slide"><img src="http://www.tandrymed.com/assets/images/1.5%20Y%20Plate.png" alt="1.5 Y Plate" onerror="imgFallback(this)"></div>
-        <div class="carousel-slide"><img src="http://www.tandrymed.com/assets/images/1.5%20T%20Plate.png" alt="1.5 T Plate" onerror="imgFallback(this)"></div>
-        <div class="carousel-slide"><img src="http://www.tandrymed.com/assets/images/1.5%20Z%20Plate.png" alt="1.5 Z Plate" onerror="imgFallback(this)"></div>
-      </div>
-      <button class="carr-arrow prev" aria-label="上一張">
-        <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
-      </button>
-      <button class="carr-arrow next" aria-label="下一張">
-        <svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
-      </button>
-      <div class="carousel-dots">
-        <span class="cdot active"></span><span class="cdot"></span><span class="cdot"></span>
-      </div>
-    </div>
-    <div class="card-body">
-      <div class="price-row"><span class="price-label">健保給付價</span><span><span class="price-val">$55,000</span><span class="price-unit">元/片</span></span></div>
-      <table class="specs-table">
-        <thead><tr><th>版型</th></tr></thead>
-        <tbody><tr><td>1.5 Y</td></tr><tr><td>1.5 T</td></tr><tr><td>1.5 Z</td></tr></tbody>
-      </table>
-    </div>
-  </div>
-
-  <div class="product-card">
-    <div class="card-head" onclick="toggleCard(this)">
-      <h3>2.0 直版</h3><span class="card-chevron">▾</span>
-    </div>
-    <div class="carousel-wrap">
-      <div class="carousel-track">
-        <div class="carousel-slide"><img src="http://www.tandrymed.com/assets/images/2.0mm%20Locking%20Plate.png" alt="2.0mm Locking Plate" onerror="imgFallback(this)"></div>
-      </div>
-      <div class="carousel-dots"><span class="cdot active"></span></div>
-    </div>
-    <div class="card-body">
-      <div class="price-row"><span class="price-label">健保給付價</span><span><span class="price-val">$55,000</span><span class="price-unit">元/片</span></span></div>
-      <table class="specs-table">
-        <thead><tr><th>洞數</th></tr></thead>
-        <tbody>
-          <tr><td>4H</td></tr><tr><td>5H</td></tr><tr><td>6H</td></tr><tr><td>7H</td></tr><tr><td>8H</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- 2.0 異型：2 張輪播 -->
-  <div class="product-card">
-    <div class="card-head" onclick="toggleCard(this)">
-      <h3>2.0 異型板 (Y / T)</h3><span class="card-chevron">▾</span>
-    </div>
-    <div class="carousel-wrap">
-      <div class="carousel-track">
-        <div class="carousel-slide"><img src="http://www.tandrymed.com/assets/images/2.0%20Y%20Plate.png" alt="2.0 Y Plate" onerror="imgFallback(this)"></div>
-        <div class="carousel-slide"><img src="http://www.tandrymed.com/assets/images/2.0%20T%20Plate.png" alt="2.0 T Plate" onerror="imgFallback(this)"></div>
-      </div>
-      <button class="carr-arrow prev" aria-label="上一張">
-        <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
-      </button>
-      <button class="carr-arrow next" aria-label="下一張">
-        <svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
-      </button>
-      <div class="carousel-dots"><span class="cdot active"></span><span class="cdot"></span></div>
-    </div>
-    <div class="card-body">
-      <div class="price-row"><span class="price-label">健保給付價</span><span><span class="price-val">$55,000</span><span class="price-unit">元/片</span></span></div>
-      <table class="specs-table">
-        <thead><tr><th>版型</th></tr></thead>
-        <tbody><tr><td>2.0 Y</td></tr><tr><td>2.0 T</td></tr></tbody>
-      </table>
-    </div>
-  </div>
-
-  <div class="product-card">
-    <div class="card-head" onclick="toggleCard(this)">
-      <h3>Volar</h3><span class="card-chevron">▾</span>
-    </div>
-    <div class="carousel-wrap">
-      <div class="carousel-track">
-        <div class="carousel-slide"><img src="http://www.tandrymed.com/assets/images/2.4%20Volar%20Plate.png" alt="2.4 Volar Plate" onerror="imgFallback(this)"></div>
-      </div>
-      <div class="carousel-dots"><span class="cdot active"></span></div>
-    </div>
-    <div class="card-body">
-      <div class="price-row"><span class="price-label">健保給付價</span><span><span class="price-val">$55,000</span><span class="price-unit">元/片</span></span></div>
-      <table class="specs-table">
-        <thead><tr><th>左/右</th><th>洞數</th></tr></thead>
-        <tbody>
-          <tr><td>R't</td><td>2H</td></tr><tr><td>L't</td><td>2H</td></tr>
-          <tr><td>R't</td><td>3H</td></tr><tr><td>L't</td><td>3H</td></tr>
-          <tr><td>R't</td><td>6H</td></tr><tr><td>L't</td><td>6H</td></tr>
-          <tr><td>R't</td><td>8H</td></tr><tr><td>L't</td><td>8H</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <div class="product-card">
-    <div class="card-head" onclick="toggleCard(this)">
-      <h3>Juxta</h3><span class="card-chevron">▾</span>
-    </div>
-    <div class="carousel-wrap">
-      <div class="carousel-track">
-        <div class="carousel-slide"><img src="http://www.tandrymed.com/assets/images/2.4%20Juxta%20Plate.png" alt="2.4 Juxta Plate" onerror="imgFallback(this)"></div>
-      </div>
-      <div class="carousel-dots"><span class="cdot active"></span></div>
-    </div>
-    <div class="card-body">
-      <div class="price-row"><span class="price-label">健保給付價</span><span><span class="price-val">$55,000</span><span class="price-unit">元/片</span></span></div>
-      <table class="specs-table">
-        <thead><tr><th>左/右</th><th>洞數</th></tr></thead>
-        <tbody>
-          <tr><td>R't</td><td>3H</td></tr><tr><td>L't</td><td>3H</td></tr>
-          <tr><td>R't</td><td>5H</td></tr><tr><td>L't</td><td>5H</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <div class="product-card">
-    <div class="card-head" onclick="toggleCard(this)">
-      <h3>Fibula</h3><span class="card-chevron">▾</span>
-    </div>
-    <div class="carousel-wrap">
-      <div class="carousel-track">
-        <div class="carousel-slide"><img src="http://www.tandrymed.com/assets/images/3.5%20Distal%20Fibula%20Plate.png" alt="3.5 Distal Fibula Plate" onerror="imgFallback(this)"></div>
-      </div>
-      <div class="carousel-dots"><span class="cdot active"></span></div>
-    </div>
-    <div class="card-body">
-      <div class="price-row"><span class="price-label">健保給付價</span><span><span class="price-val">$55,000</span><span class="price-unit">元/片</span></span></div>
-      <table class="specs-table">
-        <thead><tr><th>左/右</th><th>洞數</th></tr></thead>
-        <tbody>
-          <tr><td>R't</td><td>4H</td></tr><tr><td>L't</td><td>4H</td></tr>
-          <tr><td>R't</td><td>6H</td></tr><tr><td>L't</td><td>6H</td></tr>
-          <tr><td>R't</td><td>8H</td></tr><tr><td>L't</td><td>8H</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- Radial Head / Neck：2 張輪播 -->
-  <div class="product-card">
-    <div class="card-head" onclick="toggleCard(this)">
-      <h3>Radial Head / Neck</h3><span class="card-chevron">▾</span>
-    </div>
-    <div class="carousel-wrap">
-      <div class="carousel-track">
-        <div class="carousel-slide"><img src="http://www.tandrymed.com/assets/images/2.4mm%20Radial%20Head%20Plate.png" alt="2.4mm Radial Head Plate" onerror="imgFallback(this)"></div>
-        <div class="carousel-slide"><img src="http://www.tandrymed.com/assets/images/2.4%20mm%20Radial%20Neck%20Plate.png" alt="2.4mm Radial Neck Plate" onerror="imgFallback(this)"></div>
-      </div>
-      <button class="carr-arrow prev" aria-label="上一張">
-        <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
-      </button>
-      <button class="carr-arrow next" aria-label="下一張">
-        <svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
-      </button>
-      <div class="carousel-dots"><span class="cdot active"></span><span class="cdot"></span></div>
-    </div>
-    <div class="card-body">
-      <div class="price-row"><span class="price-label">健保給付價</span><span><span class="price-val">$55,000</span><span class="price-unit">元/片</span></span></div>
-      <table class="specs-table">
-        <thead><tr><th>左/右</th><th>洞數</th></tr></thead>
-        <tbody>
-          <tr><td>無左右</td><td>2H</td></tr>
-          <tr><td>無左右</td><td>3H</td></tr>
-          <tr><td>無左右</td><td>4H</td></tr>
-          <tr><td>R't</td><td>2H</td></tr><tr><td>L't</td><td>2H</td></tr>
-          <tr><td>R't</td><td>3H</td></tr><tr><td>L't</td><td>3H</td></tr>
-          <tr><td>R't</td><td>4H</td></tr><tr><td>L't</td><td>4H</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-</div>
-
-<!-- ═══════════════════════════
-     下肢  院內碼 OS0211E
-═══════════════════════════ -->
-<div class="cat-section" id="cat-lower">
-  <div class="code-banner">
-    <span class="code-banner-label">院內碼</span>
-    <span class="code-banner-val">OS0211E</span>
-    <button class="copy-main-btn" onclick="copyBanner(this,'OS0211E')">
-      <svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>複製
-    </button>
-  </div>
-
-  <div class="product-card">
-    <div class="card-head" onclick="toggleCard(this)">
-      <h3>Distal Femur</h3><span class="card-chevron">▾</span>
-    </div>
-    <div class="carousel-wrap">
-      <div class="carousel-track">
-        <div class="carousel-slide"><img src="http://www.tandrymed.com/assets/images/5.0%20Distal%20Femoral%20Plate.png" alt="5.0 Distal Femoral Plate" onerror="imgFallback(this)"></div>
-      </div>
-      <div class="carousel-dots"><span class="cdot active"></span></div>
-    </div>
-    <div class="card-body">
-      <div class="price-row"><span class="price-label">健保給付價</span><span><span class="price-val">$70,000</span><span class="price-unit">元/片</span></span></div>
-      <table class="specs-table">
-        <thead><tr><th>左/右</th><th>洞數</th></tr></thead>
-        <tbody>
-          <tr><td>R't</td><td>5H</td></tr><tr><td>L't</td><td>5H</td></tr>
-          <tr><td>R't</td><td>7H</td></tr><tr><td>L't</td><td>7H</td></tr>
-          <tr><td>R't</td><td>9H</td></tr><tr><td>L't</td><td>9H</td></tr>
-          <tr><td>R't</td><td>11H</td></tr><tr><td>L't</td><td>11H</td></tr>
-          <tr><td>R't</td><td>13H</td></tr><tr><td>L't</td><td>13H</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <div class="product-card">
-    <div class="card-head" onclick="toggleCard(this)">
-      <h3>DHS</h3><span class="card-note">無左右</span><span class="card-chevron">▾</span>
-    </div>
-    <div class="carousel-wrap">
-      <div class="carousel-track">
-        <div class="carousel-slide"><img src="http://www.tandrymed.com/assets/images/5.0mm%20Proximal%20Femoral%20Plate.png" alt="5.0mm Proximal Femoral Plate" onerror="imgFallback(this)"></div>
-      </div>
-      <div class="carousel-dots"><span class="cdot active"></span></div>
-    </div>
-    <div class="card-body">
-      <div class="price-row"><span class="price-label">健保給付價</span><span><span class="price-val">$70,000</span><span class="price-unit">元/片</span></span></div>
-      <table class="specs-table">
-        <thead><tr><th>洞數</th></tr></thead>
-        <tbody>
-          <tr><td>2H</td></tr><tr><td>3H</td></tr><tr><td>4H</td></tr><tr><td>6H</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <div class="product-card">
-    <div class="card-head" onclick="toggleCard(this)">
-      <h3>LPTP 外</h3><span class="card-chevron">▾</span>
-    </div>
-    <div class="carousel-wrap">
-      <div class="carousel-track">
-        <div class="carousel-slide"><img src="http://www.tandrymed.com/assets/images/5.0%20Lateral%20Proximal%20Tibial%20Plate.png" alt="5.0 Lateral Proximal Tibial Plate" onerror="imgFallback(this)"></div>
-      </div>
-      <div class="carousel-dots"><span class="cdot active"></span></div>
-    </div>
-    <div class="card-body">
-      <div class="price-row"><span class="price-label">健保給付價</span><span><span class="price-val">$70,000</span><span class="price-unit">元/片</span></span></div>
-      <table class="specs-table">
-        <thead><tr><th>左/右</th><th>洞數</th></tr></thead>
-        <tbody>
-          <tr><td>R't</td><td>4H</td></tr><tr><td>L't</td><td>4H</td></tr>
-          <tr><td>R't</td><td>6H</td></tr><tr><td>L't</td><td>6H</td></tr>
-          <tr><td>R't</td><td>8H</td></tr><tr><td>L't</td><td>8H</td></tr>
-          <tr><td>R't</td><td>10H</td></tr><tr><td>L't</td><td>10H</td></tr>
-          <tr><td>R't</td><td>12H</td></tr><tr><td>L't</td><td>12H</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <div class="product-card">
-    <div class="card-head" onclick="toggleCard(this)">
-      <h3>LPTP 內</h3><span class="card-chevron">▾</span>
-    </div>
-    <div class="carousel-wrap">
-      <div class="carousel-track">
-        <div class="carousel-slide"><img src="http://www.tandrymed.com/assets/images/5.0%20Medial%20Proximal%20Tibial%20Plate.png" alt="5.0 Medial Proximal Tibial Plate" onerror="imgFallback(this)"></div>
-      </div>
-      <div class="carousel-dots"><span class="cdot active"></span></div>
-    </div>
-    <div class="card-body">
-      <div class="price-row"><span class="price-label">健保給付價</span><span><span class="price-val">$70,000</span><span class="price-unit">元/片</span></span></div>
-      <table class="specs-table">
-        <thead><tr><th>左/右</th><th>洞數</th></tr></thead>
-        <tbody>
-          <tr><td>R't</td><td>4H</td></tr><tr><td>L't</td><td>4H</td></tr>
-          <tr><td>R't</td><td>6H</td></tr><tr><td>L't</td><td>6H</td></tr>
-          <tr><td>R't</td><td>8H</td></tr><tr><td>L't</td><td>8H</td></tr>
-          <tr><td>R't</td><td>10H</td></tr><tr><td>L't</td><td>10H</td></tr>
-          <tr><td>R't</td><td>12H</td></tr><tr><td>L't</td><td>12H</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <div class="product-card">
-    <div class="card-head" onclick="toggleCard(this)">
-      <h3>Distal Tibia 內</h3><span class="card-chevron">▾</span>
-    </div>
-    <div class="carousel-wrap">
-      <div class="carousel-track">
-        <div class="carousel-slide"><img src="http://www.tandrymed.com/assets/images/3.5%20Medial%20Distal%20Tibial%20Plate.png" alt="3.5 Medial Distal Tibial Plate" onerror="imgFallback(this)"></div>
-      </div>
-      <div class="carousel-dots"><span class="cdot active"></span></div>
-    </div>
-    <div class="card-body">
-      <div class="price-row"><span class="price-label">健保給付價</span><span><span class="price-val">$70,000</span><span class="price-unit">元/片</span></span></div>
-      <table class="specs-table">
-        <thead><tr><th>左/右</th><th>洞數</th></tr></thead>
-        <tbody>
-          <tr><td>R't</td><td>6H</td></tr><tr><td>L't</td><td>6H</td></tr>
-          <tr><td>R't</td><td>8H</td></tr><tr><td>L't</td><td>8H</td></tr>
-          <tr><td>R't</td><td>10H</td></tr><tr><td>L't</td><td>10H</td></tr>
-          <tr><td>R't</td><td>12H</td></tr><tr><td>L't</td><td>12H</td></tr>
-          <tr><td>R't</td><td>14H</td></tr><tr><td>L't</td><td>14H</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <div class="product-card">
-    <div class="card-head" onclick="toggleCard(this)">
-      <h3>Distal Tibia 前外</h3><span class="card-chevron">▾</span>
-    </div>
-    <div class="carousel-wrap">
-      <div class="carousel-track">
-        <div class="carousel-slide"><img src="http://www.tandrymed.com/assets/images/3.5%20Anterolateral%20Tibial%20Plate.png" alt="3.5 Anterolateral Tibial Plate" onerror="imgFallback(this)"></div>
-      </div>
-      <div class="carousel-dots"><span class="cdot active"></span></div>
-    </div>
-    <div class="card-body">
-      <div class="price-row"><span class="price-label">健保給付價</span><span><span class="price-val">$70,000</span><span class="price-unit">元/片</span></span></div>
-      <table class="specs-table">
-        <thead><tr><th>左/右</th><th>洞數</th></tr></thead>
-        <tbody>
-          <tr><td>R't</td><td>7H</td></tr><tr><td>L't</td><td>7H</td></tr>
-          <tr><td>R't</td><td>9H</td></tr><tr><td>L't</td><td>9H</td></tr>
-          <tr><td>R't</td><td>11H</td></tr><tr><td>L't</td><td>11H</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <div class="product-card">
-    <div class="card-head" onclick="toggleCard(this)">
-      <h3>Calcaneus</h3><span class="card-chevron">▾</span>
-    </div>
-    <div class="carousel-wrap">
-      <div class="carousel-track">
-        <div class="carousel-slide"><img src="http://www.tandrymed.com/assets/images/3.5%20Calcaneal%20Plate.png" alt="3.5 Calcaneal Plate" onerror="imgFallback(this)"></div>
-      </div>
-      <div class="carousel-dots"><span class="cdot active"></span></div>
-    </div>
-    <div class="card-body">
-      <div class="price-row"><span class="price-label">健保給付價</span><span><span class="price-val">$70,000</span><span class="price-unit">元/片</span></span></div>
-      <table class="specs-table">
-        <thead><tr><th>左/右</th><th>洞數</th></tr></thead>
-        <tbody>
-          <tr><td>R't</td><td>14H</td></tr><tr><td>L't</td><td>14H</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-</div>
-
-<!-- ═══════════════════════════
-     骨釘  院內碼 OS0211F
-═══════════════════════════ -->
-<div class="cat-section" id="cat-screw">
-  <div class="code-banner">
-    <span class="code-banner-label">院內碼</span>
-    <span class="code-banner-val">OS0211F</span>
-    <button class="copy-main-btn" onclick="copyBanner(this,'OS0211F')">
-      <svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>複製
-    </button>
-  </div>
-
-  <div class="product-card open">
-    <div class="card-head" onclick="toggleCard(this)">
-      <h3>埋頭釘 — 依直徑選規格</h3><span class="card-chevron">▾</span>
-    </div>
-    <div class="card-body">
-      <div class="price-row"><span class="price-label">健保給付價</span><span><span class="price-val">$3,600</span><span class="price-unit">元/顆</span></span></div>
-
-      <div class="screw-group">
-        <div class="screw-group-title">Ø 2.0mm</div>
-        <div class="chip-grid">
-          <span class="chip" onclick="copyChip(this,'T0415-007')">7mm</span>
-          <span class="chip" onclick="copyChip(this,'T0415-008')">8mm</span>
-          <span class="chip" onclick="copyChip(this,'T0415-009')">9mm</span>
-          <span class="chip" onclick="copyChip(this,'T0415-010')">10mm</span>
-          <span class="chip" onclick="copyChip(this,'T0415-011')">11mm</span>
-          <span class="chip" onclick="copyChip(this,'T0415-012')">12mm</span>
-          <span class="chip" onclick="copyChip(this,'T0415-014')">14mm</span>
-          <span class="chip" onclick="copyChip(this,'T0415-016')">16mm</span>
-          <span class="chip" onclick="copyChip(this,'T0415-018')">18mm</span>
-          <span class="chip" onclick="copyChip(this,'T0415-020')">20mm</span>
-        </div>
-      </div>
-
-      <div class="screw-group">
-        <div class="screw-group-title">Ø 2.8mm</div>
-        <div class="chip-grid">
-          <span class="chip" onclick="copyChip(this,'T04280-008')">8mm</span>
-          <span class="chip" onclick="copyChip(this,'T04280-009')">9mm</span>
-          <span class="chip" onclick="copyChip(this,'T04280-010')">10mm</span>
-          <span class="chip" onclick="copyChip(this,'T04280-011')">11mm</span>
-          <span class="chip" onclick="copyChip(this,'T04280-012')">12mm</span>
-          <span class="chip" onclick="copyChip(this,'T04280-014')">14mm</span>
-          <span class="chip" onclick="copyChip(this,'T04280-016')">16mm</span>
-          <span class="chip" onclick="copyChip(this,'T04280-018')">18mm</span>
-          <span class="chip" onclick="copyChip(this,'T04280-020')">20mm</span>
-          <span class="chip" onclick="copyChip(this,'T04280-022')">22mm</span>
-          <span class="chip" onclick="copyChip(this,'T04280-024')">24mm</span>
-          <span class="chip" onclick="copyChip(this,'T04280-026')">26mm</span>
-          <span class="chip" onclick="copyChip(this,'T04280-028')">28mm</span>
-          <span class="chip" onclick="copyChip(this,'T04280-030')">30mm</span>
-        </div>
-      </div>
-
-      <div class="screw-group">
-        <div class="screw-group-title">Ø 3.6mm</div>
-        <div class="chip-grid">
-          <span class="chip" onclick="copyChip(this,'T04360-016')">16mm</span>
-          <span class="chip" onclick="copyChip(this,'T04360-018')">18mm</span>
-          <span class="chip" onclick="copyChip(this,'T04360-020')">20mm</span>
-          <span class="chip" onclick="copyChip(this,'T04360-022')">22mm</span>
-          <span class="chip" onclick="copyChip(this,'T04360-024')">24mm</span>
-          <span class="chip" onclick="copyChip(this,'T04360-026')">26mm</span>
-          <span class="chip" onclick="copyChip(this,'T04360-028')">28mm</span>
-          <span class="chip" onclick="copyChip(this,'T04360-030')">30mm</span>
-          <span class="chip" onclick="copyChip(this,'T04360-032')">32mm</span>
-          <span class="chip" onclick="copyChip(this,'T04360-034')">34mm</span>
-          <span class="chip" onclick="copyChip(this,'T04360-038')">38mm</span>
-          <span class="chip" onclick="copyChip(this,'T04360-042')">42mm</span>
-          <span class="chip" onclick="copyChip(this,'T04360-046')">46mm</span>
-          <span class="chip" onclick="copyChip(this,'T04360-050')">50mm</span>
-        </div>
-      </div>
-
-      <div class="screw-group">
-        <div class="screw-group-title">Ø 4.7mm</div>
-        <div class="chip-grid">
-          <span class="chip" onclick="copyChip(this,'T04470-030')">30mm</span>
-          <span class="chip" onclick="copyChip(this,'T04470-032')">32mm</span>
-          <span class="chip" onclick="copyChip(this,'T04470-034')">34mm</span>
-          <span class="chip" onclick="copyChip(this,'T04470-036')">36mm</span>
-          <span class="chip" onclick="copyChip(this,'T04470-038')">38mm</span>
-          <span class="chip" onclick="copyChip(this,'T04470-040')">40mm</span>
-          <span class="chip" onclick="copyChip(this,'T04470-042')">42mm</span>
-          <span class="chip" onclick="copyChip(this,'T04470-044')">44mm</span>
-          <span class="chip" onclick="copyChip(this,'T04470-046')">46mm</span>
-          <span class="chip" onclick="copyChip(this,'T04470-048')">48mm</span>
-          <span class="chip" onclick="copyChip(this,'T04470-050')">50mm</span>
-          <span class="chip" onclick="copyChip(this,'T04470-055')">55mm</span>
-          <span class="chip" onclick="copyChip(this,'T04470-060')">60mm</span>
-          <span class="chip" onclick="copyChip(this,'T04470-065')">65mm</span>
-          <span class="chip" onclick="copyChip(this,'T04470-070')">70mm</span>
-        </div>
-      </div>
-
-      <div class="screw-group">
-        <div class="screw-group-title">Ø 5.5mm</div>
-        <div class="chip-grid">
-          <span class="chip" onclick="copyChip(this,'T04550-035')">35mm</span>
-          <span class="chip" onclick="copyChip(this,'T04550-040')">40mm</span>
-          <span class="chip" onclick="copyChip(this,'T04550-045')">45mm</span>
-          <span class="chip" onclick="copyChip(this,'T04550-050')">50mm</span>
-          <span class="chip" onclick="copyChip(this,'T04550-055')">55mm</span>
-          <span class="chip" onclick="copyChip(this,'T04550-060')">60mm</span>
-          <span class="chip" onclick="copyChip(this,'T04550-065')">65mm</span>
-          <span class="chip" onclick="copyChip(this,'T04550-070')">70mm</span>
-          <span class="chip" onclick="copyChip(this,'T04550-075')">75mm</span>
-          <span class="chip" onclick="copyChip(this,'T04550-080')">80mm</span>
-        </div>
-      </div>
-
-      <div class="screw-group">
-        <div class="screw-group-title">Ø 7.5mm</div>
-        <div class="chip-grid">
-          <span class="chip" onclick="copyChip(this,'T04750-065')">65mm</span>
-          <span class="chip" onclick="copyChip(this,'T04750-070')">70mm</span>
-          <span class="chip" onclick="copyChip(this,'T04750-075')">75mm</span>
-          <span class="chip" onclick="copyChip(this,'T04750-080')">80mm</span>
-          <span class="chip" onclick="copyChip(this,'T04750-085')">85mm</span>
-          <span class="chip" onclick="copyChip(this,'T04750-090')">90mm</span>
-          <span class="chip" onclick="copyChip(this,'T04750-095')">95mm</span>
-          <span class="chip" onclick="copyChip(this,'T04750-100')">100mm</span>
-          <span class="chip" onclick="copyChip(this,'T04750-105')">105mm</span>
-          <span class="chip" onclick="copyChip(this,'T04750-110')">110mm</span>
-        </div>
-      </div>
+  <div class="screw-group">
+    <div class="screw-diam">Ø 7.5mm</div>
+    <div class="chip-grid">
+      <span class="chip" onclick="copyChip(this,'T04750-065')">65mm</span><span class="chip" onclick="copyChip(this,'T04750-070')">70mm</span><span class="chip" onclick="copyChip(this,'T04750-075')">75mm</span><span class="chip" onclick="copyChip(this,'T04750-080')">80mm</span><span class="chip" onclick="copyChip(this,'T04750-085')">85mm</span><span class="chip" onclick="copyChip(this,'T04750-090')">90mm</span><span class="chip" onclick="copyChip(this,'T04750-095')">95mm</span><span class="chip" onclick="copyChip(this,'T04750-100')">100mm</span><span class="chip" onclick="copyChip(this,'T04750-105')">105mm</span><span class="chip" onclick="copyChip(this,'T04750-110')">110mm</span>
     </div>
   </div>
 </div>
 
 <div class="footer">TANDRY ORTHOPEDIC · 2025 · 僅供醫療人員參考</div>
+
+<!-- OVERLAY + SHEET -->
+<div class="overlay" id="overlay" onclick="closeSheet()"></div>
+<div class="sheet" id="sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-img-wrap" id="sheetImgWrap">
+    <div class="sheet-track" id="sheetTrack"></div>
+    <button class="sarr l" id="sarrL" hidden><svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg></button>
+    <button class="sarr r" id="sarrR" hidden><svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg></button>
+    <div class="sheet-dots" id="sheetDots"></div>
+  </div>
+  <div class="sheet-body">
+    <div class="sheet-title" id="sheetTitle"></div>
+    <div class="sheet-meta" id="sheetMeta"></div>
+    <div class="sheet-note" id="sheetNote"></div>
+    <div class="holes-lbl">洞數</div>
+    <div class="holes" id="sheetHoles"></div>
+    <button class="sheet-close" onclick="closeSheet()">關閉</button>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
-// ── TABS ──
-document.querySelectorAll('.cat-tab').forEach(tab => {
-  tab.addEventListener('click', () => {
-    document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.cat-section').forEach(s => s.classList.remove('active'));
-    tab.classList.add('active');
-    document.getElementById('cat-' + tab.dataset.cat).classList.add('active');
-    tab.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
+const BASE = 'http://www.tandrymed.com/assets/images/';
+
+const CATS = {
+  clavicle: {
+    code: 'OS0211A',
+    items: [
+      { name:'Hook Plate',        imgs:['3.5%20Clavicle%20Hook%20Plate.png'],    price:'$55,000', holes:['4H','6H'],                          note:'Hook深度 15 / 18 mm' },
+      { name:'Superior Clavicle', imgs:['3.5%20Superior%20Clavicle%20Plate.png'],price:'$55,000', holes:['6H','7H','8H'] },
+      { name:'Distal Clavicle',   imgs:['3.5%20Distal%20Clavicle%20Plate.png'],  price:'$55,000', holes:['4H','5H','6H','7H'] },
+    ]
+  },
+  upper: {
+    code: 'OS0211B',
+    items: [
+      { name:'LPHP',    imgs:['3.5%20Proximal%20Humeral%20Plate.png'],        price:'$70,000', holes:['3H','5H','8H'],         note:'無左右' },
+      { name:'Olecranon',imgs:['3.5%20Olecranon%20Plate2.png'],               price:'$70,000', holes:['2H','4H','6H'] },
+      { name:'LDHP 外', imgs:['3.5%20Lateral%20Distal%20Humeral%20Plate.png'],price:'$70,000', holes:['5H','7H','9H'] },
+      { name:'LDHP 內', imgs:['3.5%20Medial%20Humeral%20Plate.png'],          price:'$70,000', holes:['3H','5H','7H'] },
+    ]
+  },
+  long: {
+    code: 'OS0211C',
+    items: [
+      { name:'3.5 Recon',      imgs:['3.5%20Reconstruction%20Plate.png'],         price:'$55,000', holes:['5H','6H','7H','8H','10H','12H','16H','18H','20H'] },
+      { name:'3.5 1/3 Tubular',imgs:['3.5%20One-thierd%20Tubular%20Plate.png'],   price:'$55,000', holes:['6H','8H','10H'] },
+      { name:'5.0 Broad',      imgs:['5.0%20Straight%20Broad.png'],               price:'$55,000', holes:['6H','8H','10H','12H'] },
+      { name:'3.5 直板',       imgs:['3.5%20Straignt%20Plate.png'],               price:'$55,000', holes:['5H','6H','7H','8H','10H','12H'] },
+      { name:'5.0 Narrow',     imgs:['5.0%20Straight%20Narrow%20Plate.png'],      price:'$55,000', holes:['6H','8H','10H','12H'] },
+    ]
+  },
+  small: {
+    code: 'OS0211D',
+    items: [
+      { name:'1.5 直板',        imgs:['1.5%20Plate.png'],                                                     price:'$55,000', holes:['5H','6H','7H','8H','10H','12H'] },
+      { name:'1.5 Y / T / Z',   imgs:['1.5%20Y%20Plate.png','1.5%20T%20Plate.png','1.5%20Z%20Plate.png'],   price:'$55,000', holes:['Y','T','Z'],                    note:'各版型獨立品項' },
+      { name:'2.0 直版',        imgs:['2.0mm%20Locking%20Plate.png'],                                        price:'$55,000', holes:['4H','5H','6H','7H','8H'] },
+      { name:'2.0 Y / T',       imgs:['2.0%20Y%20Plate.png','2.0%20T%20Plate.png'],                          price:'$55,000', holes:['Y','T'],                        note:'各版型獨立品項' },
+      { name:'Volar',           imgs:['2.4%20Volar%20Plate.png'],                                             price:'$55,000', holes:['2H','3H','6H','8H'] },
+      { name:'Juxta',           imgs:['2.4%20Juxta%20Plate.png'],                                             price:'$55,000', holes:['3H','5H'] },
+      { name:'Fibula',          imgs:['3.5%20Distal%20Fibula%20Plate.png'],                                   price:'$55,000', holes:['4H','6H','8H'] },
+      { name:'Radial Head/Neck',imgs:['2.4mm%20Radial%20Head%20Plate.png','2.4%20mm%20Radial%20Neck%20Plate.png'], price:'$55,000', holes:['2H','3H','4H'] },
+    ]
+  },
+  lower: {
+    code: 'OS0211E',
+    items: [
+      { name:'Distal Femur',    imgs:['5.0%20Distal%20Femoral%20Plate.png'],          price:'$70,000', holes:['5H','7H','9H','11H','13H'] },
+      { name:'DHS',             imgs:['5.0mm%20Proximal%20Femoral%20Plate.png'],       price:'$70,000', holes:['2H','3H','4H','6H'],      note:'無左右' },
+      { name:'LPTP 外',         imgs:['5.0%20Lateral%20Proximal%20Tibial%20Plate.png'],price:'$70,000', holes:['4H','6H','8H','10H','12H'] },
+      { name:'LPTP 內',         imgs:['5.0%20Medial%20Proximal%20Tibial%20Plate.png'], price:'$70,000', holes:['4H','6H','8H','10H','12H'] },
+      { name:'Distal Tibia 內', imgs:['3.5%20Medial%20Distal%20Tibial%20Plate.png'],   price:'$70,000', holes:['6H','8H','10H','12H','14H'] },
+      { name:'Distal Tibia 前外',imgs:['3.5%20Anterolateral%20Tibial%20Plate.png'],   price:'$70,000', holes:['7H','9H','11H'] },
+      { name:'Calcaneus',       imgs:['3.5%20Calcaneal%20Plate.png'],                  price:'$70,000', holes:['14H'] },
+    ]
+  }
+};
+
+// ── BUILD GRIDS ──
+Object.entries(CATS).forEach(([cat, data]) => {
+  const sec = document.getElementById('cat-' + cat);
+
+  // http notice (only once, in first section)
+  if (cat === 'clavicle') {
+    const notice = document.createElement('div');
+    notice.className = 'http-notice';
+    notice.id = 'httpNotice';
+    notice.textContent = '⚠️ 圖片來自 http 網站，若顯示失敗請改用 http:// 版網址開啟。';
+    sec.appendChild(notice);
+  }
+
+  // banner
+  const banner = document.createElement('div');
+  banner.className = 'banner';
+  banner.innerHTML = `<span class="banner-lbl">院內碼</span><span class="banner-code">${data.code}</span><button class="copy-btn" onclick="copyBanner(this,'${data.code}')"><svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>複製</button>`;
+  sec.appendChild(banner);
+
+  const grid = document.createElement('div');
+  grid.className = 'grid';
+
+  data.items.forEach(item => {
+    const tile = document.createElement('div');
+    tile.className = 'tile';
+    tile.onclick = () => openSheet(item, data.code);
+
+    const img = document.createElement('img');
+    img.className = 'tile-img';
+    img.src = BASE + item.imgs[0];
+    img.alt = item.name;
+    img.loading = 'lazy';
+    img.onerror = function() {
+      const ph = document.createElement('div');
+      ph.className = 'tile-img-ph';
+      ph.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>';
+      this.replaceWith(ph);
+    };
+
+    const name = document.createElement('div');
+    name.className = 'tile-name';
+    name.textContent = item.name;
+
+    const price = document.createElement('div');
+    price.className = 'tile-price';
+    price.textContent = item.price;
+
+    tile.appendChild(img);
+    tile.appendChild(price);
+    tile.appendChild(name);
+    grid.appendChild(tile);
   });
+
+  sec.appendChild(grid);
 });
 
-// ── TOGGLE CARD ──
-function toggleCard(head) {
-  head.closest('.product-card').classList.toggle('open');
-}
+// ── SHEET ──
+let sheetCur = 0, sheetTotal = 0;
 
-// ── CAROUSEL ──
-function initCarousel(wrap) {
-  if (wrap.dataset.init) return;
-  wrap.dataset.init = '1';
+function openSheet(item, code) {
+  const track = document.getElementById('sheetTrack');
+  const dots = document.getElementById('sheetDots');
+  const wrap = document.getElementById('sheetImgWrap');
 
-  const track = wrap.querySelector('.carousel-track');
-  const slides = track.querySelectorAll('.carousel-slide');
-  const dots = wrap.querySelectorAll('.cdot');
-  const total = slides.length;
-  if (total <= 1) {
-    wrap.querySelector('.carr-arrow.prev')?.remove();
-    wrap.querySelector('.carr-arrow.next')?.remove();
-    return;
-  }
+  track.innerHTML = '';
+  dots.innerHTML = '';
+  sheetCur = 0;
+  sheetTotal = item.imgs.length;
 
-  let cur = 0;
-  const go = idx => {
-    cur = (idx + total) % total;
-    track.style.transform = `translateX(-${cur * 100}%)`;
-    dots.forEach((d, i) => d.classList.toggle('active', i === cur));
-  };
+  item.imgs.forEach((src, i) => {
+    const slide = document.createElement('div');
+    slide.className = 'sheet-slide';
+    const img = document.createElement('img');
+    img.src = BASE + src;
+    img.alt = item.name;
+    img.onerror = function() { this.style.display='none'; };
+    slide.appendChild(img);
+    track.appendChild(slide);
 
-  wrap.querySelector('.carr-arrow.prev')?.addEventListener('click', e => { e.stopPropagation(); go(cur - 1); });
-  wrap.querySelector('.carr-arrow.next')?.addEventListener('click', e => { e.stopPropagation(); go(cur + 1); });
-
-  // Touch swipe
-  let sx = 0;
-  wrap.addEventListener('touchstart', e => { sx = e.touches[0].clientX; }, {passive:true});
-  wrap.addEventListener('touchend', e => {
-    const dx = e.changedTouches[0].clientX - sx;
-    if (Math.abs(dx) > 40) go(dx < 0 ? cur + 1 : cur - 1);
-  }, {passive:true});
-}
-
-// Init carousel when card opens; also init all open cards on load
-document.querySelectorAll('.product-card').forEach(card => {
-  card.querySelector('.card-head').addEventListener('click', () => {
-    const wrap = card.querySelector('.carousel-wrap');
-    if (wrap) setTimeout(() => initCarousel(wrap), 50);
+    const dot = document.createElement('span');
+    dot.className = 'sdot' + (i === 0 ? ' on' : '');
+    dots.appendChild(dot);
   });
-  if (card.classList.contains('open')) {
-    const wrap = card.querySelector('.carousel-wrap');
-    if (wrap) initCarousel(wrap);
+
+  const sarrL = document.getElementById('sarrL');
+  const sarrR = document.getElementById('sarrR');
+  if (sheetTotal > 1) {
+    sarrL.hidden = false; sarrR.hidden = false;
+  } else {
+    sarrL.hidden = true; sarrR.hidden = true;
   }
+
+  document.getElementById('sheetTitle').textContent = item.name;
+  document.getElementById('sheetMeta').innerHTML =
+    `<span class="sheet-code">${code}</span><span class="sheet-price">${item.price} / 片</span>`;
+  document.getElementById('sheetNote').textContent = item.note || '';
+  document.getElementById('sheetNote').style.display = item.note ? 'block' : 'none';
+
+  const holesEl = document.getElementById('sheetHoles');
+  holesEl.innerHTML = '';
+  item.holes.forEach(h => {
+    const el = document.createElement('span');
+    el.className = 'hole';
+    el.textContent = h;
+    holesEl.appendChild(el);
+  });
+
+  document.getElementById('overlay').classList.add('show');
+  document.getElementById('sheet').classList.add('show');
+  document.body.style.overflow = 'hidden';
+
+  // Touch swipe on sheet image
+  let sx = 0;
+  wrap.ontouchstart = e => { sx = e.touches[0].clientX; };
+  wrap.ontouchend = e => {
+    const dx = e.changedTouches[0].clientX - sx;
+    if (Math.abs(dx) > 40) goSlide(dx < 0 ? sheetCur + 1 : sheetCur - 1);
+  };
+}
+
+function goSlide(idx) {
+  sheetCur = (idx + sheetTotal) % sheetTotal;
+  document.getElementById('sheetTrack').style.transform = `translateX(-${sheetCur * 100}%)`;
+  document.querySelectorAll('.sdot').forEach((d, i) => d.classList.toggle('on', i === sheetCur));
+}
+
+document.getElementById('sarrL').onclick = e => { e.stopPropagation(); goSlide(sheetCur - 1); };
+document.getElementById('sarrR').onclick = e => { e.stopPropagation(); goSlide(sheetCur + 1); };
+
+function closeSheet() {
+  document.getElementById('overlay').classList.remove('show');
+  document.getElementById('sheet').classList.remove('show');
+  document.body.style.overflow = '';
+}
+
+// ── TABS ──
+document.querySelectorAll('.tab').forEach(t => {
+  t.onclick = () => {
+    document.querySelectorAll('.tab').forEach(x => x.classList.remove('on'));
+    document.querySelectorAll('.sec').forEach(x => x.classList.remove('on'));
+    t.classList.add('on');
+    document.getElementById('cat-' + t.dataset.cat).classList.add('on');
+    t.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
+  };
 });
 
 // ── COPY BANNER ──
 function copyBanner(btn, code) {
   doCopy(code);
-  btn.classList.add('copied');
+  btn.classList.add('ok');
   btn.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>已複製';
   setTimeout(() => {
-    btn.classList.remove('copied');
+    btn.classList.remove('ok');
     btn.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>複製';
   }, 2200);
   showToast('已複製：' + code);
@@ -1050,51 +430,33 @@ function copyBanner(btn, code) {
 // ── COPY CHIP ──
 function copyChip(chip, code) {
   doCopy(code);
-  document.querySelectorAll('.chip.copied').forEach(c => c.classList.remove('copied'));
-  chip.classList.add('copied');
-  setTimeout(() => chip.classList.remove('copied'), 2000);
+  document.querySelectorAll('.chip.ok').forEach(c => c.classList.remove('ok'));
+  chip.classList.add('ok');
+  setTimeout(() => chip.classList.remove('ok'), 2000);
   showToast('已複製：' + code);
 }
 
-// ── CLIPBOARD ──
 function doCopy(text) {
-  if (navigator.clipboard) {
-    navigator.clipboard.writeText(text).catch(() => fallbackCopy(text));
-  } else { fallbackCopy(text); }
+  if (navigator.clipboard) { navigator.clipboard.writeText(text).catch(() => fbCopy(text)); }
+  else { fbCopy(text); }
 }
-function fallbackCopy(text) {
-  const el = document.createElement('textarea');
-  el.value = text; el.style.cssText = 'position:fixed;opacity:0';
-  document.body.appendChild(el); el.focus(); el.select();
-  document.execCommand('copy'); document.body.removeChild(el);
+function fbCopy(text) {
+  const el = Object.assign(document.createElement('textarea'), {value:text,style:'position:fixed;opacity:0'});
+  document.body.appendChild(el); el.focus(); el.select(); document.execCommand('copy'); el.remove();
 }
 
-// ── IMG FALLBACK ──
-function imgFallback(img) {
-  img.replaceWith(Object.assign(document.createElement('div'), {
-    className: 'img-ph',
-    innerHTML: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg><span>圖片無法載入</span>'
-  }));
-}
-
-// ── TOAST ──
 function showToast(msg) {
   const t = document.getElementById('toast');
-  t.textContent = '✓ ' + msg;
-  t.classList.add('show');
-  clearTimeout(t._t);
-  t._t = setTimeout(() => t.classList.remove('show'), 2000);
+  t.textContent = '✓ ' + msg; t.classList.add('show');
+  clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), 2000);
 }
 
-// ── Mixed-content warning ──
 if (location.protocol === 'https:') {
-  document.getElementById('mixedNotice').style.display = 'block';
+  const n = document.getElementById('httpNotice');
+  if (n) n.style.display = 'block';
 }
 
-// ── PWA ──
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('./sw.js');
-}
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
 </script>
 </body>
 </html>
