@@ -504,7 +504,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding:26p
         <input class="fi" type="number" id="aNav" placeholder="0.0000" step="any" style="flex:1">
         <button type="button" id="navQueryBtn" onclick="queryFundNAV()" style="background:var(--green);color:#fff;border:none;border-radius:8px;font-family:var(--mono);font-size:.65rem;padding:9px 13px;cursor:pointer;white-space:nowrap;transition:opacity .15s">查詢 NAV</button>
       </div>
-      <div class="fhint" id="navHint">輸入代碼後點「查詢 NAV」自動填入，或至 fundclear.com.tw 手動查詢</div>
+      <div class="fhint" id="navHint">支援境內基金代碼及 ISIN Code（如 LU0820561818），查不到時可手動填入 NAV</div>
     </div>
     <div class="fg">
       <label class="fl">計價幣別</label>
@@ -839,18 +839,55 @@ async function fetchExchangeRate() {
 }
 async function fetchFundNAV(ticker) {
   const proxy='https://api.allorigins.win/raw?url=';
-  const url=`https://www.fundclear.com.tw/MFCConsumer.B2C/Fund/SearchFundNAVByCode?fundCode=${encodeURIComponent(ticker)}`;
+  const upper=ticker.toUpperCase().trim();
+  const isISIN=/^[A-Z]{2}[A-Z0-9]{9}[0-9]$/.test(upper);
+
+  // Source 1: FundClear SearchFundNAVByCode（境內基金代碼）
   try {
+    const url=`https://www.fundclear.com.tw/MFCConsumer.B2C/Fund/SearchFundNAVByCode?fundCode=${encodeURIComponent(ticker)}`;
     const r=await fetch(proxy+encodeURIComponent(url),{signal:AbortSignal.timeout(10000)});
-    const text=await r.text();
-    try {
-      const d=JSON.parse(text);
-      const nav=d?.NAV??d?.nav??d?.Data?.[0]?.NAV??d?.data?.[0]?.nav??d?.data?.[0]?.NAV;
-      if(nav!=null&&!isNaN(parseFloat(nav)))return parseFloat(nav);
-    } catch {}
-    const m=text.match(/["']NAV["']\s*:\s*["']?([0-9]+(?:\.[0-9]+)?)["']?/i);
-    if(m)return parseFloat(m[1]);
+    if(r.ok){
+      const text=await r.text();
+      try {
+        const d=JSON.parse(text);
+        const nav=d?.NAV??d?.nav??d?.Data?.[0]?.NAV??d?.data?.[0]?.nav??d?.data?.[0]?.NAV;
+        if(nav!=null&&!isNaN(parseFloat(nav)))return parseFloat(nav);
+      } catch {}
+      const m=text.match(/["']NAV["']\s*:\s*["']?([0-9]+(?:\.[0-9]+)?)["']?/i);
+      if(m)return parseFloat(m[1]);
+    }
   } catch {}
+
+  // Source 2: Yahoo Finance 搜尋（支援 ISIN Code，如 LU0820561818）
+  if(isISIN){
+    try {
+      const searchUrl=`https://query2.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(upper)}&quotesCount=5&newsCount=0`;
+      const r=await fetch(proxy+encodeURIComponent(searchUrl),{signal:AbortSignal.timeout(8000)});
+      if(r.ok){
+        const d=await r.json();
+        const quote=d?.quotes?.find(q=>q.quoteType==='MUTUALFUND'||q.quoteType==='ETF')||d?.quotes?.[0];
+        if(quote?.symbol){
+          const chartUrl=`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(quote.symbol)}?interval=1d&range=1d`;
+          const r2=await fetch(proxy+encodeURIComponent(chartUrl),{signal:AbortSignal.timeout(8000)});
+          if(r2.ok){
+            const d2=await r2.json();
+            const meta=d2?.chart?.result?.[0]?.meta;
+            const price=meta?.regularMarketPrice||meta?.chartPreviousClose;
+            if(price&&price>0)return price;
+          }
+        }
+      }
+    } catch {}
+  }
+
+  // Source 3: 直接用 Yahoo Finance chart 嘗試 ISIN 作為 ticker
+  if(isISIN){
+    try {
+      const r=await fetchYahoo(upper);
+      if(r?.price&&r.price>0)return r.price;
+    } catch {}
+  }
+
   return null;
 }
 async function fetchPrices() {
@@ -1145,7 +1182,7 @@ function onAssetTypeChange(){
   const hints={
     tw:'台股代號：2330、0050、006208',
     us:'美股 Ticker：AAPL、MSFT、SPY、QQQ',
-    fund:'輸入基金代號後點「查詢 NAV」自動填入',
+    fund:'境內基金代碼或 ISIN Code（如 LU0820561818），點「查詢 NAV」',
     crypto:'支援：BTC、ETH、SOL、BNB、XRP、ADA…（派網報價）',
     cash:'留空或填入帳戶名稱（如 玉山活存）',
   };
@@ -1163,7 +1200,7 @@ function onAssetTypeChange(){
     document.getElementById('aCost').placeholder='0.00';
     document.getElementById('aCur').value=(t==='us'||t==='crypto')?'USD':'TWD';
   }
-  if(t==='fund'){document.getElementById('navHint').textContent='輸入代碼後點「查詢 NAV」自動填入，或至 fundclear.com.tw 手動查詢';}
+  if(t==='fund'){document.getElementById('navHint').innerHTML='支援境內基金代碼及 <strong>ISIN Code</strong>（如 LU0820561818），查不到時可手動填入 NAV';}
 }
 
 function onLiabRepayChange(){
@@ -1182,13 +1219,22 @@ function onLiabFreqChange(){
 }
 async function queryFundNAV(){
   const ticker=document.getElementById('aTicker').value.trim();
-  if(!ticker){alert('請先輸入基金代碼');return;}
+  if(!ticker){alert('請先輸入基金代碼或 ISIN Code');return;}
   const btn=document.getElementById('navQueryBtn'),hint=document.getElementById('navHint');
   btn.textContent='查詢中…';btn.disabled=true;btn.style.opacity='.6';
   const nav=await fetchFundNAV(ticker);
   btn.textContent='查詢 NAV';btn.disabled=false;btn.style.opacity='1';
-  if(nav){document.getElementById('aNav').value=nav;hint.textContent=`✅ 查詢成功：NAV = ${nav}`;}
-  else{hint.textContent='❌ 自動查詢失敗，請至 fundclear.com.tw 手動輸入 NAV';}
+  if(nav){
+    document.getElementById('aNav').value=nav;
+    hint.textContent=`✅ 查詢成功：NAV = ${nav}`;
+    hint.style.color='';
+  } else {
+    const isISIN=/^[A-Z]{2}[A-Z0-9]{9}[0-9]$/.test(ticker.toUpperCase());
+    hint.innerHTML=isISIN
+      ?'❌ 自動查詢未找到此 ISIN，請手動輸入 NAV<br>（可至鉅亨網、MoneyDJ 或基金公司官網查詢淨值）'
+      :'❌ 查詢失敗。境外基金請輸入 <strong>ISIN Code</strong>（如 LU0820561818），或手動填入 NAV';
+    hint.style.color='';
+  }
 }
 
 async function addAsset(){
