@@ -480,7 +480,10 @@ header{display:flex;align-items:center;justify-content:space-between;padding:26p
     <div class="frow">
       <div class="fg">
         <label class="fl">代碼 / Ticker</label>
-        <input class="fi" id="aTicker" placeholder="如 0050、BTC">
+        <div style="display:flex;gap:6px;align-items:stretch">
+          <input class="fi" id="aTicker" placeholder="如 0050、BTC" style="flex:1">
+          <button type="button" id="searchFundBtn" style="display:none;background:var(--blue);color:#fff;border:none;border-radius:8px;font-family:var(--mono);font-size:.65rem;padding:9px 13px;cursor:pointer;white-space:nowrap;transition:opacity .15s;font-weight:500" onclick="openFundSearch()">搜尋基金</button>
+        </div>
         <div class="fhint" id="aHint">台股代號：2330、0050、006208</div>
       </div>
       <div class="fg">
@@ -670,6 +673,30 @@ header{display:flex;align-items:center;justify-content:space-between;padding:26p
   </div>
 </div>
 
+<!-- ── Fund Search Modal ── -->
+<div class="backdrop" id="fundSearchModal">
+  <div class="modal" style="width:560px;max-height:85vh">
+    <div class="modal-head"><div class="modal-title">搜尋基金</div><button class="modal-close" onclick="closeFundSearch()">×</button></div>
+    <div style="display:flex;gap:8px;margin-bottom:14px;padding:0 0 0 0">
+      <input class="fi" id="fundSearchInput" style="flex:1;margin:0" type="text" placeholder="輸入基金名稱、代碼或 ISIN…" oninput="searchFunds()">
+      <select class="fs" id="fundCategoryFilter" style="min-width:100px;margin:0" onchange="searchFunds()">
+        <option value="">全部分類</option>
+        <option value="tw">台灣 ETF</option>
+        <option value="us">美國基金</option>
+        <option value="offshore">境外基金</option>
+      </select>
+    </div>
+    <div style="max-height:calc(85vh - 180px);overflow-y:auto;border:1px solid var(--border-light);border-radius:8px;background:var(--bg)">
+      <div id="fundSearchResults" style="max-height:100%;overflow-y:auto">
+        <div style="padding:20px;text-align:center;color:var(--faint);font-family:var(--mono);font-size:.68rem">輸入關鍵字開始搜尋</div>
+      </div>
+    </div>
+    <div class="modal-footer" style="border-top:1px solid var(--border-light)">
+      <button class="btn btn-ghost" onclick="closeFundSearch()">取消</button>
+    </div>
+  </div>
+</div>
+
 <!-- ── Sell Modal ── -->
 <div class="backdrop" id="sellModal">
   <div class="modal" style="width:420px">
@@ -719,7 +746,81 @@ const FXCAT = {
 };
 
 // ══════════════════════════════════════
-// Setup / Settings
+// Fund Catalog
+// ══════════════════════════════════════
+const FUNDS_CATALOG = [
+  // 台灣 ETF
+  {id:'0050',name:'元大台灣50',ticker:'0050',category:'tw'},
+  {id:'0056',name:'元大高股息',ticker:'0056',category:'tw'},
+  {id:'00878',name:'元大美股優選高股息',ticker:'00878',category:'tw'},
+  {id:'0057',name:'元大台灣中型100',ticker:'0057',category:'tw'},
+  {id:'006208',name:'富邦台灣優質高息',ticker:'006208',category:'tw'},
+  {id:'00713',name:'元大台灣電子科技',ticker:'00713',category:'tw'},
+  {id:'0061',name:'元大寶滬深',ticker:'0061',category:'tw'},
+  // 美國基金
+  {id:'VTI',name:'Vanguard US Total Stock Market ETF',ticker:'VTI',category:'us'},
+  {id:'VOO',name:'Vanguard S&P 500 ETF',ticker:'VOO',category:'us'},
+  {id:'VEA',name:'Vanguard FTSE Developed Markets ETF',ticker:'VEA',category:'us'},
+  {id:'BND',name:'Vanguard US Total Bond Market ETF',ticker:'BND',category:'us'},
+  {id:'SCHD',name:'Schwab US Dividend Equity ETF',ticker:'SCHD',category:'us'},
+  {id:'ITOT',name:'iShares Core S&P Total US Stock Market ETF',ticker:'ITOT',category:'us'},
+  // 境外基金（ISIN Code）
+  {id:'LU0820561818',name:'安聯收益成長基金',ticker:'LU0820561818',category:'offshore'},
+  {id:'IE00B4L5Y983',name:'iShares Core MSCI World UCITS ETF',ticker:'IE00B4L5Y983',category:'offshore'},
+  {id:'IE00B0M63284',name:'iShares Core MSCI EM IMI UCITS ETF',ticker:'IE00B0M63284',category:'offshore'},
+  {id:'LU0274211480',name:'富達環球多元債券基金',ticker:'LU0274211480',category:'offshore'},
+  {id:'IE00BK5BQT80',name:'Vanguard ESG Global Corporate Bond UCITS ETF',ticker:'IE00BK5BQT80',category:'offshore'},
+  {id:'LU0170899867',name:'貝萊德全球配置基金 A2',ticker:'LU0170899867',category:'offshore'},
+  {id:'IE00B1FZS798',name:'iShares Global Tech ETF',ticker:'IE00B1FZS798',category:'offshore'},
+  {id:'LU0061474960',name:'DWS 頂級股票基金',ticker:'LU0061474960',category:'offshore'},
+];
+
+// ══════════════════════════════════════
+// Fund Search
+// ══════════════════════════════════════
+function openFundSearch() {
+  document.getElementById('fundSearchModal').classList.add('open');
+  document.getElementById('fundSearchInput').focus();
+}
+function closeFundSearch() {
+  document.getElementById('fundSearchModal').classList.remove('open');
+  document.getElementById('fundSearchInput').value='';
+  document.getElementById('fundSearchResults').innerHTML='<div style="padding:20px;text-align:center;color:var(--faint);font-family:var(--mono);font-size:.68rem">輸入關鍵字開始搜尋</div>';
+}
+function searchFunds() {
+  const query=document.getElementById('fundSearchInput').value.trim().toLowerCase();
+  const category=document.getElementById('fundCategoryFilter').value;
+  if(!query){
+    document.getElementById('fundSearchResults').innerHTML='<div style="padding:20px;text-align:center;color:var(--faint);font-family:var(--mono);font-size:.68rem">輸入關鍵字開始搜尋</div>';
+    return;
+  }
+  const results=FUNDS_CATALOG.filter(f=>{
+    const matchQuery=f.name.toLowerCase().includes(query)||f.ticker.toLowerCase().includes(query);
+    const matchCat=!category||f.category===category;
+    return matchQuery&&matchCat;
+  });
+  if(!results.length){
+    document.getElementById('fundSearchResults').innerHTML='<div style="padding:20px;text-align:center;color:var(--faint);font-family:var(--mono);font-size:.68rem">找不到符合的基金</div>';
+    return;
+  }
+  const html=results.map((f,idx)=>`
+    <div data-ticker="${f.ticker}" data-name="${f.name}" style="padding:11px 14px;border-bottom:1px solid var(--border-light);cursor:pointer;transition:background .12s;display:flex;justify-content:space-between;align-items:center" onmouseover="this.style.background='var(--bg)'" onmouseout="this.style.background=''" onclick="selectFundRow(this)">
+      <div>
+        <div style="font-family:var(--sans);font-weight:500;font-size:.81rem;color:var(--text)">${f.name}</div>
+        <div style="font-family:var(--mono);font-size:.61rem;color:var(--muted);margin-top:2px">${f.ticker}</div>
+      </div>
+      <div style="font-family:var(--mono);font-size:.65rem;color:var(--muted);background:var(--border-light);padding:3px 8px;border-radius:4px;white-space:nowrap">${f.category==='tw'?'台灣':f.category==='us'?'美國':'境外'}</div>
+    </div>
+  `).join('');
+  document.getElementById('fundSearchResults').innerHTML=html;
+}
+function selectFundRow(el) {
+  const ticker=el.getAttribute('data-ticker');
+  const name=el.getAttribute('data-name');
+  document.getElementById('aTicker').value=ticker;
+  if(!document.getElementById('aName').value)document.getElementById('aName').value=name;
+  closeFundSearch();
+}
 // ══════════════════════════════════════
 function initUI() {
   const card = document.getElementById('setupCard');
@@ -1182,12 +1283,13 @@ function onAssetTypeChange(){
   const hints={
     tw:'台股代號：2330、0050、006208',
     us:'美股 Ticker：AAPL、MSFT、SPY、QQQ',
-    fund:'境內基金代碼或 ISIN Code（如 LU0820561818），點「查詢 NAV」',
+    fund:'點「搜尋基金」選擇，或輸入代碼/ISIN Code',
     crypto:'支援：BTC、ETH、SOL、BNB、XRP、ADA…（派網報價）',
     cash:'留空或填入帳戶名稱（如 玉山活存）',
   };
   document.getElementById('aHint').textContent=hints[t]||'';
   document.getElementById('navFg').style.display=t==='fund'?'':'none';
+  document.getElementById('searchFundBtn').style.display=t==='fund'?'':'none';
   // ticker row: hide for cash (not needed)
   if(t==='cash'){
     document.getElementById('aTicker').placeholder='帳戶名稱（選填）';
@@ -1195,12 +1297,12 @@ function onAssetTypeChange(){
     document.getElementById('aCost').placeholder='0（現金成本=面額）';
     document.getElementById('aCur').value='TWD';
   } else {
-    document.getElementById('aTicker').placeholder='如 0050、BTC';
+    document.getElementById('aTicker').placeholder=t==='fund'?'基金代碼或 ISIN':'如 0050、BTC';
     document.getElementById('aQty').placeholder='0';
     document.getElementById('aCost').placeholder='0.00';
     document.getElementById('aCur').value=(t==='us'||t==='crypto')?'USD':'TWD';
   }
-  if(t==='fund'){document.getElementById('navHint').innerHTML='支援境內基金代碼及 <strong>ISIN Code</strong>（如 LU0820561818），查不到時可手動填入 NAV';}
+  if(t==='fund'){document.getElementById('navHint').innerHTML='<strong>點「搜尋基金」</strong>選擇，或輸入基金代碼/ISIN Code（如 LU0820561818）';}
 }
 
 function onLiabRepayChange(){
