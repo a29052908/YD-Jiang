@@ -75,6 +75,38 @@
 - sales 只看基本連結
 - 各頁面省略自己那個連結
 
+## 診所藥局 CRM（CRM/clinic/）
+工單 #CRM-003：桃園 + 新竹診所藥局拜訪管理系統
+
+### 檔案
+- CRM/clinic/index.html：前端主頁面（列表+篩選+詳情+拜訪Timeline）
+- CRM/clinic/fetch_data.py：Python 資料抓取腳本
+
+### 資料來源
+- 健保署開放資料 API：info.nhi.gov.tw
+  - 診所：A21030000I-D21004-001（data.gov.tw dataset/39283）
+  - 藥局：A21030000I-D21005-001（data.gov.tw dataset/39284）
+- 篩選地區：桃園市、新竹市、新竹縣
+
+### n8n Webhook（待建立）
+- /webhook/clinic-get-list：撈取客戶列表
+- /webhook/clinic-add-visit：新增拜訪紀錄
+- /webhook/clinic-update-stage：更新開發階段
+- /webhook/clinic-get-visits：撈取拜訪紀錄
+
+### Google Sheets 結構（待建立）
+- 客戶總表：機構ID / 機構名稱 / 類別 / 地址 / 電話 / 負責醫師藥師 / 開發階段 / 拜訪次數 / 最後拜訪日 / 備註
+- 拜訪歷史：拜訪ID / 機構ID / 拜訪日期 / 拜訪人 / 內容
+
+### 前端 CONFIG
+index.html 頂部 CONFIG 物件需填入：
+- SHEET_ID：Google Sheets 試算表 ID
+- API_KEY：Google Sheets API Key（若透過 n8n 則不需要）
+- 目前使用 localStorage demo 模式（n8n / Sheets 未設定時自動 fallback）
+
+### 開發階段
+- 冷開發 → 初接觸 → 跟進中 → 熟客
+
 ## 開發原則
 - 找到目標函數後直接修改，不要整個檔案重寫
 - 修改完 commit push

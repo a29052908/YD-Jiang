@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>診所藥局 CRM · 拜訪管理</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg: #f0ece4;
+    --surface: #faf8f4;
+    --surface2: #f5f1ea;
+    --border: #ddd8ce;
+    --accent: #5a8a80;
+    --accent2: #b5934a;
+    --danger: #b85c5c;
+    --warning: #c87d3a;
+    --success: #4a8a6a;
+    --purple: #7c6fa0;
+    --text: #2c2620;
+    --text-dim: #7a6f63;
+    --text-muted: #b5ad9f;
+    --shadow: rgba(100,85,65,0.10);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Sans TC', sans-serif;
+    min-height: 100vh;
+    padding: 20px 16px 100px;
+    background-image:
+      radial-gradient(ellipse at 20% 0%, rgba(90,138,128,0.10) 0%, transparent 55%),
+      radial-gradient(ellipse at 80% 100%, rgba(181,147,74,0.07) 0%, transparent 55%);
+  }
+
+  .wrapper { max-width: 960px; margin: 0 auto; }
+
+  /* === Header === */
+  .header {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    flex-wrap: wrap; gap: 12px; margin-bottom: 20px;
+    animation: fadeDown 0.5s ease;
+  }
+  .header-tag {
+    font-family: 'DM Mono', monospace; font-size: 11px;
+    letter-spacing: 0.18em; color: var(--accent);
+    text-transform: uppercase; margin-bottom: 6px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .header-tag::before {
+    content: ''; display: inline-block; width: 20px; height: 1.5px;
+    background: var(--accent);
+  }
+  h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; }
+  h1 span { color: var(--accent); }
+  .header-right { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .btn-back {
+    display: none; align-items: center; gap: 6px; padding: 9px 16px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; font-size: 13px; font-weight: 500;
+    font-family: 'Noto Sans TC', sans-serif; cursor: pointer;
+    color: var(--text-dim); transition: all 0.2s;
+  }
+  .btn-back:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-add-visit {
+    display: none; align-items: center; gap: 6px; padding: 9px 16px;
+    background: var(--accent); color: #fff; border: none;
+    border-radius: 10px; font-size: 13px; font-weight: 600;
+    font-family: 'Noto Sans TC', sans-serif; cursor: pointer;
+    transition: all 0.2s; box-shadow: 0 3px 12px rgba(90,138,128,0.25);
+  }
+  .btn-add-visit:hover { background: #4d7a71; transform: translateY(-1px); }
+
+  /* === Search + Filters === */
+  .search-bar {
+    display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap;
+    animation: fadeUp 0.4s ease both;
+  }
+  .search-input {
+    flex: 1; min-width: 200px; padding: 11px 16px;
+    border: 1px solid var(--border); border-radius: 10px;
+    background: var(--surface); font-size: 14px;
+    font-family: 'Noto Sans TC', sans-serif; color: var(--text);
+    transition: border-color 0.2s;
+  }
+  .search-input:focus { outline: none; border-color: var(--accent); }
+  .search-input::placeholder { color: var(--text-muted); }
+
+  .filter-row {
+    display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 20px;
+    animation: fadeUp 0.4s ease both 0.05s;
+  }
+  .filter-chip {
+    padding: 6px 14px; border: 1px solid var(--border); border-radius: 20px;
+    background: var(--surface); font-size: 12px; color: var(--text-dim);
+    cursor: pointer; transition: all 0.2s; white-space: nowrap;
+    font-family: 'Noto Sans TC', sans-serif;
+  }
+  .filter-chip:hover { border-color: var(--accent); color: var(--text); }
+  .filter-chip.active {
+    border-color: var(--accent); background: rgba(90,138,128,0.12);
+    color: var(--accent); font-weight: 500;
+  }
+  .filter-chip .cnt {
+    font-family: 'DM Mono', monospace; font-size: 11px;
+    margin-left: 4px; opacity: 0.7;
+  }
+
+  /* === Stats === */
+  .stats-row {
+    display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;
+    animation: fadeUp 0.4s ease both 0.08s;
+  }
+  .stat-box {
+    flex: 1; min-width: 100px; background: var(--surface);
+    border: 1px solid var(--border); border-radius: 12px;
+    padding: 14px; text-align: center;
+  }
+  .stat-num {
+    font-family: 'DM Mono', monospace; font-size: 28px;
+    font-weight: 500; line-height: 1;
+  }
+  .stat-num.teal { color: var(--accent); }
+  .stat-num.gold { color: var(--accent2); }
+  .stat-num.red { color: var(--danger); }
+  .stat-num.green { color: var(--success); }
+  .stat-label {
+    font-size: 11px; color: var(--text-muted); margin-top: 6px;
+  }
+
+  /* === Client Grid === */
+  .client-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+  }
+  .client-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; padding: 18px; cursor: pointer;
+    transition: all 0.2s; box-shadow: 0 2px 8px var(--shadow);
+    animation: fadeUp 0.4s ease both; position: relative; overflow: hidden;
+  }
+  .client-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(100,85,65,0.14);
+    border-color: var(--accent);
+  }
+  .client-card::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+    border-radius: 14px 0 0 14px;
+  }
+  .client-card.stage-冷開發::before { background: var(--text-muted); }
+  .client-card.stage-初接觸::before { background: var(--accent2); }
+  .client-card.stage-跟進中::before { background: var(--warning); }
+  .client-card.stage-熟客::before { background: var(--success); }
+
+  .card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+  .card-name { font-size: 16px; font-weight: 700; line-height: 1.3; flex: 1; }
+  .card-type {
+    font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 500;
+    padding: 2px 8px; border-radius: 12px; flex-shrink: 0; margin-left: 8px;
+  }
+  .type-西醫 { background: rgba(90,138,128,0.12); color: var(--accent); border: 1px solid rgba(90,138,128,0.25); }
+  .type-中醫 { background: rgba(124,111,160,0.12); color: var(--purple); border: 1px solid rgba(124,111,160,0.25); }
+  .type-牙科 { background: rgba(181,147,74,0.12); color: var(--accent2); border: 1px solid rgba(181,147,74,0.25); }
+  .type-藥局 { background: rgba(74,138,106,0.12); color: var(--success); border: 1px solid rgba(74,138,106,0.25); }
+
+  .card-addr { font-size: 12px; color: var(--text-dim); margin-bottom: 6px; line-height: 1.4; }
+  .card-phone { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text-dim); margin-bottom: 10px; }
+  .card-phone a { color: var(--accent); text-decoration: none; }
+
+  .card-bottom {
+    display: flex; justify-content: space-between; align-items: center;
+    padding-top: 10px; border-top: 1px solid var(--border);
+  }
+  .stage-badge {
+    font-size: 11px; padding: 3px 10px; border-radius: 12px; font-weight: 500;
+  }
+  .badge-冷開發 { background: var(--surface2); color: var(--text-muted); border: 1px solid var(--border); }
+  .badge-初接觸 { background: rgba(181,147,74,0.10); color: var(--accent2); border: 1px solid rgba(181,147,74,0.25); }
+  .badge-跟進中 { background: rgba(200,125,58,0.10); color: var(--warning); border: 1px solid rgba(200,125,58,0.25); }
+  .badge-熟客 { background: rgba(74,138,106,0.10); color: var(--success); border: 1px solid rgba(74,138,106,0.25); }
+
+  .visit-info {
+    font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text-muted);
+    text-align: right;
+  }
+  .visit-info .num { font-size: 14px; font-weight: 500; color: var(--text-dim); }
+
+  /* === Detail View === */
+  #detailView { display: none; animation: fadeUp 0.3s ease; }
+
+  .detail-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 24px; margin-bottom: 16px;
+    box-shadow: 0 2px 12px var(--shadow);
+  }
+  .detail-name { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+  .detail-meta { font-size: 13px; color: var(--text-dim); line-height: 1.8; }
+  .detail-meta a { color: var(--accent); text-decoration: none; }
+  .detail-meta-label { display: inline-block; width: 80px; color: var(--text-muted); }
+
+  .detail-stage-row {
+    display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap;
+  }
+  .stage-option {
+    padding: 8px 18px; border: 1.5px solid var(--border); border-radius: 10px;
+    background: transparent; font-size: 13px; cursor: pointer;
+    font-family: 'Noto Sans TC', sans-serif; transition: all 0.2s;
+    color: var(--text-dim);
+  }
+  .stage-option:hover { border-color: var(--accent); color: var(--accent); }
+  .stage-option.active {
+    border-color: var(--accent); background: rgba(90,138,128,0.12);
+    color: var(--accent); font-weight: 600;
+  }
+
+  .section-title {
+    font-size: 15px; font-weight: 700; margin-bottom: 14px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .section-title::before {
+    content: ''; width: 3px; height: 16px; background: var(--accent);
+    border-radius: 2px;
+  }
+
+  /* Timeline */
+  .timeline { position: relative; padding-left: 24px; }
+  .timeline::before {
+    content: ''; position: absolute; left: 7px; top: 8px; bottom: 8px;
+    width: 1.5px; background: var(--border);
+  }
+  .timeline-item {
+    position: relative; padding-bottom: 20px;
+    animation: fadeUp 0.3s ease both;
+  }
+  .timeline-item::before {
+    content: ''; position: absolute; left: -20px; top: 6px;
+    width: 9px; height: 9px; border-radius: 50%;
+    background: var(--accent); border: 2px solid var(--surface);
+  }
+  .timeline-date {
+    font-family: 'DM Mono', monospace; font-size: 12px;
+    color: var(--text-muted); margin-bottom: 4px;
+  }
+  .timeline-content {
+    background: var(--surface2); border-radius: 10px;
+    padding: 12px 14px; font-size: 13px; line-height: 1.6;
+    color: var(--text-dim);
+  }
+  .timeline-content strong { color: var(--text); font-weight: 500; }
+
+  .empty-timeline {
+    text-align: center; padding: 40px 20px;
+    font-size: 13px; color: var(--text-muted);
+  }
+
+  /* Notes textarea */
+  .notes-area {
+    width: 100%; padding: 12px 14px; border: 1px solid var(--border);
+    border-radius: 10px; background: var(--surface); font-size: 13px;
+    font-family: 'Noto Sans TC', sans-serif; color: var(--text);
+    resize: vertical; min-height: 80px; transition: border-color 0.2s;
+  }
+  .notes-area:focus { outline: none; border-color: var(--accent); }
+  .btn-save-notes {
+    margin-top: 8px; padding: 8px 18px; background: var(--accent2);
+    color: #fff; border: none; border-radius: 8px; font-size: 13px;
+    font-weight: 600; cursor: pointer; font-family: 'Noto Sans TC', sans-serif;
+    transition: all 0.2s;
+  }
+  .btn-save-notes:hover { background: #c9a45a; }
+
+  /* === Add Visit Modal === */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(44,38,32,0.5); z-index: 100;
+    align-items: center; justify-content: center; padding: 20px;
+    animation: fadeIn 0.2s ease;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal-box {
+    background: var(--surface); border-radius: 18px;
+    padding: 28px; width: 100%; max-width: 440px;
+    box-shadow: 0 16px 48px rgba(44,38,32,0.25);
+    animation: slideUp 0.3s ease;
+  }
+  .modal-title { font-size: 18px; font-weight: 700; margin-bottom: 20px; }
+  .modal-field { margin-bottom: 14px; }
+  .modal-label {
+    font-size: 12px; color: var(--text-dim); margin-bottom: 6px;
+    font-weight: 500;
+  }
+  .modal-input {
+    width: 100%; padding: 10px 14px; border: 1px solid var(--border);
+    border-radius: 10px; background: var(--surface2); font-size: 14px;
+    font-family: 'Noto Sans TC', sans-serif; color: var(--text);
+  }
+  .modal-input:focus { outline: none; border-color: var(--accent); }
+  .modal-textarea {
+    width: 100%; padding: 10px 14px; border: 1px solid var(--border);
+    border-radius: 10px; background: var(--surface2); font-size: 14px;
+    font-family: 'Noto Sans TC', sans-serif; color: var(--text);
+    resize: vertical; min-height: 80px;
+  }
+  .modal-textarea:focus { outline: none; border-color: var(--accent); }
+  .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+  .modal-btn {
+    flex: 1; padding: 12px; border: none; border-radius: 10px;
+    font-size: 14px; font-weight: 600; cursor: pointer;
+    font-family: 'Noto Sans TC', sans-serif; transition: all 0.2s;
+  }
+  .modal-btn.cancel {
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text-dim);
+  }
+  .modal-btn.cancel:hover { border-color: var(--danger); color: var(--danger); }
+  .modal-btn.submit { background: var(--accent); color: #fff; }
+  .modal-btn.submit:hover { background: #4d7a71; }
+
+  /* === Toast === */
+  .toast {
+    position: fixed; bottom: 28px; left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--surface); border: 1.5px solid var(--accent);
+    border-radius: 12px; padding: 13px 24px; font-size: 14px;
+    color: var(--accent); transition: transform 0.3s ease; z-index: 200;
+    white-space: nowrap; box-shadow: 0 6px 24px rgba(100,85,65,0.15);
+  }
+  .toast.error { border-color: var(--danger); color: var(--danger); }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* === Empty / Loading === */
+  .loading-state {
+    text-align: center; padding: 80px 20px;
+    font-family: 'DM Mono', monospace; font-size: 13px; color: var(--text-dim);
+  }
+  .spinner {
+    width: 28px; height: 28px; border: 2px solid var(--border);
+    border-top-color: var(--accent); border-radius: 50%;
+    animation: spin 0.8s linear infinite; margin: 0 auto 14px;
+  }
+  .empty-state {
+    text-align: center; padding: 60px 20px;
+    font-size: 14px; color: var(--text-muted);
+  }
+
+  /* === Hamburger Menu === */
+  .hamburger {
+    position: fixed; top: 16px; right: 16px; z-index: 50;
+    width: 40px; height: 40px; border-radius: 10px;
+    background: var(--surface); border: 1px solid var(--border);
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    font-size: 18px; box-shadow: 0 2px 8px var(--shadow);
+    transition: all 0.2s;
+  }
+  .hamburger:hover { border-color: var(--accent); }
+  .nav-menu {
+    display: none; position: fixed; top: 62px; right: 16px; z-index: 50;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 8px; min-width: 180px;
+    box-shadow: 0 8px 32px rgba(44,38,32,0.18);
+  }
+  .nav-menu.show { display: block; }
+  .nav-menu a {
+    display: block; padding: 10px 14px; border-radius: 8px;
+    color: var(--text-dim); text-decoration: none; font-size: 13px;
+    transition: all 0.15s;
+  }
+  .nav-menu a:hover { background: var(--surface2); color: var(--accent); }
+
+  /* === Animations === */
+  @keyframes fadeDown { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  @media (max-width: 560px) {
+    .client-grid { grid-template-columns: 1fr; }
+    h1 { font-size: 22px; }
+    .stats-row { gap: 6px; }
+    .stat-box { min-width: 70px; padding: 10px; }
+    .stat-num { font-size: 22px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Hamburger Menu -->
+<div class="hamburger" onclick="toggleMenu()">☰</div>
+<div class="nav-menu" id="navMenu">
+  <a href="../index.html">業績 CRM</a>
+  <a href="../crm-list.html">客戶列表</a>
+  <a href="../../login.html">報刀系統</a>
+  <a href="../../dashboard.html">報刀總表</a>
+</div>
+
+<div class="wrapper">
+  <!-- Header -->
+  <div class="header">
+    <div>
+      <div class="header-tag">clinic &amp; pharmacy · CRM</div>
+      <h1>診所藥局<span>拜訪管理</span></h1>
+    </div>
+    <div class="header-right">
+      <button class="btn-back" id="btnBack" onclick="showList()">← 返回列表</button>
+      <button class="btn-add-visit" id="btnAddVisit" onclick="openVisitModal()">＋ 新增拜訪</button>
+    </div>
+  </div>
+
+  <!-- ===== List View ===== -->
+  <div id="listView">
+    <!-- Search -->
+    <div class="search-bar">
+      <input type="text" class="search-input" id="searchInput"
+        placeholder="搜尋機構名稱、地址、電話…" oninput="applyFilters()">
+    </div>
+
+    <!-- Filter: Area -->
+    <div class="filter-row" id="areaFilters">
+      <div class="filter-chip active" data-area="all" onclick="setAreaFilter('all',this)">全部地區</div>
+      <div class="filter-chip" data-area="桃園市" onclick="setAreaFilter('桃園市',this)">桃園市</div>
+      <div class="filter-chip" data-area="新竹市" onclick="setAreaFilter('新竹市',this)">新竹市</div>
+      <div class="filter-chip" data-area="新竹縣" onclick="setAreaFilter('新竹縣',this)">新竹縣</div>
+    </div>
+
+    <!-- Filter: Type + Stage -->
+    <div class="filter-row" id="typeFilters">
+      <div class="filter-chip active" data-type="all" onclick="setTypeFilter('all',this)">全部類別</div>
+      <div class="filter-chip" data-type="西醫" onclick="setTypeFilter('西醫',this)">西醫</div>
+      <div class="filter-chip" data-type="中醫" onclick="setTypeFilter('中醫',this)">中醫</div>
+      <div class="filter-chip" data-type="牙科" onclick="setTypeFilter('牙科',this)">牙科</div>
+      <div class="filter-chip" data-type="藥局" onclick="setTypeFilter('藥局',this)">藥局</div>
+      <div style="width:1px;background:var(--border);margin:0 4px;"></div>
+      <div class="filter-chip" data-stage="冷開發" onclick="setStageFilter('冷開發',this)">冷開發</div>
+      <div class="filter-chip" data-stage="初接觸" onclick="setStageFilter('初接觸',this)">初接觸</div>
+      <div class="filter-chip" data-stage="跟進中" onclick="setStageFilter('跟進中',this)">跟進中</div>
+      <div class="filter-chip" data-stage="熟客" onclick="setStageFilter('熟客',this)">熟客</div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-box">
+        <div class="stat-num teal" id="statTotal">—</div>
+        <div class="stat-label">總機構數</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num gold" id="statVisited">—</div>
+        <div class="stat-label">已拜訪</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num red" id="statCold">—</div>
+        <div class="stat-label">冷開發</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num green" id="statActive">—</div>
+        <div class="stat-label">跟進中+熟客</div>
+      </div>
+    </div>
+
+    <!-- Results count -->
+    <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;font-family:'DM Mono',monospace;" id="resultCount"></div>
+
+    <!-- Grid -->
+    <div class="client-grid" id="clientGrid"></div>
+
+    <!-- Empty -->
+    <div class="empty-state" id="emptyState" style="display:none;">
+      尚無資料。請先匯入診所藥局資料至 Google Sheets。
+    </div>
+
+    <!-- Loading -->
+    <div class="loading-state" id="loadingState">
+      <div class="spinner"></div>
+      正在載入資料...
+    </div>
+  </div>
+
+  <!-- ===== Detail View ===== -->
+  <div id="detailView">
+    <div class="detail-card" id="detailCard"></div>
+
+    <div class="detail-card">
+      <div class="section-title">備註 / 跟進事項</div>
+      <textarea class="notes-area" id="notesArea" placeholder="輸入備註或跟進事項…"></textarea>
+      <button class="btn-save-notes" onclick="saveNotes()">儲存備註</button>
+    </div>
+
+    <div class="detail-card">
+      <div class="section-title">拜訪紀錄</div>
+      <div id="visitTimeline"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Visit Modal -->
+<div class="modal-overlay" id="visitModal">
+  <div class="modal-box">
+    <div class="modal-title">新增拜訪紀錄</div>
+    <div class="modal-field">
+      <div class="modal-label">拜訪日期</div>
+      <input type="date" class="modal-input" id="visitDate">
+    </div>
+    <div class="modal-field">
+      <div class="modal-label">拜訪人</div>
+      <input type="text" class="modal-input" id="visitPerson" placeholder="例：YD">
+    </div>
+    <div class="modal-field">
+      <div class="modal-label">拜訪內容</div>
+      <textarea class="modal-textarea" id="visitContent" placeholder="簡述拜訪目的與結果…"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn cancel" onclick="closeVisitModal()">取消</button>
+      <button class="modal-btn submit" onclick="submitVisit()">送出</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// CONFIG — 修改這裡的值來串接你的 Google Sheets 和 n8n
+// ============================================================
+const CONFIG = {
+  // Google Sheets API（使用公開試算表 + Sheets API v4）
+  // 步驟：1. 建立 Google Sheets 2. 設為「知道連結的人都能檢視」3. 填入 ID
+  SHEET_ID: '',  // ← 填入你的 Google Sheets ID
+  SHEET_NAME: '客戶總表',
+  VISIT_SHEET_NAME: '拜訪歷史',
+  API_KEY: '',  // ← Google Sheets API Key（選填，若使用 n8n 則不需要）
+
+  // n8n Webhook
+  N8N_BASE: 'https://ydj.zeabur.app',
+  WEBHOOK_GET_LIST: '/webhook/clinic-get-list',
+  WEBHOOK_ADD_VISIT: '/webhook/clinic-add-visit',
+  WEBHOOK_UPDATE_STAGE: '/webhook/clinic-update-stage',
+  WEBHOOK_GET_VISITS: '/webhook/clinic-get-visits',
+
+  // 若兩者都沒設定，使用 localStorage demo 模式
+};
+
+// ============================================================
+// STATE
+// ============================================================
+let allClients = [];
+let currentFilter = { area: 'all', type: 'all', stage: 'all', search: '' };
+let currentClient = null;
+let currentVisits = [];
+
+const STAGES = ['冷開發', '初接觸', '跟進中', '熟客'];
+const STORAGE_KEY = 'clinic_crm_data';
+const VISITS_KEY = 'clinic_crm_visits';
+
+// ============================================================
+// INIT
+// ============================================================
+document.addEventListener('DOMContentLoaded', () => {
+  loadData();
+  document.getElementById('visitDate').valueAsDate = new Date();
+  document.getElementById('visitModal').addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeVisitModal();
+  });
+});
+
+async function loadData() {
+  showLoading(true);
+
+  // 優先嘗試 n8n
+  if (CONFIG.N8N_BASE && CONFIG.WEBHOOK_GET_LIST) {
+    try {
+      const resp = await fetch(CONFIG.N8N_BASE + CONFIG.WEBHOOK_GET_LIST);
+      if (resp.ok) {
+        const data = await resp.json();
+        if (Array.isArray(data) && data.length > 0) {
+          allClients = data.map(normalizeClient);
+          saveLocal();
+          renderList();
+          showLoading(false);
+          return;
+        }
+      }
+    } catch (e) {
+      console.log('n8n 不可用，嘗試 Google Sheets...');
+    }
+  }
+
+  // 嘗試 Google Sheets API
+  if (CONFIG.SHEET_ID && CONFIG.API_KEY) {
+    try {
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SHEET_ID}/values/${encodeURIComponent(CONFIG.SHEET_NAME)}?key=${CONFIG.API_KEY}`;
+      const resp = await fetch(url);
+      if (resp.ok) {
+        const data = await resp.json();
+        if (data.values && data.values.length > 1) {
+          const headers = data.values[0];
+          allClients = data.values.slice(1).map(row => {
+            const obj = {};
+            headers.forEach((h, i) => obj[h] = row[i] || '');
+            return normalizeClient(obj);
+          });
+          saveLocal();
+          renderList();
+          showLoading(false);
+          return;
+        }
+      }
+    } catch (e) {
+      console.log('Google Sheets 不可用，使用本地資料...');
+    }
+  }
+
+  // Fallback: localStorage
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) {
+    allClients = JSON.parse(saved);
+  } else {
+    allClients = generateDemoData();
+    saveLocal();
+  }
+
+  renderList();
+  showLoading(false);
+}
+
+function normalizeClient(obj) {
+  return {
+    id: obj['機構ID'] || obj.id || '',
+    name: obj['機構名稱'] || obj.name || '',
+    type: obj['類別'] || obj.type || '西醫',
+    address: obj['地址'] || obj.address || '',
+    phone: obj['電話'] || obj.phone || '',
+    owner: obj['負責醫師/藥師'] || obj.owner || '',
+    stage: obj['開發階段'] || obj.stage || '冷開發',
+    visitCount: parseInt(obj['拜訪次數'] || obj.visitCount || 0),
+    lastVisit: obj['最後拜訪日'] || obj.lastVisit || '',
+    notes: obj['備註/跟進事項'] || obj.notes || '',
+  };
+}
+
+function saveLocal() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(allClients));
+}
+
+function generateDemoData() {
+  const demos = [
+    { id:'D001', name:'仁愛診所', type:'西醫', address:'桃園市桃園區中正路152號', phone:'03-3322100' },
+    { id:'D002', name:'康健藥局', type:'藥局', address:'桃園市中壢區中山路88號', phone:'03-4225678' },
+    { id:'D003', name:'明德中醫診所', type:'中醫', address:'新竹市東區光復路一段200號', phone:'03-5712345' },
+    { id:'D004', name:'美齒牙醫診所', type:'牙科', address:'新竹縣竹北市光明六路50號', phone:'03-6581234' },
+    { id:'D005', name:'安康診所', type:'西醫', address:'桃園市龜山區萬壽路二段100號', phone:'03-3291000' },
+    { id:'D006', name:'大樹藥局 竹北店', type:'藥局', address:'新竹縣竹北市自強南路12號', phone:'03-6575000' },
+    { id:'D007', name:'慈恩中醫', type:'中醫', address:'桃園市桃園區大興西路二段6號', phone:'03-3015678' },
+    { id:'D008', name:'新竹品牙醫', type:'牙科', address:'新竹市北區西大路200號', phone:'03-5234567' },
+    { id:'D009', name:'光華診所', type:'西醫', address:'新竹市東區民族路33號', phone:'03-5321000' },
+    { id:'D010', name:'丁丁藥局 中壢店', type:'藥局', address:'桃園市中壢區環中東路500號', phone:'03-4680000' },
+    { id:'D011', name:'張骨科診所', type:'西醫', address:'新竹縣竹東鎮東寧路100號', phone:'03-5961234' },
+    { id:'D012', name:'元氣中醫診所', type:'中醫', address:'桃園市八德區介壽路一段800號', phone:'03-3631000' },
+  ];
+  return demos.map(d => ({
+    ...d,
+    owner: '',
+    stage: '冷開發',
+    visitCount: 0,
+    lastVisit: '',
+    notes: '',
+  }));
+}
+
+// ============================================================
+// RENDER LIST
+// ============================================================
+function renderList() {
+  const filtered = getFilteredClients();
+  const grid = document.getElementById('clientGrid');
+  const empty = document.getElementById('emptyState');
+  const countEl = document.getElementById('resultCount');
+
+  if (filtered.length === 0) {
+    grid.innerHTML = '';
+    empty.style.display = 'block';
+    countEl.textContent = '';
+  } else {
+    empty.style.display = 'none';
+    countEl.textContent = `顯示 ${filtered.length} / ${allClients.length} 筆`;
+    grid.innerHTML = filtered.map((c, i) => `
+      <div class="client-card stage-${c.stage}" onclick="showDetail('${c.id}')"
+           style="animation-delay:${i * 0.03}s">
+        <div class="card-top">
+          <div class="card-name">${esc(c.name)}</div>
+          <div class="card-type type-${c.type}">${c.type}</div>
+        </div>
+        <div class="card-addr">${esc(c.address)}</div>
+        <div class="card-phone"><a href="tel:${c.phone}" onclick="event.stopPropagation()">${c.phone}</a></div>
+        <div class="card-bottom">
+          <span class="stage-badge badge-${c.stage}">${c.stage}</span>
+          <div class="visit-info">
+            <span class="num">${c.visitCount}</span> 次拜訪
+            ${c.lastVisit ? '<br>' + c.lastVisit : ''}
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  updateStats();
+}
+
+function getFilteredClients() {
+  return allClients.filter(c => {
+    if (currentFilter.area !== 'all' && !c.address.startsWith(currentFilter.area)) return false;
+    if (currentFilter.type !== 'all' && c.type !== currentFilter.type) return false;
+    if (currentFilter.stage !== 'all' && c.stage !== currentFilter.stage) return false;
+    if (currentFilter.search) {
+      const q = currentFilter.search.toLowerCase();
+      const hay = (c.name + c.address + c.phone + c.owner).toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+}
+
+function updateStats() {
+  document.getElementById('statTotal').textContent = allClients.length;
+  document.getElementById('statVisited').textContent = allClients.filter(c => c.visitCount > 0).length;
+  document.getElementById('statCold').textContent = allClients.filter(c => c.stage === '冷開發').length;
+  document.getElementById('statActive').textContent = allClients.filter(c => c.stage === '跟進中' || c.stage === '熟客').length;
+}
+
+// ============================================================
+// FILTERS
+// ============================================================
+function setAreaFilter(val, el) {
+  currentFilter.area = val;
+  document.querySelectorAll('#areaFilters .filter-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  applyFilters();
+}
+
+function setTypeFilter(val, el) {
+  currentFilter.type = val;
+  currentFilter.stage = 'all';
+  document.querySelectorAll('#typeFilters .filter-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  applyFilters();
+}
+
+function setStageFilter(val, el) {
+  currentFilter.stage = val;
+  currentFilter.type = 'all';
+  document.querySelectorAll('#typeFilters .filter-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  applyFilters();
+}
+
+function applyFilters() {
+  currentFilter.search = document.getElementById('searchInput').value.trim();
+  renderList();
+}
+
+// ============================================================
+// DETAIL VIEW
+// ============================================================
+function showDetail(id) {
+  currentClient = allClients.find(c => c.id === id);
+  if (!currentClient) return;
+
+  document.getElementById('listView').style.display = 'none';
+  document.getElementById('detailView').style.display = 'block';
+  document.getElementById('btnBack').style.display = 'inline-flex';
+  document.getElementById('btnAddVisit').style.display = 'inline-flex';
+
+  renderDetail();
+  loadVisits(id);
+}
+
+function showList() {
+  document.getElementById('listView').style.display = 'block';
+  document.getElementById('detailView').style.display = 'none';
+  document.getElementById('btnBack').style.display = 'none';
+  document.getElementById('btnAddVisit').style.display = 'none';
+  currentClient = null;
+  renderList();
+}
+
+function renderDetail() {
+  const c = currentClient;
+  const card = document.getElementById('detailCard');
+
+  card.innerHTML = `
+    <div class="detail-name">${esc(c.name)}</div>
+    <div style="margin-bottom:12px;">
+      <span class="card-type type-${c.type}" style="font-size:12px;">${c.type}</span>
+      <span class="stage-badge badge-${c.stage}" style="margin-left:6px;">${c.stage}</span>
+    </div>
+    <div class="detail-meta">
+      <div><span class="detail-meta-label">機構 ID</span><span style="font-family:'DM Mono',monospace">${c.id}</span></div>
+      <div><span class="detail-meta-label">地址</span>${esc(c.address)}</div>
+      <div><span class="detail-meta-label">電話</span><a href="tel:${c.phone}">${c.phone}</a></div>
+      <div><span class="detail-meta-label">負責人</span>${esc(c.owner) || '—'}</div>
+      <div><span class="detail-meta-label">拜訪次數</span><strong>${c.visitCount}</strong></div>
+      <div><span class="detail-meta-label">最後拜訪</span>${c.lastVisit || '—'}</div>
+    </div>
+    <div class="detail-stage-row">
+      ${STAGES.map(s => `
+        <button class="stage-option ${c.stage === s ? 'active' : ''}"
+          onclick="changeStage('${s}')">${s}</button>
+      `).join('')}
+    </div>
+  `;
+
+  document.getElementById('notesArea').value = c.notes || '';
+}
+
+async function changeStage(newStage) {
+  if (!currentClient || currentClient.stage === newStage) return;
+
+  currentClient.stage = newStage;
+  saveLocal();
+  renderDetail();
+
+  // 同步到 n8n
+  if (CONFIG.N8N_BASE && CONFIG.WEBHOOK_UPDATE_STAGE) {
+    try {
+      await fetch(CONFIG.N8N_BASE + CONFIG.WEBHOOK_UPDATE_STAGE, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: currentClient.id,
+          stage: newStage,
+        }),
+      });
+    } catch (e) {
+      console.log('n8n 階段更新失敗（已存本地）');
+    }
+  }
+
+  showToast(`已更新為「${newStage}」`);
+}
+
+function saveNotes() {
+  if (!currentClient) return;
+  currentClient.notes = document.getElementById('notesArea').value.trim();
+  saveLocal();
+  showToast('備註已儲存');
+}
+
+// ============================================================
+// VISITS
+// ============================================================
+async function loadVisits(clientId) {
+  const timeline = document.getElementById('visitTimeline');
+
+  // 嘗試 n8n
+  if (CONFIG.N8N_BASE && CONFIG.WEBHOOK_GET_VISITS) {
+    try {
+      const resp = await fetch(CONFIG.N8N_BASE + CONFIG.WEBHOOK_GET_VISITS + '?id=' + clientId);
+      if (resp.ok) {
+        const data = await resp.json();
+        if (Array.isArray(data)) {
+          currentVisits = data;
+          renderTimeline();
+          return;
+        }
+      }
+    } catch (e) {}
+  }
+
+  // localStorage fallback
+  const all = JSON.parse(localStorage.getItem(VISITS_KEY) || '{}');
+  currentVisits = all[clientId] || [];
+  renderTimeline();
+}
+
+function renderTimeline() {
+  const timeline = document.getElementById('visitTimeline');
+
+  if (currentVisits.length === 0) {
+    timeline.innerHTML = '<div class="empty-timeline">尚無拜訪紀錄<br>點擊右上角「＋ 新增拜訪」開始</div>';
+    return;
+  }
+
+  // 依日期倒序
+  const sorted = [...currentVisits].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+
+  timeline.innerHTML = '<div class="timeline">' + sorted.map((v, i) => `
+    <div class="timeline-item" style="animation-delay:${i * 0.08}s">
+      <div class="timeline-date">${v.date || '未知日期'}${v.person ? ' · ' + esc(v.person) : ''}</div>
+      <div class="timeline-content">${esc(v.content || '（無內容）')}</div>
+    </div>
+  `).join('') + '</div>';
+}
+
+// ============================================================
+// ADD VISIT MODAL
+// ============================================================
+function openVisitModal() {
+  document.getElementById('visitDate').valueAsDate = new Date();
+  document.getElementById('visitPerson').value = '';
+  document.getElementById('visitContent').value = '';
+  document.getElementById('visitModal').classList.add('show');
+}
+
+function closeVisitModal() {
+  document.getElementById('visitModal').classList.remove('show');
+}
+
+async function submitVisit() {
+  if (!currentClient) return;
+
+  const date = document.getElementById('visitDate').value;
+  const person = document.getElementById('visitPerson').value.trim();
+  const content = document.getElementById('visitContent').value.trim();
+
+  if (!date) { showToast('請選擇拜訪日期', true); return; }
+  if (!content) { showToast('請填寫拜訪內容', true); return; }
+
+  const visit = { date, person, content };
+
+  // 同步到 n8n
+  if (CONFIG.N8N_BASE && CONFIG.WEBHOOK_ADD_VISIT) {
+    try {
+      const resp = await fetch(CONFIG.N8N_BASE + CONFIG.WEBHOOK_ADD_VISIT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          clientId: currentClient.id,
+          clientName: currentClient.name,
+          ...visit,
+        }),
+      });
+      if (resp.ok) {
+        showToast('拜訪紀錄已送出');
+      }
+    } catch (e) {
+      console.log('n8n 送出失敗（已存本地）');
+    }
+  }
+
+  // 更新本地
+  currentVisits.push(visit);
+  const all = JSON.parse(localStorage.getItem(VISITS_KEY) || '{}');
+  all[currentClient.id] = currentVisits;
+  localStorage.setItem(VISITS_KEY, JSON.stringify(all));
+
+  // 更新客戶拜訪資訊
+  currentClient.visitCount = (currentClient.visitCount || 0) + 1;
+  currentClient.lastVisit = date;
+  if (currentClient.stage === '冷開發') {
+    currentClient.stage = '初接觸';
+  }
+  saveLocal();
+
+  closeVisitModal();
+  renderDetail();
+  renderTimeline();
+  showToast('拜訪紀錄已新增');
+}
+
+// ============================================================
+// UI HELPERS
+// ============================================================
+function showLoading(show) {
+  document.getElementById('loadingState').style.display = show ? 'block' : 'none';
+}
+
+function showToast(msg, isError) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast' + (isError ? ' error' : '');
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+function toggleMenu() {
+  document.getElementById('navMenu').classList.toggle('show');
+}
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('.hamburger') && !e.target.closest('.nav-menu')) {
+    document.getElementById('navMenu').classList.remove('show');
+  }
+});
+
+function esc(str) {
+  if (!str) return '';
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+</script>
+</body>
+</html>
