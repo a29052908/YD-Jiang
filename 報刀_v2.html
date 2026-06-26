@@ -214,9 +214,9 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', s
 .qd-selected { margin-top: 10px; }
 .qd-selected-title { font-size: 10px; font-weight: 700; color: var(--muted); margin-bottom: 6px; font-family: 'JetBrains Mono', monospace; }
 .qd-item-list { display: flex; flex-direction: column; gap: 6px; }
-.qd-item { display: flex; align-items: center; gap: 6px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px; animation: fadeIn 0.2s ease; }
-.qd-item-name { font-size: 12px; font-weight: 600; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.qd-item-code { font-size: 10px; color: var(--muted); font-family: 'JetBrains Mono', monospace; white-space: nowrap; }
+.qd-item { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px; animation: fadeIn 0.2s ease; position: relative; }
+.qd-item-name { font-size: 13px; font-weight: 600; width: 100%; }
+.qd-item-code { font-size: 11px; color: var(--muted); font-family: 'JetBrains Mono', monospace; white-space: nowrap; }
 .qd-item-qty-wrap { display: flex; align-items: center; gap: 4px; }
 .qd-item-qty-btn { width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid var(--border); background: white; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text); transition: all 0.15s; padding: 0; }
 .qd-item-qty-btn:hover { border-color: var(--accent); background: var(--accent); color: white; }
@@ -2564,6 +2564,7 @@ function buildDamageScrewHTML(){ return _buildZhengHTML(activeDamageScrewBoards,
 
 // ── 常用報損快選 ──
 let quickDamageItems = [];
+const QD_REASONS = ['','不利','歪','斷','崩牙','滑牙','twist'];
 
 function toggleQuickDamage(){
   document.getElementById('qdHeader').classList.toggle('open');
@@ -2572,7 +2573,7 @@ function toggleQuickDamage(){
 function addQuickDamage(btn, name, code){
   const exist = quickDamageItems.find(it => it.code === code);
   if (exist) { exist.qty++; }
-  else { quickDamageItems.push({ name, code, qty: 1 }); }
+  else { quickDamageItems.push({ name, code, qty: 1, reason: '' }); }
   renderQdItems();
   syncQdToInput();
   btn.classList.add('flash');
@@ -2593,6 +2594,11 @@ function removeQdItem(idx){
   syncQdToInput();
 }
 
+function setQdReason(idx, val){
+  if (quickDamageItems[idx]) { quickDamageItems[idx].reason = val; }
+  syncQdToInput();
+}
+
 function renderQdItems(){
   const wrap = document.getElementById('qdSelected');
   const list = document.getElementById('qdItemList');
@@ -2601,19 +2607,20 @@ function renderQdItems(){
   list.innerHTML = quickDamageItems.map((it, i) => `
     <div class="qd-item">
       <span class="qd-item-name">${it.name}</span>
+      <button class="qd-item-remove" onclick="removeQdItem(${i})" style="position:absolute;top:4px;right:6px;">✕</button>
       <span class="qd-item-code">${it.code}</span>
       <div class="qd-item-qty-wrap">
         <button class="qd-item-qty-btn" onclick="changeQdQty(${i},-1)">−</button>
         <span class="qd-item-qty">${it.qty}</span>
         <button class="qd-item-qty-btn" onclick="changeQdQty(${i},+1)">+</button>
       </div>
-      <button class="qd-item-remove" onclick="removeQdItem(${i})">✕</button>
+      <select onchange="setQdReason(${i},this.value)" style="padding:3px 6px;border:1px solid var(--border);border-radius:6px;font-size:11px;font-family:'Noto Sans TC',sans-serif;color:${it.reason?'var(--accent2)':'var(--muted)'};background:var(--bg);">${QD_REASONS.map(r=>`<option value="${r}"${r===it.reason?' selected':''}>${r||'原因'}</option>`).join('')}</select>
     </div>`).join('');
 }
 
 function buildQuickDamageText(){
   return quickDamageItems.map(it =>
-    it.name + '(' + it.code + ')' + (it.qty > 1 ? ' x' + it.qty : '')
+    it.name + '(' + it.code + ')' + (it.qty > 1 ? ' x' + it.qty : '') + (it.reason ? ' [' + it.reason + ']' : '')
   ).join('\n');
 }
 
