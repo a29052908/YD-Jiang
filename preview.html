@@ -4,7 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>報刀單預覽</title>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;700&family=Inconsolata:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
 :root {
   --bg:#f5f4f0;--card:#fff;--border:#e0ddd6;--accent:#1a1a2e;
@@ -17,12 +18,14 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-seri
 .logo{background:#e63946;border-radius:6px;padding:5px 7px;font-weight:700;font-size:10px;}
 .topbar h1{font-size:16px;font-weight:600;}
 .nav-btn{background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);color:white;padding:6px 12px;border-radius:8px;font-size:12px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;text-decoration:none;}
-.content{padding:16px;max-width:600px;margin:0 auto;}
+.content{padding:16px;max-width:700px;margin:0 auto;}
 .action-bar{display:flex;gap:8px;margin-bottom:16px;}
 .action-btn{flex:1;padding:12px;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:'Noto Sans TC',sans-serif;}
 .btn-back{background:var(--bg);color:var(--muted);border:1px solid var(--border);}
-.btn-print{background:#065A82;color:white;}
-.preview-wrap{background:white;border-radius:var(--radius);box-shadow:var(--shadow);overflow:auto;}
+.btn-save{background:#065A82;color:white;}
+.preview-wrap{background:white;border-radius:var(--radius);box-shadow:var(--shadow);overflow:auto;padding:16px;}
+.zheng-group{display:inline-flex;align-items:center;gap:3px;line-height:1;}
+.zheng-char{font-size:18px;}
 @media print{
   .topbar,.action-bar{display:none!important;}
   body{background:white;}
@@ -43,9 +46,11 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-seri
 <div class="content">
   <div class="action-bar">
     <button class="action-btn btn-back" onclick="history.back()">← 返回總表</button>
-    <button class="action-btn btn-print" onclick="window.print()">🖨️ 列印 / PDF</button>
+    <button class="action-btn btn-save" onclick="saveImage()">📷 截圖存檔</button>
   </div>
-  <div class="preview-wrap" id="previewContent"></div>
+  <div class="preview-wrap" id="previewWrap">
+    <div id="previewContent"></div>
+  </div>
 </div>
 
 <script>
@@ -55,6 +60,83 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-seri
   if (!token || Date.now() >= exp) { window.location.href = 'login.html'; return; }
 })();
 
+function svgPartialZheng(strokes, color='#145f56') {
+  const W = 17, H = 14, sw = 4.5;
+  const strokeDefs = [
+    `<line x1="3" y1="5" x2="25" y2="5" stroke-width="${sw}" stroke-linecap="round"/>`,
+    `<line x1="14" y1="5" x2="14" y2="27" stroke-width="${sw}" stroke-linecap="round"/>`,
+    `<line x1="14" y1="16" x2="25" y2="16" stroke-width="${sw}" stroke-linecap="round"/>`,
+    `<line x1="3" y1="16" x2="3" y2="27" stroke-width="${sw}" stroke-linecap="round"/>`,
+  ];
+  let paths = '';
+  for (let i = 0; i < strokes; i++) paths += strokeDefs[i];
+  return `<svg width="${W}" height="${H}" viewBox="0 0 28 30" style="display:inline-block;vertical-align:middle" stroke="${color}" fill="none">${paths}</svg>`;
+}
+
+function renderZheng(n, color='#145f56') {
+  if (n <= 0) return '<span style="color:#c8c2b8;font-size:14px;">—</span>';
+  const full = Math.floor(n / 5);
+  const rem  = n % 5;
+  let html = '<span class="zheng-group">';
+  for (let i = 0; i < full; i++) {
+    html += `<span class="zheng-char" style="color:${color};font-weight:700;">正</span>`;
+  }
+  if (rem > 0) {
+    html += `<span class="zheng-char">${svgPartialZheng(rem, color)}</span>`;
+  }
+  html += '</span>';
+  return html;
+}
+
+function hex2rgb(hex){
+  const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+  return[r,g,b];
+}
+
+function parseZhengText(text) {
+  if (!text) return '';
+  const TYPECOLOR = { L:'#4CAF50', C:'#FF9800', QL:'#9C27B0' };
+  const lines = text.split('\n');
+  const htmlLines = [];
+  let currentColor = '#555';
+
+  for (const line of lines) {
+    const headerMatch = line.match(/^(\d+(?:\.\d+)?)\s*(L|C|QL):\s*(.*)/);
+    if (headerMatch) {
+      const dia = headerMatch[1];
+      const type = headerMatch[2];
+      const rest = headerMatch[3];
+      currentColor = TYPECOLOR[type] || '#555';
+      const [r2,g2,b2] = hex2rgb(currentColor);
+      const bg = `rgba(${r2},${g2},${b2},0.19)`;
+      const label = `<span style="font-weight:700;color:${currentColor};font-family:'Inconsolata',monospace;">${dia} ${type}:</span>`;
+
+      const converted = rest.replace(/(\d+(?:\.\d+)?)x(\d+)(?:\(([^)]+)\))?/g, (_, len, cnt, reason) => {
+        const reasonTag = reason ? `<span style="font-size:10px;color:#e63946;margin-left:2px;">${reason}</span>` : '';
+        const sym = renderZheng(parseInt(cnt), currentColor);
+        const sepX = `<span style="font-size:15px;color:#999;margin:0 2px;">×</span>`;
+        return `<span style="white-space:nowrap;display:inline-block;background:${bg};border-radius:7px;padding:0 4px;"><span style="font-family:'Inconsolata',monospace;font-size:15px;">${len}</span>${sepX}${sym}${reasonTag}</span>`;
+      });
+      const sep = `<span style="font-size:13px;color:#bbb;margin:0 4px;">/</span>`;
+      const parts = converted.split('・').join(sep);
+      htmlLines.push(`<div style="display:block;line-height:2.2;">${label} ${parts}</div>`);
+    } else if (line.trim()) {
+      const [r2,g2,b2] = hex2rgb(currentColor);
+      const bg = `rgba(${r2},${g2},${b2},0.19)`;
+      const converted = line.replace(/(\d+(?:\.\d+)?)x(\d+)(?:\(([^)]+)\))?/g, (_, len, cnt, reason) => {
+        const reasonTag = reason ? `<span style="font-size:10px;color:#e63946;margin-left:2px;">${reason}</span>` : '';
+        const sym = renderZheng(parseInt(cnt), currentColor);
+        const sepX = `<span style="font-size:15px;color:#999;margin:0 2px;">×</span>`;
+        return `<span style="white-space:nowrap;display:inline-block;background:${bg};border-radius:7px;padding:0 4px;"><span style="font-family:'Inconsolata',monospace;font-size:15px;">${len}</span>${sepX}${sym}${reasonTag}</span>`;
+      });
+      const sep = `<span style="font-size:13px;color:#bbb;margin:0 4px;">/</span>`;
+      const parts = converted.split('・').join(sep);
+      htmlLines.push(`<div style="display:block;line-height:2.2;padding-left:2em;">${parts}</div>`);
+    }
+  }
+  return htmlLines.join('');
+}
+
 const raw = sessionStorage.getItem('tandry_preview_data');
 if (!raw) {
   document.getElementById('previewContent').innerHTML = '<p style="padding:24px;color:#888;">找不到預覽資料，請返回總表重新開啟。</p>';
@@ -63,11 +145,16 @@ if (!raw) {
 }
 
 function renderPreview(d) {
+  const serial = d.流水號 || '';
   const dateParts = (d.日期 || '').split('/');
   const yr = dateParts[0] ? (parseInt(dateParts[0]) - 1911) + '年' : '';
   const mo = dateParts[1] ? dateParts[1] + '月' : '';
   const dy = dateParts[2] ? dateParts[2] + '日' : '';
   const cb = t => t === (d.單據類型 || '出貨') ? '☑' : '☐';
+
+  const componentHTML = parseZhengText(d.組件) || (d.組件 || '');
+  const damageHTML = parseZhengText(d.報損) || (d.報損 || '');
+  const remark = d.備註 || '';
 
   let implantLines = [];
   let innerCodeLines = [];
@@ -86,71 +173,116 @@ function renderPreview(d) {
     if (ic) { const k = `${ic}${neg}`; if (!icMap[k]) icMap[k] = { ic, neg, qty: 0 }; icMap[k].qty += qty; }
   });
   innerCodeLines = Object.values(icMap).map(({ ic, neg, qty }) => `${ic}${neg}${qty > 1 ? ' ×' + qty : ''}`);
+  const implant = implantLines.join('\n');
+  const innerCodeDisplay = innerCodeLines.filter(Boolean).join('\n') || '';
 
-  document.getElementById('previewContent').innerHTML = `
-  <div style="padding:16px;font-family:'Noto Sans TC',sans-serif;">
-    <table style="width:100%;border-collapse:collapse;font-size:13px;" border="1">
-      <tr><td colspan="4" style="text-align:center;font-size:15px;font-weight:700;padding:8px;">星泓股份有限公司 手術報刀單</td></tr>
-      <tr>
-        <td style="padding:6px 8px;width:25%;font-weight:600;">日期</td>
-        <td style="padding:6px 8px;">${yr}${mo}${dy}</td>
-        <td style="padding:6px 8px;font-weight:600;">流水號</td>
-        <td style="padding:6px 8px;font-family:'JetBrains Mono',monospace;">${d.流水號 || ''}</td>
-      </tr>
-      <tr>
-        <td style="padding:6px 8px;font-weight:600;">醫院</td>
-        <td style="padding:6px 8px;">${d.醫院 || ''}</td>
-        <td style="padding:6px 8px;font-weight:600;">醫師</td>
-        <td style="padding:6px 8px;">${d.醫師 || ''}</td>
-      </tr>
-      <tr>
-        <td style="padding:6px 8px;font-weight:600;">病人</td>
-        <td style="padding:6px 8px;">${d.病人 || ''}</td>
-        <td style="padding:6px 8px;font-weight:600;">病歷號</td>
-        <td style="padding:6px 8px;font-family:'JetBrains Mono',monospace;">${d.病歷號 || ''}</td>
-      </tr>
-      <tr>
-        <td style="padding:6px 8px;font-weight:600;">業務</td>
-        <td style="padding:6px 8px;">${d.業務 || ''}</td>
-        <td style="padding:6px 8px;font-weight:600;">庫別</td>
-        <td style="padding:6px 8px;">${d.庫別 || ''}</td>
-      </tr>
-      <tr>
-        <td colspan="4" style="padding:6px 8px;">
-          ${cb('出貨')} 出貨 &nbsp; ${cb('借貨')} 借貨 &nbsp; ${cb('換貨')} 換貨 &nbsp; ${cb('還貨')} 還貨
-        </td>
-      </tr>
-      <tr>
-        <td style="padding:6px 8px;font-weight:600;">植入物</td>
-        <td colspan="3" style="padding:6px 8px;">
-          <pre style="font-family:'Noto Sans TC',monospace;font-size:13px;line-height:2;white-space:pre-wrap;word-break:break-all;margin:0;">${implantLines.join('\n')}</pre>
-        </td>
-      </tr>
-      <tr>
-        <td style="padding:6px 8px;font-weight:600;">院內碼</td>
-        <td colspan="3" style="padding:6px 8px;">
-          <pre style="font-family:'JetBrains Mono',monospace;font-size:13px;line-height:2;white-space:pre-wrap;margin:0;">${innerCodeLines.join('\n')}</pre>
-        </td>
-      </tr>
-      ${d.釘子明細 ? `<tr><td style="padding:6px 8px;font-weight:600;">釘子</td><td colspan="3" style="padding:6px 8px;"><pre style="font-family:'JetBrains Mono',monospace;font-size:12px;white-space:pre-wrap;margin:0;">${d.釘子明細}</pre></td></tr>` : ''}
-      ${d.備註 ? `<tr><td style="padding:6px 8px;font-weight:600;">備註</td><td colspan="3" style="padding:6px 8px;">${d.備註}</td></tr>` : ''}
-      <tr>
-        <td style="padding:6px 8px;font-weight:600;">組件</td>
-        <td colspan="2" style="padding:6px 8px;min-height:60px;">
-          <pre style="font-family:'Noto Sans TC',monospace;font-size:13px;line-height:2;white-space:pre-wrap;word-break:break-all;margin:0;">${d.組件 || ''}</pre>
-        </td>
-        <td style="padding:6px 8px;min-height:60px;">
-          <div style="font-weight:600;font-size:12px;margin-bottom:4px;">工具：</div>
-          <div style="font-family:monospace;font-size:12px;white-space:pre-wrap;line-height:1.8;">${d.工具 || ''}</div>
-        </td>
-      </tr>
-      <tr>
-        <td colspan="4" style="padding:8px;font-size:11px;text-align:center;">
-          主管：＿＿＿＿ &nbsp; 會計：＿＿＿＿ &nbsp; 倉管：＿＿＿＿ &nbsp; 業務：${d.業務 || ''} &nbsp; 客戶簽收：＿＿＿＿＿
-        </td>
-      </tr>
-    </table>
+  document.getElementById('previewContent').innerHTML = `<div style="min-width:580px;">
+    <div style="font-family:'Noto Sans TC',sans-serif;font-size:13px;color:#000;">
+      <div style="margin-bottom:8px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+          <img src="圖片1.png" style="height:72px;object-fit:contain;" alt="Tandry">
+          <div style="text-align:center;flex:1;padding:0 8px;">
+            <div style="font-size:15px;font-weight:700;letter-spacing:2px;white-space:nowrap;">星 泓 股 份 有 限 公 司</div>
+            <div style="font-size:11px;color:#333;word-break:break-all;line-height:1.5;">地址：114台北市內湖區瑞光路76巷65號2樓<br>電話：(02) 2796-2677　傳真：(02) 2796-2611</div>
+          </div>
+          <div style="color:#e63946;font-size:16px;font-weight:700;font-family:monospace;white-space:nowrap;">${serial}</div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;font-size:11px;border-top:1px solid #eee;padding-top:4px;flex-wrap:wrap;gap:4px;">
+          <div style="display:flex;gap:12px;">
+            <span>${cb('出貨')} 出貨</span><span>${cb('借貨')} 借貨</span><span>${cb('換貨')} 換貨</span><span>${cb('還貨')} 還貨</span>
+          </div>
+          <span style="font-weight:600;font-size:15px;">日期：${yr} ${mo} ${dy}</span>
+        </div>
+      </div>
+      <table style="width:100%;border-collapse:collapse;border:1px solid #000;">
+        <tr>
+          <td style="width:38%;border-right:1px solid #000;padding:0;vertical-align:top;">
+            <table style="width:100%;border-collapse:collapse;">
+              <tr><td style="width:65px;background:#f9f9f9;border-bottom:1px solid #000;border-right:1px solid #000;padding:4px;text-align:center;font-size:11px;letter-spacing:1px;">客戶名稱</td><td style="border-bottom:1px solid #000;padding:4px 8px;font-size:15px;">${d.醫院 || ''}</td></tr>
+              <tr><td style="width:65px;background:#f9f9f9;border-bottom:1px solid #000;border-right:1px solid #000;padding:4px;text-align:center;font-size:11px;letter-spacing:1px;">醫　　師</td><td style="border-bottom:1px solid #000;padding:4px 8px;font-size:15px;">${d.醫師 || ''}</td></tr>
+              <tr><td style="width:65px;background:#f9f9f9;border-bottom:1px solid #000;border-right:1px solid #000;padding:4px;text-align:center;font-size:11px;letter-spacing:1px;">院 內 碼</td><td style="border-bottom:1px solid #000;padding:4px 8px;font-size:15px;white-space:pre-wrap;">${innerCodeDisplay}</td></tr>
+              <tr><td style="width:65px;background:#f9f9f9;border-bottom:1px solid #000;border-right:1px solid #000;padding:4px;text-align:center;font-size:11px;letter-spacing:1px;">病人姓名</td><td style="border-bottom:1px solid #000;padding:4px 8px;font-size:15px;">${d.病人 || ''}</td></tr>
+              <tr><td style="width:65px;background:#f9f9f9;border-bottom:1px solid #000;border-right:1px solid #000;padding:4px;text-align:center;font-size:11px;letter-spacing:1px;">病歷號碼</td><td style="border-bottom:1px solid #000;padding:4px 8px;font-size:15px;">${d.病歷號 || ''}</td></tr>
+              <tr><td style="width:65px;background:#f9f9f9;border-bottom:1px solid #000;border-right:1px solid #000;padding:4px;text-align:center;font-size:11px;letter-spacing:1px;">業務人員</td><td style="border-bottom:1px solid #000;padding:4px 8px;font-size:15px;">${d.業務 || ''}</td></tr>
+              <tr><td style="width:65px;background:#f9f9f9;border-bottom:1px solid #000;border-right:1px solid #000;padding:4px;text-align:center;font-size:11px;letter-spacing:1px;">庫　　別</td><td style="border-bottom:1px solid #000;padding:4px 8px;font-size:15px;">${d.庫別 || ''}</td></tr>
+              <tr><td colspan="2" style="text-align:center;background:#f9f9f9;border-bottom:1px solid #000;padding:4px;font-size:11px;letter-spacing:3px;">備　　註</td></tr>
+              <tr><td colspan="2" style="padding:6px;min-height:50px;font-size:12px;">${remark}</td></tr>
+            </table>
+          </td>
+          <td style="vertical-align:top;padding:0;">
+            <div style="border-bottom:1px solid #000;padding:2px 8px;font-size:10px;display:flex;justify-content:space-between;"><span>品</span><span>名</span></div>
+            <div style="border-bottom:1px solid #000;padding:8px;min-height:100px;">
+              <div style="font-weight:700;font-size:12px;margin-bottom:4px;">植入物：</div>
+              <div style="font-family:monospace;font-size:15px;white-space:pre-wrap;line-height:1.8;">${implant}</div>
+            </div>
+            <div style="border-bottom:1px solid #000;padding:8px;">
+              <div style="font-weight:700;font-size:11px;margin-bottom:4px;">組件：</div>
+              <div style="line-height:2.2;">${componentHTML}</div>
+            </div>
+            <div style="padding:8px;min-height:60px;">
+              <div style="font-weight:700;font-size:11px;margin-bottom:4px;">報損：</div>
+              <div style="line-height:2.2;">${damageHTML || '無'}</div>
+            </div>
+          </td>
+        </tr>
+      </table>
+      <div style="display:flex;justify-content:space-around;align-items:center;margin-top:10px;font-size:13px;border-top:1px solid #000;padding-top:8px;padding-bottom:12px;">
+        <span>主管：＿＿＿＿</span><span>會計：＿＿＿＿</span><span>倉管：＿＿＿＿</span>
+        <span>業務：${d.業務 || ''}</span><span>客戶簽收：＿＿＿＿＿</span>
+      </div>
+    </div>
   </div>`;
+}
+
+async function saveImage() {
+  const wrap = document.getElementById('previewWrap');
+  const origBR = wrap.style.borderRadius;
+  const origBS = wrap.style.boxShadow;
+  const origOF = wrap.style.overflow;
+  wrap.style.borderRadius = '0';
+  wrap.style.boxShadow = 'none';
+  wrap.style.overflow = 'visible';
+  wrap.style.width = '680px';
+
+  const w = wrap.scrollWidth;
+  const h = wrap.scrollHeight;
+
+  try {
+    const canvas = await html2canvas(wrap, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: '#ffffff',
+      logging: false,
+      scrollX: 0,
+      scrollY: 0,
+      windowWidth: w + 40,
+      windowHeight: h + 40,
+      width: w,
+      height: h,
+    });
+
+    canvas.toBlob(async blob => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const serial = document.querySelector('[style*="color:#e63946"]')?.textContent || 'preview';
+      a.href = url;
+      a.download = serial + '.jpg';
+      a.click();
+      URL.revokeObjectURL(url);
+
+      try {
+        const fd = new FormData();
+        fd.append('file', blob, serial + '.jpg');
+        fd.append('serial', serial);
+        await fetch('https://ydj.zeabur.app/webhook/upload-preview', { method: 'POST', body: fd });
+      } catch(e) { console.log('Drive upload skipped', e); }
+    }, 'image/jpeg', 0.92);
+  } finally {
+    wrap.style.borderRadius = origBR;
+    wrap.style.boxShadow = origBS;
+    wrap.style.overflow = origOF;
+    wrap.style.width = '';
+  }
 }
 </script>
 </body>
