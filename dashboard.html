@@ -188,6 +188,7 @@ tr:hover td { background: #faf9f7; cursor: pointer; }
       <a href="edit-request.html" class="menu-item" id="editRequestBtn" style="display:none;">✏️ 變更申請</a>
       <a href="review.html" class="menu-item" id="reviewBtn" style="display:none;">🔍 審核</a>
       <a href="pickup.html" class="menu-item" id="pickupBtn" style="display:none;">📦 抓貨管理</a>
+      <a href="performance.html" class="menu-item" id="perfBtn" style="display:none;">📊 業績儀表板</a>
       <button class="menu-item danger" onclick="tandryLogout()">登出</button>
     </div>
   </div>
@@ -305,6 +306,38 @@ tr:hover td { background: #faf9f7; cursor: pointer; }
   catch(e) { window.TANDRY_USER = {}; }
 })();
 
+function openPreview(index) {
+  const row = filteredData[index];
+  if (!row) return;
+  const payload = {
+    日期: row['日期'] || '',
+    業務: row['業務'] || '',
+    醫院: row['醫院'] || '',
+    醫師: row['醫師'] || '',
+    庫別: row['庫別'] || '',
+    病人: row['病人'] || '',
+    病歷號: row['病歷號'] || '',
+    流水號: row['流水號'] || '',
+    單據類型: row['單據類型'] || '出貨',
+    釘子明細: row['釘子明細'] || '',
+    組件: row['組件'] || '',
+    工具: row['工具'] || '',
+    備註: row['備註'] || '',
+    productItems: (row['品項'] || []).map(item => ({
+      buwei: item['部位'] || '',
+      spec: item['規格'] || '',
+      品號: item['品號'] || '',
+      qty: item['數量'] || 1,
+      innerCode: item['院內碼'] || '',
+      另洽: item['另洽'] === '是',
+      payNote: item['費用類型'] || '',
+      dhsNote: item['DHS組件'] || '',
+    })),
+  };
+  sessionStorage.setItem('tandry_preview_data', JSON.stringify(payload));
+  window.location.href = 'preview.html';
+}
+
 function tandryLogout() {
   localStorage.removeItem('tandry_token');
   localStorage.removeItem('tandry_token_exp');
@@ -322,6 +355,10 @@ const IS_ADMIN = USER.role === 'admin' || USER.role === 'manager';
   const el = document.getElementById(id);
   if (el) el.style.display = 'flex';
 });
+if (USER.role === 'admin') {
+  const p = document.getElementById('perfBtn');
+  if (p) p.style.display = 'flex';
+}
 
 function toggleMenu(e) {
   e.stopPropagation();
@@ -513,7 +550,7 @@ function renderTable() {
         <td>${row['病人'] || ''}</td>
         <td>${parts || '-'}</td>
         ${pickupBadge}
-        <td><button class="detail-btn" onclick="event.stopPropagation();openDrawer(${i})">詳細</button></td>
+        <td style="display:flex;gap:4px;"><button class="detail-btn" onclick="event.stopPropagation();openDrawer(${i})">詳細</button><button class="detail-btn" style="background:#e8f4fd;color:#1a5276;" onclick="event.stopPropagation();openPreview(${i})">預覽</button></td>
       </tr>`;
     } else {
       return `<tr onclick="openDrawer(${i})">
@@ -523,7 +560,7 @@ function renderTable() {
         <td>${row['醫師'] || ''}</td>
         <td>${row['病人'] || ''}</td>
         <td>${parts || '-'}</td>
-        <td><button class="detail-btn" onclick="event.stopPropagation();openDrawer(${i})">詳細</button></td>
+        <td style="display:flex;gap:4px;"><button class="detail-btn" onclick="event.stopPropagation();openDrawer(${i})">詳細</button><button class="detail-btn" style="background:#e8f4fd;color:#1a5276;" onclick="event.stopPropagation();openPreview(${i})">預覽</button></td>
       </tr>`;
     }
   }).join('');

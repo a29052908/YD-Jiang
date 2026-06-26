@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/png" href="/YD-Jiang/icon-192.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>業績儀表板</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f5f4f0; --card: #ffffff; --border: #e0ddd6;
+  --accent: #1a1a2e; --accent2: #e63946;
+  --green: #2d6a4f; --green-light: #d8f3dc;
+  --blue: #3a5bd9; --blue-light: #e8ecff;
+  --orange: #e05c00; --orange-light: #fff0e5;
+  --text: #1a1a2e; --muted: #888680; --dim: #c5c3bc;
+  --shadow: 0 2px 12px rgba(0,0,0,0.08); --radius: 12px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', sans-serif; min-height: 100vh; padding-bottom: 48px; }
+
+/* ── topbar ── */
+.topbar { background: var(--accent); color: white; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+.topbar-left { display: flex; align-items: center; gap: 10px; }
+.topbar-logo { background: var(--accent2); border-radius: 6px; padding: 5px 7px; font-weight: 700; font-size: 10px; }
+.topbar h1 { font-size: 16px; font-weight: 600; }
+.topbar-right { position: relative; flex-shrink: 0; }
+.hamburger-btn { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); color: white; width: 36px; height: 36px; border-radius: 8px; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.hamburger-btn:hover { background: rgba(255,255,255,0.22); }
+.hamburger-menu { display: none; position: absolute; top: calc(100% + 8px); right: 0; background: var(--accent); border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.3); min-width: 160px; overflow: hidden; z-index: 300; }
+.hamburger-menu.open { display: block; }
+.menu-item { display: flex; align-items: center; gap: 8px; padding: 13px 16px; font-size: 13px; font-weight: 500; color: white; text-decoration: none; background: none; border: none; width: 100%; cursor: pointer; font-family: 'Noto Sans TC', sans-serif; white-space: nowrap; transition: background 0.15s; }
+.menu-item:hover { background: rgba(255,255,255,0.12); }
+.menu-item + .menu-item { border-top: 1px solid rgba(255,255,255,0.08); }
+.menu-item.danger { color: #ff8a8a; }
+
+/* ── content ── */
+.content { padding: 14px 16px; max-width: 900px; margin: 0 auto; }
+
+/* ── period selector ── */
+.period-bar { background: var(--card); border-radius: var(--radius); border: 1px solid var(--border); padding: 12px 14px; margin-bottom: 12px; box-shadow: var(--shadow); }
+.period-top { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+.period-tabs { display: flex; border-radius: 8px; overflow: hidden; border: 1.5px solid var(--border); }
+.period-tab { padding: 7px 16px; border: none; background: var(--card); font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'Noto Sans TC', sans-serif; color: var(--muted); transition: all 0.15s; }
+.period-tab.active { background: var(--accent); color: white; }
+.period-tab + .period-tab { border-left: 1.5px solid var(--border); }
+.period-nav { display: flex; align-items: center; gap: 6px; margin-left: auto; }
+.nav-arrow { width: 30px; height: 30px; border: 1.5px solid var(--border); border-radius: 8px; background: var(--card); cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; color: var(--text); transition: all 0.15s; }
+.nav-arrow:hover { border-color: var(--accent); color: var(--accent); }
+.nav-today { padding: 6px 12px; border: 1.5px solid var(--border); border-radius: 8px; background: var(--card); font-size: 12px; font-weight: 600; cursor: pointer; font-family: 'Noto Sans TC', sans-serif; color: var(--muted); transition: all 0.15s; }
+.nav-today:hover { border-color: var(--accent); color: var(--accent); }
+.period-label { font-size: 15px; font-weight: 700; color: var(--text); letter-spacing: 0.3px; }
+.compare-row { display: flex; align-items: center; gap: 8px; }
+.compare-label { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-family: 'JetBrains Mono', monospace; white-space: nowrap; }
+.compare-select { padding: 6px 10px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 12px; font-family: 'Noto Sans TC', sans-serif; outline: none; background: var(--bg); color: var(--text); cursor: pointer; }
+.compare-select:focus { border-color: var(--accent); }
+
+/* ── admin switcher ── */
+.switcher-bar { background: var(--card); border-radius: var(--radius); border: 1px solid var(--border); padding: 10px 14px; margin-bottom: 12px; box-shadow: var(--shadow); display: flex; align-items: center; gap: 10px; }
+.switcher-label { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-family: 'JetBrains Mono', monospace; white-space: nowrap; }
+.switcher-select { padding: 7px 12px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 13px; font-family: 'Noto Sans TC', sans-serif; outline: none; background: var(--bg); color: var(--text); cursor: pointer; flex: 1; max-width: 220px; }
+.switcher-select:focus { border-color: var(--accent); }
+
+/* ── stats grid ── */
+.stats-section { margin-bottom: 14px; }
+.stats-section-title { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; font-family: 'JetBrains Mono', monospace; margin-bottom: 8px; }
+
+/* ── hero card (dual bar) ── */
+.hero-card { background: var(--accent); color: white; border-radius: var(--radius); padding: 20px; margin-bottom: 14px; box-shadow: var(--shadow); }
+.hero-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 16px; }
+.hero-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; font-family: 'JetBrains Mono', monospace; opacity: 0.5; margin-bottom: 6px; }
+.hero-value { font-size: 34px; font-weight: 700; font-family: 'JetBrains Mono', monospace; line-height: 1; }
+.hero-period { font-size: 11px; opacity: 0.5; text-align: right; line-height: 1.5; }
+.hero-cmp { display: flex; flex-direction: column; gap: 10px; }
+.hero-dual { display: flex; flex-direction: column; gap: 4px; }
+.hero-dual-label { font-size: 10px; font-weight: 600; opacity: 0.5; font-family: 'JetBrains Mono', monospace; margin-bottom: 2px; }
+.hero-dual-row { display: flex; align-items: center; gap: 8px; }
+.hero-dual-tag { min-width: 28px; font-size: 9px; font-weight: 700; opacity: 0.55; font-family: 'JetBrains Mono', monospace; }
+.hero-dual-track { flex: 1; height: 7px; background: rgba(255,255,255,0.10); border-radius: 4px; overflow: hidden; }
+.hero-dual-fill { height: 100%; border-radius: 4px; transition: width 0.5s ease; }
+.hero-dual-fill.curr { background: white; }
+.hero-dual-fill.prev { background: rgba(255,255,255,0.35); }
+.hero-dual-val { min-width: 52px; text-align: right; font-size: 11px; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+.hero-dual-pct { text-align: right; font-size: 12px; font-weight: 700; font-family: 'JetBrains Mono', monospace; margin-top: 2px; }
+.hero-dual-pct.up   { color: #4ade80; }
+.hero-dual-pct.down { color: #f87171; }
+.hero-dual-pct.flat { color: rgba(255,255,255,0.4); }
+
+/* ── category block (dual bar) ── */
+.cat-block { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 10px; box-shadow: var(--shadow); }
+.cat-block-title { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; font-family: 'JetBrains Mono', monospace; margin-bottom: 12px; }
+.cat-dual { display: flex; flex-direction: column; gap: 14px; }
+.cat-dual-item { }
+.cat-dual-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+.cat-dual-name { font-size: 13px; font-weight: 700; color: var(--text); }
+.cat-dual-pct { font-size: 11px; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+.cat-dual-pct.up   { color: var(--green); }
+.cat-dual-pct.down { color: var(--accent2); }
+.cat-dual-pct.flat { color: var(--muted); }
+.cat-dual-row { display: flex; align-items: center; gap: 8px; margin-bottom: 3px; }
+.cat-dual-tag { min-width: 28px; font-size: 9px; font-weight: 700; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+.cat-dual-track { flex: 1; height: 8px; background: var(--bg); border-radius: 4px; overflow: hidden; }
+.cat-dual-fill { height: 100%; border-radius: 4px; transition: width 0.5s ease; }
+.cat-dual-fill.curr { background: var(--accent); }
+.cat-dual-fill.prev { background: var(--dim); }
+.cat-dual-val { min-width: 60px; text-align: right; font-size: 12px; font-weight: 700; font-family: 'JetBrains Mono', monospace; color: var(--text); }
+
+/* ── hospital list (expandable) ── */
+.hosp-section-title { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; font-family: 'JetBrains Mono', monospace; margin-bottom: 8px; }
+.hosp-grid { display: flex; flex-direction: column; gap: 8px; }
+.hosp-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; box-shadow: var(--shadow); cursor: pointer; transition: all 0.15s; overflow: hidden; }
+.hosp-card:hover { border-color: var(--accent); box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
+.hosp-card-top { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px 8px; }
+.hosp-name { font-size: 15px; font-weight: 700; }
+.hosp-summary { padding: 0 14px 12px; }
+.hosp-bar-wrap { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.hosp-bar-track { flex: 1; height: 12px; background: var(--bg); border-radius: 4px; overflow: hidden; }
+.hosp-bar-fill { height: 100%; border-radius: 4px; background: linear-gradient(135deg, var(--accent), #2d2d5e); transition: width 0.5s ease; }
+.hosp-chips { display: flex; gap: 6px; flex-wrap: wrap; font-size: 11px; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+.hosp-expand-icon { transition: transform 0.25s; font-size: 14px; color: var(--muted); }
+.hosp-card.expanded .hosp-expand-icon { transform: rotate(90deg); }
+.hosp-detail { max-height: 0; overflow: hidden; transition: max-height 0.35s ease; }
+.hosp-card.expanded .hosp-detail { max-height: 600px; }
+.hosp-detail-inner { padding: 0 14px 14px; border-top: 1px solid var(--border); }
+.doc-row { padding: 10px 0; border-bottom: 1px solid var(--border); }
+.doc-row:last-child { border-bottom: none; }
+.doc-row-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+.doc-row-name { font-size: 13px; font-weight: 600; }
+.doc-row-amt { font-size: 13px; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+.doc-row-bars { display: flex; align-items: center; gap: 8px; margin-bottom: 3px; }
+.doc-row-tag { min-width: 28px; font-size: 9px; font-weight: 700; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+.doc-row-track { flex: 1; height: 6px; background: var(--bg); border-radius: 3px; overflow: hidden; }
+.doc-row-fill { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
+.doc-row-fill.curr { background: #0ea5e9; }
+.doc-row-fill.prev { background: var(--dim); }
+.doc-row-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+.doc-row-chip { font-size: 10px; font-family: 'JetBrains Mono', monospace; color: var(--muted); background: var(--bg); border-radius: 4px; padding: 2px 6px; }
+
+/* ── state ── */
+.state-box { text-align: center; padding: 60px 20px; color: var(--muted); }
+.state-box .icon { font-size: 36px; margin-bottom: 12px; }
+.spinner { width: 28px; height: 28px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 12px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── toast ── */
+.toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--accent); color: white; padding: 11px 20px; border-radius: 24px; font-size: 13px; font-weight: 500; opacity: 0; transition: all 0.3s; z-index: 999; white-space: nowrap; pointer-events: none; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+@media (max-width: 480px) {
+  .hero-value { font-size: 28px; }
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="topbar-logo">Tandry</div>
+    <h1>業績儀表板</h1>
+  </div>
+  <div class="topbar-right">
+    <button class="hamburger-btn" onclick="toggleMenu(event)" aria-label="選單">☰</button>
+    <div class="hamburger-menu" id="hamburgerMenu">
+      <a href="報刀_v2.html" class="menu-item">✏️ 報刀</a>
+      <a href="dashboard.html" class="menu-item">📋 總表</a>
+      <a href="track.html" class="menu-item" id="trackBtn" style="display:none;">📌 追蹤</a>
+      <a href="edit-request.html" class="menu-item" id="editRequestBtn" style="display:none;">✏️ 變更申請</a>
+      <a href="review.html" class="menu-item" id="reviewBtn" style="display:none;">🔍 審核</a>
+      <a href="pickup.html" class="menu-item" id="pickupBtn" style="display:none;">📦 抓貨管理</a>
+      <button class="menu-item danger" onclick="tandryLogout()">登出</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="content">
+  <!-- 週期選擇 -->
+  <div class="period-bar">
+    <div class="period-top">
+      <div class="period-tabs">
+        <button class="period-tab active" id="tab-week"  onclick="setView('week')">週</button>
+        <button class="period-tab"        id="tab-month" onclick="setView('month')">月</button>
+        <button class="period-tab"        id="tab-quarter" onclick="setView('quarter')">季</button>
+      </div>
+      <div class="period-nav">
+        <button class="nav-arrow" onclick="shiftPeriod(-1)">‹</button>
+        <button class="nav-today" onclick="goToday()">今天</button>
+        <button class="nav-arrow" onclick="shiftPeriod(1)">›</button>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+      <div class="period-label" id="periodLabel">載入中...</div>
+      <div class="compare-row">
+        <span class="compare-label">對比窗口</span>
+        <select class="compare-select" id="compareSelect" onchange="onCompareChange()">
+          <option value="biweek" selected>雙週 (14天)</option>
+          <option value="month">月 (30天)</option>
+          <option value="quarter">季 (90天)</option>
+          <option value="year">年 (365天)</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Admin 業務切換 -->
+  <div class="switcher-bar" id="switcherBar" style="display:none;">
+    <span class="switcher-label">業務</span>
+    <select class="switcher-select" id="salesSwitch" onchange="onSalesSwitchChange()">
+      <option value="">整體公司</option>
+    </select>
+  </div>
+
+  <!-- 主週期統計 -->
+  <div class="stats-section" id="statsSection">
+    <div class="state-box"><div class="spinner"></div><p>資料載入中...</p></div>
+  </div>
+
+  <!-- 醫院列表（含展開醫師） -->
+  <div id="hospSection" style="display:none;">
+    <div class="hosp-section-title">醫院明細</div>
+    <div class="hosp-grid" id="hospGrid"></div>
+  </div>
+</div>
+
+<script>
+// ──────────────────────────────────────────
+// Auth
+// ──────────────────────────────────────────
+const TANDRY_TOKEN = localStorage.getItem('tandry_token');
+const TANDRY_EXP   = parseInt(localStorage.getItem('tandry_token_exp') || '0');
+const TANDRY_USER  = JSON.parse(localStorage.getItem('tandry_user') || '{}');
+
+if (!TANDRY_TOKEN || Date.now() >= TANDRY_EXP) {
+  window.location.href = 'login.html';
+}
+
+const IS_ADMIN = TANDRY_USER.role === 'admin' || TANDRY_USER.role === 'manager';
+const USERNAME = TANDRY_USER.displayName || '';
+
+function tandryLogout() {
+  ['tandry_token','tandry_token_exp','tandry_user','tandry_sales_current','tandry_warehouse_current','tandry_sales_warehouse_map'].forEach(k => localStorage.removeItem(k));
+  window.location.href = 'login.html';
+}
+
+// ──────────────────────────────────────────
+// Menu
+// ──────────────────────────────────────────
+function toggleMenu(e) {
+  e.stopPropagation();
+  document.getElementById('hamburgerMenu').classList.toggle('open');
+}
+document.addEventListener('click', () => document.getElementById('hamburgerMenu').classList.remove('open'));
+
+window.addEventListener('DOMContentLoaded', () => {
+  if (IS_ADMIN) {
+    ['trackBtn','editRequestBtn','reviewBtn','pickupBtn'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = '';
+    });
+    document.getElementById('switcherBar').style.display = 'flex';
+    populateSalesSwitch();
+  }
+  initView();
+  loadData();
+});
+
+// ──────────────────────────────────────────
+// Constants
+// ──────────────────────────────────────────
+const WEBHOOK = 'https://ydj.zeabur.app/webhook/get-performance';
+
+const CATEGORY_MAP = {
+  '鎖骨':'骨板','上肢':'骨板','長骨':'骨板','小骨':'骨板','下肢':'骨板',
+  'VA小骨':'骨板','VA上肢':'骨板',
+  '埋頭釘':'埋頭釘',
+  '骨釘':'骨釘','VA骨釘':'骨釘',
+  '人工骨':'人工骨'
+};
+const UNIT_COUNT_CATS  = ['骨板','埋頭釘'];
+const AMOUNT_CATS      = ['骨板','骨釘','埋頭釘','人工骨'];
+
+// ──────────────────────────────────────────
+// State
+// ──────────────────────────────────────────
+let currentView    = 'week';    // week | month | quarter
+let anchorDate     = new Date();
+let compareWindow  = 'biweek';  // biweek | month | quarter | year
+let selectedSales  = '';        // '' = all (admin), or specific name
+
+let allRows = [];                // raw flat rows from webhook
+let rangeData = {};              // parsed ranges from webhook response
+
+// ──────────────────────────────────────────
+// Date helpers
+// ──────────────────────────────────────────
+function dateStr(d) {
+  return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
+}
+function parseDate(s) {
+  // handles 2026/06/15 or 2026-06-15
+  if (!s) return null;
+  const parts = s.replace(/-/g,'/').split('/');
+  if (parts.length < 3) return null;
+  return new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2]));
+}
+
+function getWeekRange(d) {
+  const day = (d.getDay() + 6) % 7;
+  const start = new Date(d); start.setDate(d.getDate() - day);
+  const end   = new Date(start); end.setDate(start.getDate() + 6);
+  start.setHours(0,0,0,0); end.setHours(23,59,59,999);
+  return [start, end];
+}
+function getMonthRange(d) {
+  const start = new Date(d.getFullYear(), d.getMonth(), 1);
+  const end   = new Date(d.getFullYear(), d.getMonth()+1, 0);
+  end.setHours(23,59,59,999);
+  return [start, end];
+}
+function getQuarterRange(d) {
+  const q = Math.floor(d.getMonth()/3);
+  const start = new Date(d.getFullYear(), q*3, 1);
+  const end   = new Date(d.getFullYear(), q*3+3, 0);
+  end.setHours(23,59,59,999);
+  return [start, end];
+}
+function getYoYRange(start, end) {
+  const s = new Date(start); s.setFullYear(s.getFullYear()-1);
+  const e = new Date(end);   e.setFullYear(e.getFullYear()-1);
+  return [s, e];
+}
+function getCompareRanges(today, type) {
+  const days = {biweek:14, month:30, quarter:90, year:365}[type] || 14;
+  const currEnd   = new Date(today); currEnd.setHours(23,59,59,999);
+  const currStart = new Date(today); currStart.setDate(currEnd.getDate() - days + 1); currStart.setHours(0,0,0,0);
+  const prevEnd   = new Date(currStart); prevEnd.setDate(currStart.getDate()-1); prevEnd.setHours(23,59,59,999);
+  const prevStart = new Date(prevEnd); prevStart.setDate(prevEnd.getDate() - days + 1); prevStart.setHours(0,0,0,0);
+  const [yoyStart, yoyEnd] = getYoYRange(currStart, currEnd);
+  return { curr:[currStart,currEnd], prev:[prevStart,prevEnd], yoy:[yoyStart,yoyEnd] };
+}
+
+function getPrimaryRange() {
+  const fns = { week: getWeekRange, month: getMonthRange, quarter: getQuarterRange };
+  return (fns[currentView] || getWeekRange)(anchorDate);
+}
+
+function formatPeriodLabel([start, end]) {
+  const fmt = d => `${d.getMonth()+1}/${d.getDate()}`;
+  const yr  = d => d.getFullYear();
+  if (currentView === 'week') {
+    return `${yr(start)} 第 ${getWeekNo(start)} 週  ${fmt(start)} ~ ${fmt(end)}`;
+  }
+  if (currentView === 'month') {
+    return `${yr(start)} 年 ${start.getMonth()+1} 月`;
+  }
+  const q = Math.floor(start.getMonth()/3)+1;
+  return `${yr(start)} 年 Q${q}`;
+}
+function getWeekNo(d) {
+  const jan1 = new Date(d.getFullYear(), 0, 1);
+  return Math.ceil(((d - jan1) / 86400000 + jan1.getDay() + 1) / 7);
+}
+
+// ──────────────────────────────────────────
+// View control
+// ──────────────────────────────────────────
+function initView() {
+  anchorDate = new Date();
+  renderPeriodLabel();
+}
+
+function setView(v) {
+  currentView = v;
+  ['week','month','quarter'].forEach(t => document.getElementById('tab-'+t).classList.toggle('active', t===v));
+  renderPeriodLabel();
+  loadData();
+}
+
+function shiftPeriod(dir) {
+  const d = new Date(anchorDate);
+  if (currentView === 'week')    d.setDate(d.getDate() + dir*7);
+  if (currentView === 'month')   d.setMonth(d.getMonth() + dir);
+  if (currentView === 'quarter') d.setMonth(d.getMonth() + dir*3);
+  anchorDate = d;
+  renderPeriodLabel();
+  loadData();
+}
+
+function goToday() {
+  anchorDate = new Date();
+  renderPeriodLabel();
+  loadData();
+}
+
+function renderPeriodLabel() {
+  document.getElementById('periodLabel').textContent = formatPeriodLabel(getPrimaryRange());
+}
+
+function onCompareChange() {
+  compareWindow = document.getElementById('compareSelect').value;
+  renderAll();
+}
+
+function onSalesSwitchChange() {
+  selectedSales = document.getElementById('salesSwitch').value;
+  renderAll();
+}
+
+function populateSalesSwitch() {
+  const sel = document.getElementById('salesSwitch');
+  const names = [...new Set(allRows.map(r => r['負責業務']).filter(Boolean))].sort();
+  sel.innerHTML = '<option value="">整體公司</option>' + names.map(n => `<option value="${n}"${n===selectedSales?' selected':''}>${n}</option>`).join('');
+}
+
+// ──────────────────────────────────────────
+// Aggregation
+// ──────────────────────────────────────────
+function filterRows(rows) {
+  if (!IS_ADMIN && USERNAME) {
+    rows = rows.filter(r => (r['負責業務']||'').toLowerCase() === USERNAME.toLowerCase());
+  }
+  if (IS_ADMIN && selectedSales) {
+    rows = rows.filter(r => r['負責業務'] === selectedSales);
+  }
+  return rows;
+}
+
+function rowsInRange(rows, [start, end]) {
+  return rows.filter(r => {
+    const d = parseDate(r['日期']);
+    return d && d >= start && d <= end;
+  });
+}
+
+function aggregate(rows) {
+  const empty = () => ({
+    units:  { 骨板:0, 埋頭釘:0 },
+    amount: { 骨板:0, 骨釘:0, 埋頭釘:0, 人工骨:0 },
+    byHospital: {}
+  });
+  const res = empty();
+
+  rows.forEach(r => {
+    const cat = CATEGORY_MAP[r['部位']];
+    if (!cat) return;
+    const qty = parseInt(r['數量'], 10) || 1;
+    const amt = parseFloat(r['金額'])   || 0;
+
+    if (UNIT_COUNT_CATS.includes(cat))  res.units[cat]  += qty;
+    if (AMOUNT_CATS.includes(cat))      res.amount[cat] += amt;
+
+    const h = r['醫院'] || '未指定';
+    if (!res.byHospital[h]) res.byHospital[h] = { units:{骨板:0,埋頭釘:0}, amount:{骨板:0,骨釘:0,埋頭釘:0,人工骨:0}, byDoctor:{} };
+    const hb = res.byHospital[h];
+    if (UNIT_COUNT_CATS.includes(cat))  hb.units[cat]  += qty;
+    if (AMOUNT_CATS.includes(cat))      hb.amount[cat] += amt;
+
+    const doc = r['醫師'] || '未指定';
+    if (!hb.byDoctor[doc]) hb.byDoctor[doc] = { units:{骨板:0,埋頭釘:0}, amount:{骨板:0,骨釘:0,埋頭釘:0,人工骨:0} };
+    const db = hb.byDoctor[doc];
+    if (UNIT_COUNT_CATS.includes(cat))  db.units[cat]  += qty;
+    if (AMOUNT_CATS.includes(cat))      db.amount[cat] += amt;
+  });
+
+  return res;
+}
+
+function totalAmount(a) {
+  return Object.values(a.amount).reduce((s,v)=>s+v, 0);
+}
+
+function changePct(curr, prev) {
+  if (prev === 0) return curr > 0 ? null : 0;  // null = N/A (prev was 0)
+  return Math.round((curr - prev) / prev * 100);
+}
+
+function changeTag(curr, prev, label) {
+  const pct = changePct(curr, prev);
+  if (pct === null) return `<span class="change-tag change-flat">${label} —</span>`;
+  if (pct > 0) return `<span class="change-tag change-up">${label} +${pct}%</span>`;
+  if (pct < 0) return `<span class="change-tag change-down">${label} ${pct}%</span>`;
+  return `<span class="change-tag change-flat">${label} 0%</span>`;
+}
+
+// ──────────────────────────────────────────
+// API
+// ──────────────────────────────────────────
+function getPrevPrimaryRange() {
+  const shifted = new Date(anchorDate);
+  if (currentView === 'week')    shifted.setDate(shifted.getDate() - 7);
+  if (currentView === 'month')   shifted.setMonth(shifted.getMonth() - 1);
+  if (currentView === 'quarter') shifted.setMonth(shifted.getMonth() - 3);
+  return (currentView === 'week' ? getWeekRange : currentView === 'month' ? getMonthRange : getQuarterRange)(shifted);
+}
+
+async function loadData() {
+  document.getElementById('statsSection').innerHTML = '<div class="state-box"><div class="spinner"></div><p>資料載入中...</p></div>';
+  document.getElementById('hospSection').style.display = 'none';
+
+  const today = new Date();
+  const [pStart, pEnd] = getPrimaryRange();
+  const [pyStart, pyEnd] = getYoYRange(pStart, pEnd);
+  const [ppStart, ppEnd] = getPrevPrimaryRange();
+  const cr = getCompareRanges(today, compareWindow);
+
+  const overallStart = new Date(Math.min(pStart, pyStart, ppStart, cr.curr[0], cr.prev[0], cr.yoy[0]));
+  const overallEnd   = new Date(Math.max(pEnd,   pyEnd,   ppEnd,   cr.curr[1], cr.prev[1], cr.yoy[1]));
+
+  try {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 20000);
+    const res = await fetch(WEBHOOK, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        token: TANDRY_TOKEN,
+        role: TANDRY_USER.role || 'sales',
+        username: USERNAME,
+        view: currentView,
+        anchorDate: dateStr(anchorDate),
+        compareWindow,
+        overallStart: dateStr(overallStart),
+        overallEnd:   dateStr(overallEnd)
+      }),
+      signal: ctrl.signal
+    });
+    clearTimeout(t);
+    const json = await res.json();
+    if (!json.success) throw new Error(json.error || 'webhook error');
+
+    allRows = json.rows || [];
+    rangeData = {
+      primary:     [pStart, pEnd],
+      primaryYoY:  [pyStart, pyEnd],
+      primaryPrev: [ppStart, ppEnd],
+      compareCurr: cr.curr,
+      comparePrev: cr.prev,
+      compareYoY:  cr.yoy
+    };
+
+    if (IS_ADMIN) populateSalesSwitch();
+    renderAll();
+
+  } catch(e) {
+    console.error('get-performance error:', e);
+    document.getElementById('statsSection').innerHTML = `<div class="state-box"><div class="icon">⚠️</div><p>資料載入失敗<br><small>${e.message}</small></p></div>`;
+  }
+}
+
+// ──────────────────────────────────────────
+// Render
+// ──────────────────────────────────────────
+function renderAll() {
+  const rows = filterRows(allRows);
+  renderStats(rows);
+  renderHospitals(rows);
+}
+
+function fmtAmt(n) {
+  if (!n) return '—';
+  if (n >= 10000) return `$${(n/10000).toFixed(1)}萬`;
+  return `$${n.toLocaleString()}`;
+}
+
+function dualBar(currVal, prevVal, maxVal, label, dark, currRange, prevRange) {
+  const mx = maxVal || 1;
+  const wC = Math.max(4, currVal / mx * 100);
+  const wP = Math.max(4, prevVal / mx * 100);
+  const pct = changePct(currVal, prevVal);
+  const cls = pct === null ? 'flat' : pct > 0 ? 'up' : pct < 0 ? 'down' : 'flat';
+  const pctTxt = pct === null ? '—' : pct > 0 ? `+${pct}%` : `${pct}%`;
+
+  const cTag = currRange ? `本期` : '本期';
+  const pTag = prevRange ? `上期` : '上期';
+
+  if (dark) {
+    return `<div class="hero-dual">
+      <div class="hero-dual-label">${label}</div>
+      <div class="hero-dual-row"><span class="hero-dual-tag">${cTag}</span>
+        <div class="hero-dual-track"><div class="hero-dual-fill curr" style="width:${wC}%"></div></div>
+        <span class="hero-dual-val">${fmtAmt(currVal)}</span></div>
+      <div class="hero-dual-row"><span class="hero-dual-tag">${pTag}</span>
+        <div class="hero-dual-track"><div class="hero-dual-fill prev" style="width:${wP}%"></div></div>
+        <span class="hero-dual-val">${fmtAmt(prevVal)}</span></div>
+      <div class="hero-dual-pct ${cls}">${pctTxt}</div>
+    </div>`;
+  }
+  return `<div class="cat-dual-item">
+    <div class="cat-dual-head"><span class="cat-dual-name">${label}</span><span class="cat-dual-pct ${cls}">${pctTxt}</span></div>
+    <div class="cat-dual-row"><span class="cat-dual-tag">${cTag}</span>
+      <div class="cat-dual-track"><div class="cat-dual-fill curr" style="width:${wC}%"></div></div>
+      <span class="cat-dual-val">${fmtAmt(currVal)}</span></div>
+    <div class="cat-dual-row"><span class="cat-dual-tag">${pTag}</span>
+      <div class="cat-dual-track"><div class="cat-dual-fill prev" style="width:${wP}%"></div></div>
+      <span class="cat-dual-val">${fmtAmt(prevVal)}</span></div>
+  </div>`;
+}
+
+function renderStats(rows) {
+  const main = aggregate(rowsInRange(rows, rangeData.primary));
+  const yoy  = aggregate(rowsInRange(rows, rangeData.primaryYoY));
+  const pp   = aggregate(rowsInRange(rows, rangeData.primaryPrev));
+
+  const mainAmt = totalAmount(main);
+  const yoyAmt  = totalAmount(yoy);
+  const ppAmt   = totalAmount(pp);
+  const heroMax = Math.max(mainAmt, yoyAmt, ppAmt, 1);
+
+  const prevLabel = { week:'上週', month:'上月', quarter:'上季' }[currentView] || '上期';
+  const fmtR = ([s,e]) => `${s.getMonth()+1}/${s.getDate()}~${e.getMonth()+1}/${e.getDate()}`;
+  const primaryRange = fmtR(rangeData.primary);
+  const prevRange    = fmtR(rangeData.primaryPrev);
+  const yoyRange     = fmtR(rangeData.primaryYoY);
+
+  const amtCats = [
+    { key:'骨板', label:'骨板' }, { key:'埋頭釘', label:'埋頭釘' },
+    { key:'骨釘', label:'骨釘' }, { key:'人工骨', label:'人工骨' },
+  ];
+  const amtMax = Math.max(...amtCats.map(c => Math.max(main.amount[c.key], pp.amount[c.key])), 1);
+
+  const unitCats = [
+    { key:'骨板', label:'骨板' }, { key:'埋頭釘', label:'埋頭釘' },
+  ];
+  const unitMax = Math.max(...unitCats.map(c => Math.max(main.units[c.key], pp.units[c.key])), 1);
+
+  document.getElementById('statsSection').innerHTML = `
+    <div class="hero-card">
+      <div class="hero-top">
+        <div>
+          <div class="hero-label">本期業績總額</div>
+          <div class="hero-value">${fmtAmt(mainAmt) || '$0'}</div>
+        </div>
+        <div class="hero-period">${formatPeriodLabel(rangeData.primary)}</div>
+      </div>
+      <div class="hero-cmp">
+        ${dualBar(mainAmt, yoyAmt, heroMax, 'vs 去年同期（' + yoyRange + '）', true)}
+        ${dualBar(mainAmt, ppAmt, heroMax, 'vs ' + prevLabel + '（' + prevRange + '）', true)}
+      </div>
+    </div>
+
+    <div class="cat-block">
+      <div class="cat-block-title">金額分布</div>
+      <div style="font-size:11px;color:var(--muted);margin:-8px 0 10px;font-family:'JetBrains Mono',monospace;">本期 ${primaryRange} vs ${prevLabel} ${prevRange}</div>
+      <div class="cat-dual">
+        ${amtCats.map(c => dualBar(main.amount[c.key], pp.amount[c.key], amtMax, c.label, false)).join('')}
+      </div>
+    </div>
+
+    <div class="cat-block">
+      <div class="cat-block-title">台數</div>
+      <div style="font-size:11px;color:var(--muted);margin:-8px 0 10px;font-family:'JetBrains Mono',monospace;">本期 ${primaryRange} vs ${prevLabel} ${prevRange}</div>
+      <div class="cat-dual">
+        ${unitCats.map(c => {
+          const cv = main.units[c.key], pv = pp.units[c.key];
+          const mx = unitMax;
+          const wC = Math.max(4, cv/mx*100), wP = Math.max(4, pv/mx*100);
+          const pct = changePct(cv, pv);
+          const cls = pct===null?'flat':pct>0?'up':pct<0?'down':'flat';
+          const pctTxt = pct===null?'—':pct>0?`+${pct}%`:`${pct}%`;
+          return `<div class="cat-dual-item">
+            <div class="cat-dual-head"><span class="cat-dual-name">${c.label}</span><span class="cat-dual-pct ${cls}">${pctTxt}</span></div>
+            <div class="cat-dual-row"><span class="cat-dual-tag">本期</span>
+              <div class="cat-dual-track"><div class="cat-dual-fill curr" style="width:${wC}%"></div></div>
+              <span class="cat-dual-val">${cv} 台</span></div>
+            <div class="cat-dual-row"><span class="cat-dual-tag">上期</span>
+              <div class="cat-dual-track"><div class="cat-dual-fill prev" style="width:${wP}%"></div></div>
+              <span class="cat-dual-val">${pv} 台</span></div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+}
+
+function renderHospitals(rows) {
+  const main = aggregate(rowsInRange(rows, rangeData.primary));
+  const pp   = aggregate(rowsInRange(rows, rangeData.primaryPrev));
+  const hospEl = document.getElementById('hospGrid');
+  const sec    = document.getElementById('hospSection');
+
+  const entries = Object.entries(main.byHospital)
+    .sort((a,b) => totalAmount(b[1]) - totalAmount(a[1]));
+
+  if (!entries.length) { sec.style.display = 'none'; return; }
+  sec.style.display = '';
+
+  const fmtR = ([s,e]) => `${s.getMonth()+1}/${s.getDate()}~${e.getMonth()+1}/${e.getDate()}`;
+  const prevLabel = { week:'上週', month:'上月', quarter:'上季' }[currentView] || '上期';
+  sec.querySelector('.hosp-section-title').innerHTML = `醫院明細 <span style="font-weight:400;font-size:9px;opacity:0.7;margin-left:6px;">本期 ${fmtR(rangeData.primary)} vs ${prevLabel} ${fmtR(rangeData.primaryPrev)}</span>`;
+
+  const mainAmt = totalAmount(main);
+  const topAmt  = entries.length ? totalAmount(entries[0][1]) : 1;
+
+  hospEl.innerHTML = entries.map(([hosp, data], idx) => {
+    const amt = totalAmount(data);
+    const pct = mainAmt ? Math.round(amt / mainAmt * 100) : 0;
+    const w   = Math.max(6, amt / topAmt * 100);
+    const unitChips = [
+      data.units['骨板']   ? `骨板 ${data.units['骨板']}台` : '',
+      data.units['埋頭釘'] ? `埋頭釘 ${data.units['埋頭釘']}台` : '',
+    ].filter(Boolean).join(' · ');
+
+    const ppData = pp.byHospital[hosp];
+    const ppAmt  = ppData ? totalAmount(ppData) : 0;
+
+    const docs = Object.entries(data.byDoctor)
+      .sort((a,b) => totalAmount(b[1]) - totalAmount(a[1]));
+    const topDocAmt = docs.length ? totalAmount(docs[0][1]) : 1;
+
+    const docHTML = docs.map(([doc, dd]) => {
+      const dAmt  = totalAmount(dd);
+      const dPrev = ppData && ppData.byDoctor[doc] ? totalAmount(ppData.byDoctor[doc]) : 0;
+      const dMax  = Math.max(topDocAmt, dPrev, 1);
+      const wC = Math.max(4, dAmt / dMax * 100);
+      const wP = Math.max(4, dPrev / dMax * 100);
+      const dPct = changePct(dAmt, dPrev);
+      const dCls = dPct===null?'flat':dPct>0?'up':dPct<0?'down':'flat';
+      const dTxt = dPct===null?'—':dPct>0?`+${dPct}%`:`${dPct}%`;
+      const chips = [
+        dd.units['骨板']   ? `骨板${dd.units['骨板']}台` : '',
+        dd.units['埋頭釘'] ? `埋頭釘${dd.units['埋頭釘']}台` : '',
+      ].filter(Boolean);
+      return `<div class="doc-row">
+        <div class="doc-row-top">
+          <span class="doc-row-name">${doc}</span>
+          <span class="doc-row-amt">${fmtAmt(dAmt)}</span>
+        </div>
+        <div class="doc-row-bars"><span class="doc-row-tag">本期</span>
+          <div class="doc-row-track"><div class="doc-row-fill curr" style="width:${wC}%"></div></div></div>
+        <div class="doc-row-bars"><span class="doc-row-tag">上期</span>
+          <div class="doc-row-track"><div class="doc-row-fill prev" style="width:${wP}%"></div></div></div>
+        <div class="doc-row-chips">
+          ${chips.map(c => `<span class="doc-row-chip">${c}</span>`).join('')}
+          <span class="doc-row-chip cat-dual-pct ${dCls}" style="background:none;padding:0;">${dTxt}</span>
+        </div>
+      </div>`;
+    }).join('');
+
+    const hPct = changePct(amt, ppAmt);
+    const hCls = hPct===null?'flat':hPct>0?'up':hPct<0?'down':'flat';
+    const hTxt = hPct===null?'—':hPct>0?`+${hPct}%`:`${hPct}%`;
+
+    const hid = `hosp-${idx}`;
+    return `
+      <div class="hosp-card" id="${hid}" onclick="toggleHosp('${hid}')">
+        <div class="hosp-card-top">
+          <span class="hosp-name">${hosp}</span>
+          <span style="display:flex;align-items:center;gap:6px;">
+            <span style="font-size:14px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--text);">${fmtAmt(amt)}</span>
+            <span style="font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;">${pct}%</span>
+            <span class="cat-dual-pct ${hCls}" style="font-size:11px;">${hTxt}</span>
+            <span class="hosp-expand-icon">›</span>
+          </span>
+        </div>
+        <div class="hosp-summary">
+          <div class="hosp-bar-wrap">
+            <div class="hosp-bar-track"><div class="hosp-bar-fill" style="width:${w}%"></div></div>
+          </div>
+          ${unitChips ? `<div class="hosp-chips">${unitChips}</div>` : ''}
+        </div>
+        <div class="hosp-detail">
+          <div class="hosp-detail-inner">
+            ${docHTML || '<p style="color:var(--muted);font-size:12px;padding:8px 0;">無醫師資料</p>'}
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function toggleHosp(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.toggle('expanded');
+}
+
+function showToast(msg, type) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.style.background = type==='error'?'#c62828':'var(--accent)';
+  el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'), 2800);
+}
+</script>
+</body>
+</html>

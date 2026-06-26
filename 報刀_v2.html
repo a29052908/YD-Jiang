@@ -189,6 +189,41 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', s
 .text-area { width: 100%; padding: 12px 14px; border: 2px solid var(--border); border-radius: 10px; font-size: 15px; font-family: 'Noto Sans TC', 'JetBrains Mono', monospace; background: var(--bg); color: var(--text); outline: none; resize: vertical; min-height: 80px; transition: border-color 0.2s; box-sizing: border-box; touch-action: manipulation; }
 .text-area:focus { border-color: var(--accent); }
 
+/* ── 常用報損快選 ── */
+.quick-damage { margin-top: 10px; }
+.quick-damage-header { display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 6px 0; user-select: none; }
+.quick-damage-header .qd-arrow { font-size: 10px; color: var(--muted); transition: transform 0.2s; }
+.quick-damage-header.open .qd-arrow { transform: rotate(90deg); }
+.quick-damage-header .qd-title { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+.quick-damage-body { display: none; padding-top: 8px; }
+.quick-damage-header.open + .quick-damage-body { display: block; }
+.qd-group { margin-bottom: 10px; }
+.qd-group-label { font-size: 10px; font-weight: 700; color: var(--muted); margin-bottom: 5px; font-family: 'JetBrains Mono', monospace; }
+.qd-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.qd-tag { padding: 4px 10px; border-radius: 20px; border: none; font-size: 11px; font-weight: 500; cursor: pointer; font-family: 'Noto Sans TC', sans-serif; transition: all 0.15s; white-space: nowrap; }
+.qd-tag:active { transform: scale(0.95); }
+.qd-tag.flash { filter: brightness(1.3); box-shadow: 0 0 8px rgba(0,0,0,0.2); }
+.qd-tag.s15  { background: #e8ecff; color: #3a5bd9; }
+.qd-tag.s20  { background: #d8f3dc; color: #2d6a4f; }
+.qd-tag.s24  { background: #fff0e5; color: #e05c00; }
+.qd-tag.s35  { background: #f3e8ff; color: #7c3aed; }
+.qd-tag.s50  { background: #fee2e2; color: #c62828; }
+.qd-tag.shs  { background: #e0f7fa; color: #00838f; }
+.qd-tag.srm  { background: #fff8e1; color: #f57f17; }
+/* ── 已選報損器械標籤 ── */
+.qd-selected { margin-top: 10px; }
+.qd-selected-title { font-size: 10px; font-weight: 700; color: var(--muted); margin-bottom: 6px; font-family: 'JetBrains Mono', monospace; }
+.qd-item-list { display: flex; flex-direction: column; gap: 6px; }
+.qd-item { display: flex; align-items: center; gap: 6px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px; animation: fadeIn 0.2s ease; }
+.qd-item-name { font-size: 12px; font-weight: 600; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.qd-item-code { font-size: 10px; color: var(--muted); font-family: 'JetBrains Mono', monospace; white-space: nowrap; }
+.qd-item-qty-wrap { display: flex; align-items: center; gap: 4px; }
+.qd-item-qty-btn { width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid var(--border); background: white; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text); transition: all 0.15s; padding: 0; }
+.qd-item-qty-btn:hover { border-color: var(--accent); background: var(--accent); color: white; }
+.qd-item-qty { font-size: 14px; font-weight: 700; font-family: 'JetBrains Mono', monospace; min-width: 20px; text-align: center; }
+.qd-item-remove { width: 22px; height: 22px; border-radius: 50%; border: none; background: #ffe0e3; color: var(--accent2); font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; margin-left: 4px; transition: all 0.15s; padding: 0; }
+.qd-item-remove:hover { background: var(--accent2); color: white; }
+
 /* ── 預覽 Modal ── */
 .preview-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200; display: none; align-items: flex-start; justify-content: center; overflow-y: auto; padding: 20px 0; }
 .preview-overlay.show { display: flex; }
@@ -245,6 +280,9 @@ function tandryLogout() {
   localStorage.removeItem('tandry_token');
   localStorage.removeItem('tandry_token_exp');
   localStorage.removeItem('tandry_user');
+  localStorage.removeItem('tandry_sales_current');
+  localStorage.removeItem('tandry_warehouse_current');
+  localStorage.removeItem('tandry_sales_warehouse_map');
   window.location.href = 'login.html';
 }
 function toggleMenu(e) {
@@ -278,6 +316,7 @@ document.addEventListener('click', () => {
         <a href="edit-request.html" class="menu-item" id="editRequestBtn" style="display:none;">✏️ 變更申請</a>
         <a href="review.html" class="menu-item" id="reviewBtn" style="display:none;">🔍 審核</a>
         <a href="pickup.html" class="menu-item" id="pickupBtn" style="display:none;">📦 抓貨管理</a>
+        <a href="performance.html" class="menu-item" id="perfBtn" style="display:none;">📊 業績儀表板</a>
         <button class="menu-item danger" onclick="tandryLogout()">登出</button>
       </div>
     </div>
@@ -335,6 +374,12 @@ document.addEventListener('click', () => {
     </div>
     <div class="preview-actions">
       <button class="preview-action-btn btn-cancel" onclick="closePreview()">返回修改</button>
+      <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);">
+        <span>📷 儲存圖片</span>
+        <div id="saveImgToggle" onclick="toggleSaveImg()" style="width:40px;height:22px;border-radius:11px;cursor:pointer;transition:background 0.2s;position:relative;flex-shrink:0;">
+          <div id="saveImgKnob" style="position:absolute;top:3px;width:16px;height:16px;border-radius:50%;background:white;transition:left 0.2s;"></div>
+        </div>
+      </div>
       <button class="preview-action-btn btn-confirm" id="confirmBtn" onclick="confirmSubmit()">✅ 確認送出</button>
     </div>
   </div>
@@ -429,7 +474,7 @@ document.addEventListener('click', () => {
         <button class="type-btn" onclick="addScrewBoard('2.4')">2.4 mm</button>
         <button class="type-btn" onclick="addScrewBoard('3.5')">3.5 mm</button>
         <button class="type-btn" onclick="addScrewBoard('5.0')">5.0 mm</button>
-        <button class="type-btn" onclick="addScrewBoard('VA')">VA</button>
+        <button class="type-btn" onclick="addScrewBoard('VA')">2.4VA</button>
       </div>
     </div>
     <div id="screwBoards"></div>
@@ -468,7 +513,7 @@ document.addEventListener('click', () => {
           <button class="type-btn" onclick="addDamageScrewBoard('2.4')">2.4 mm</button>
           <button class="type-btn" onclick="addDamageScrewBoard('3.5')">3.5 mm</button>
           <button class="type-btn" onclick="addDamageScrewBoard('5.0')">5.0 mm</button>
-          <button class="type-btn" onclick="addDamageScrewBoard('VA')">VA</button>
+          <button class="type-btn" onclick="addDamageScrewBoard('VA')">2.4VA</button>
         </div>
       </div>
       <div id="damageScrewBoards"></div>
@@ -476,7 +521,70 @@ document.addEventListener('click', () => {
       <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);">
         <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">報損備註</div>
         <div class="text-area" id="toolDisplay" style="min-height:48px;line-height:2.4;cursor:default;"></div>
-        <textarea class="text-area" id="toolInput" placeholder="手動備註（選填）" style="margin-top:8px;" oninput="updateDamageIndicator()"></textarea>
+
+        <!-- 常用報損快選 -->
+        <div class="quick-damage">
+          <div class="quick-damage-header" id="qdHeader" onclick="toggleQuickDamage()">
+            <span class="qd-arrow">▶</span>
+            <span class="qd-title">常用報損器械</span>
+          </div>
+          <div class="quick-damage-body" id="qdBody">
+            <div class="qd-group"><div class="qd-group-label">1.5 系列</div><div class="qd-tags">
+              <button class="qd-tag s15" onclick="addQuickDamage(this,'Drill Bit 1.1mm','304004B-500')">Drill Bit 1.1mm</button>
+              <button class="qd-tag s15" onclick="addQuickDamage(this,'Drill Bit 1.1mm 長','304004B-S00')">Drill Bit 1.1mm 長</button>
+              <button class="qd-tag s15" onclick="addQuickDamage(this,'T4 Screwdriver Shaft','303020A-K00')">T4 Shaft</button>
+            </div></div>
+            <div class="qd-group"><div class="qd-group-label">2.0 系列</div><div class="qd-tags">
+              <button class="qd-tag s20" onclick="addQuickDamage(this,'Drill Bit 1.5mm','304005A-500')">Drill Bit 1.5mm</button>
+              <button class="qd-tag s20" onclick="addQuickDamage(this,'Drill Bit 1.5mm 長','304005B-500')">Drill Bit 1.5mm 長</button>
+              <button class="qd-tag s20" onclick="addQuickDamage(this,'T6 Screwdriver Shaft','304008A-K00')">T6 Shaft</button>
+            </div></div>
+            <div class="qd-group"><div class="qd-group-label">2.4 系列</div><div class="qd-tags">
+              <button class="qd-tag s24" onclick="addQuickDamage(this,'Drill Bit 1.8mm','304006A-500')">Drill Bit 1.8mm</button>
+              <button class="qd-tag s24" onclick="addQuickDamage(this,'Drill Bit 1.8mm 長','304006B-500')">Drill Bit 1.8mm 長</button>
+              <button class="qd-tag s24" onclick="addQuickDamage(this,'T8 Screwdriver Shaft','304011A-Z00')">T8 Shaft</button>
+            </div></div>
+            <div class="qd-group"><div class="qd-group-label">3.5 系列</div><div class="qd-tags">
+              <button class="qd-tag s35" onclick="addQuickDamage(this,'Drill Bit 2.5mm','303001A-500')">Drill Bit 2.5mm</button>
+              <button class="qd-tag s35" onclick="addQuickDamage(this,'Drill Bit 2.5mm 長','303001B-500')">Drill Bit 2.5mm 長</button>
+              <button class="qd-tag s35" onclick="addQuickDamage(this,'Drill Bit 2.8mm','303008A-500')">Drill Bit 2.8mm</button>
+              <button class="qd-tag s35" onclick="addQuickDamage(this,'Drill Bit 2.8mm 長','303008B-500')">Drill Bit 2.8mm 長</button>
+              <button class="qd-tag s35" onclick="addQuickDamage(this,'T15 Screwdriver Shaft','303012A-K00')">T15 Shaft</button>
+            </div></div>
+            <div class="qd-group"><div class="qd-group-label">5.0 系列</div><div class="qd-tags">
+              <button class="qd-tag s50" onclick="addQuickDamage(this,'Drill Bit 4.3mm','301001A-500')">Drill Bit 4.3mm</button>
+              <button class="qd-tag s50" onclick="addQuickDamage(this,'Drill Bit 3.2mm','302001A-500')">Drill Bit 3.2mm</button>
+              <button class="qd-tag s50" onclick="addQuickDamage(this,'Drill Bit 3.2mm 長','302001B-500')">Drill Bit 3.2mm 長</button>
+              <button class="qd-tag s50" onclick="addQuickDamage(this,'T25 Screwdriver Shaft','301005A-K00')">T25 Shaft</button>
+            </div></div>
+            <div class="qd-group"><div class="qd-group-label">埋頭釘系列</div><div class="qd-tags">
+              <button class="qd-tag shs" onclick="addQuickDamage(this,'埋頭鑽 for 2.8','306047A-500')">埋頭鑽 2.8</button>
+              <button class="qd-tag shs" onclick="addQuickDamage(this,'埋頭鑽 for 3.6','306056A-500')">埋頭鑽 3.6</button>
+              <button class="qd-tag shs" onclick="addQuickDamage(this,'埋頭鑽 for 4.7','306068A-500')">埋頭鑽 4.7</button>
+              <button class="qd-tag shs" onclick="addQuickDamage(this,'Guide Pin 0.8mm','299112F-000')">Pin 0.8</button>
+              <button class="qd-tag shs" onclick="addQuickDamage(this,'Guide Pin 1.1mm','299113F-000')">Pin 1.1</button>
+              <button class="qd-tag shs" onclick="addQuickDamage(this,'Guide Pin 1.6mm','299114E-000')">Pin 1.6</button>
+              <button class="qd-tag shs" onclick="addQuickDamage(this,'中空起子 T6','306045A-K00')">中空T6</button>
+              <button class="qd-tag shs" onclick="addQuickDamage(this,'中空起子 T8','306057A-C00')">中空T8</button>
+              <button class="qd-tag shs" onclick="addQuickDamage(this,'中空起子 T15','306050A-K00')">中空T15</button>
+            </div></div>
+            <div class="qd-group"><div class="qd-group-label">拔釘類別</div><div class="qd-tags">
+              <button class="qd-tag srm" onclick="addQuickDamage(this,'T4 拔釘','303020B-K00')">T4 拔釘</button>
+              <button class="qd-tag srm" onclick="addQuickDamage(this,'T6 拔釘','304008B-K00')">T6 拔釘</button>
+              <button class="qd-tag srm" onclick="addQuickDamage(this,'T8 拔釘','306045A-K00')">T8 拔釘</button>
+              <button class="qd-tag srm" onclick="addQuickDamage(this,'T15 拔釘','303012C-K00')">T15 拔釘</button>
+              <button class="qd-tag srm" onclick="addQuickDamage(this,'T25 拔釘','301005B-K00')">T25 拔釘</button>
+            </div></div>
+          </div>
+        </div>
+
+        <!-- 已選報損器械 -->
+        <div class="qd-selected" id="qdSelected" style="display:none;">
+          <div class="qd-selected-title">已選報損器械</div>
+          <div class="qd-item-list" id="qdItemList"></div>
+        </div>
+
+        <textarea class="text-area" id="toolInput" placeholder="其他手動備註（選填）" style="margin-top:8px;" oninput="updateDamageIndicator()"></textarea>
       </div>
     </div>
   </div>
@@ -521,9 +629,13 @@ let selectedHospital = '', innerCode = '';
   const el = document.getElementById(id);
   if (el) el.style.display = 'flex';
 });
+if ((window.TANDRY_USER||{}).role === 'admin') {
+  const p = document.getElementById('perfBtn');
+  if (p) p.style.display = 'flex';
+}
 let currentSales = (() => {
   const user = window.TANDRY_USER || {};
-  if (user.role === 'sales' && user.displayName) {
+  if (user.displayName) {
     localStorage.setItem('tandry_sales_current', user.displayName);
     return user.displayName;
   }
@@ -535,6 +647,7 @@ let salesWarehouseMap = JSON.parse(localStorage.getItem('tandry_sales_warehouse_
 let supportMode = false, selectedZone = '';
 let negotiateMode = false;
 let _bypassWarehouseCheck = false;
+let saveImageEnabled = localStorage.getItem('tandry_save_image') !== 'false';
 
 // ── innerCodeDb ──────────────────────────────────────────────
 const innerCodeDb = [
@@ -546,6 +659,9 @@ const innerCodeDb = [
   {院內碼:'OS0211F',院內碼_醫院:'中天',部位_院內碼:'骨釘',大區:'桃竹苗',負責業務:'Ivan'},
   {院內碼:'MHRSTF',院內碼_醫院:'中天',部位_院內碼:'埋頭釘',大區:'桃竹苗',負責業務:'Ivan'},
   {院內碼:'OSBG03',院內碼_醫院:'中天',部位_院內碼:'人工骨0.6',大區:'桃竹苗',負責業務:'Ivan'},
+  {院內碼:'OS2P03',院內碼_醫院:'中天',部位_院內碼:'VA小骨',大區:'桃竹苗',負責業務:'Ivan'},
+  {院內碼:'OS2P02',院內碼_醫院:'中天',部位_院內碼:'VA上肢',大區:'桃竹苗',負責業務:'Ivan'},
+  {院內碼:'OS2PS01',院內碼_醫院:'中天',部位_院內碼:'VA骨釘',大區:'桃竹苗',負責業務:'Ivan'},
   {院內碼:'OS0211A',院內碼_醫院:'楊天',部位_院內碼:'鎖骨',大區:'桃竹苗',負責業務:'Ivan'},
   {院內碼:'OS0211B',院內碼_醫院:'楊天',部位_院內碼:'上肢',大區:'桃竹苗',負責業務:'Ivan'},
   {院內碼:'OS0211C',院內碼_醫院:'楊天',部位_院內碼:'長骨',大區:'桃竹苗',負責業務:'Ivan'},
@@ -554,6 +670,9 @@ const innerCodeDb = [
   {院內碼:'OS0211F',院內碼_醫院:'楊天',部位_院內碼:'骨釘',大區:'桃竹苗',負責業務:'Ivan'},
   {院內碼:'MHRSTF',院內碼_醫院:'楊天',部位_院內碼:'埋頭釘',大區:'桃竹苗',負責業務:'Ivan'},
   {院內碼:'OSBG03',院內碼_醫院:'楊天',部位_院內碼:'人工骨0.6',大區:'桃竹苗',負責業務:'Ivan'},
+  {院內碼:'OS2P03',院內碼_醫院:'楊天',部位_院內碼:'VA小骨',大區:'桃竹苗',負責業務:'Ivan'},
+  {院內碼:'OS2P02',院內碼_醫院:'楊天',部位_院內碼:'VA上肢',大區:'桃竹苗',負責業務:'Ivan'},
+  {院內碼:'OS2PS01',院內碼_醫院:'楊天',部位_院內碼:'VA骨釘',大區:'桃竹苗',負責業務:'Ivan'},
   {院內碼:'OS0211A',院內碼_醫院:'天祥',部位_院內碼:'鎖骨',大區:'桃竹苗',負責業務:'Ivan'},
   {院內碼:'OS0211B',院內碼_醫院:'天祥',部位_院內碼:'上肢',大區:'桃竹苗',負責業務:'Ivan'},
   {院內碼:'OS0211C',院內碼_醫院:'天祥',部位_院內碼:'長骨',大區:'桃竹苗',負責業務:'Ivan'},
@@ -562,6 +681,9 @@ const innerCodeDb = [
   {院內碼:'OS0211F',院內碼_醫院:'天祥',部位_院內碼:'骨釘',大區:'桃竹苗',負責業務:'Ivan'},
   {院內碼:'MHRSTF',院內碼_醫院:'天祥',部位_院內碼:'埋頭釘',大區:'桃竹苗',負責業務:'Ivan'},
   {院內碼:'OSBG03',院內碼_醫院:'天祥',部位_院內碼:'人工骨0.6',大區:'桃竹苗',負責業務:'Ivan'},
+  {院內碼:'OS2P03',院內碼_醫院:'天祥',部位_院內碼:'VA小骨',大區:'桃竹苗',負責業務:'Ivan'},
+  {院內碼:'OS2P02',院內碼_醫院:'天祥',部位_院內碼:'VA上肢',大區:'桃竹苗',負責業務:'Ivan'},
+  {院內碼:'OS2PS01',院內碼_醫院:'天祥',部位_院內碼:'VA骨釘',大區:'桃竹苗',負責業務:'Ivan'},
   {院內碼:'D1240NP',院內碼_醫院:'804',部位_院內碼:'鎖骨',大區:'桃竹苗',負責業務:'Kaley'},
   {院內碼:'D1241NP',院內碼_醫院:'804',部位_院內碼:'上肢',大區:'桃竹苗',負責業務:'Kaley'},
   {院內碼:'D1242NP',院內碼_醫院:'804',部位_院內碼:'長骨',大區:'桃竹苗',負責業務:'Kaley'},
@@ -572,13 +694,13 @@ const innerCodeDb = [
   {院內碼:'D1438NP',院內碼_醫院:'804',部位_院內碼:'人工骨0.6',大區:'桃竹苗',負責業務:'Kaley'},
   {院內碼:'D1439NP',院內碼_醫院:'804',部位_院內碼:'人工骨1.0',大區:'桃竹苗',負責業務:'Kaley'},
   {院內碼:'D1440NP',院內碼_醫院:'804',部位_院內碼:'人工骨2.5',大區:'桃竹苗',負責業務:'Kaley'},
-  {院內碼:'18258893',院內碼_醫院:'中國新竹',部位_院內碼:'鎖骨',大區:'桃竹苗',負責業務:'Dino'},
-  {院內碼:'18258896',院內碼_醫院:'中國新竹',部位_院內碼:'上肢',大區:'桃竹苗',負責業務:'Dino'},
-  {院內碼:'18258894',院內碼_醫院:'中國新竹',部位_院內碼:'長骨',大區:'桃竹苗',負責業務:'Dino'},
-  {院內碼:'18258895',院內碼_醫院:'中國新竹',部位_院內碼:'小骨',大區:'桃竹苗',負責業務:'Dino'},
-  {院內碼:'18258897',院內碼_醫院:'中國新竹',部位_院內碼:'下肢',大區:'桃竹苗',負責業務:'Dino'},
-  {院內碼:'18258898',院內碼_醫院:'中國新竹',部位_院內碼:'骨釘',大區:'桃竹苗',負責業務:'Dino'},
-  {院內碼:'18258892',院內碼_醫院:'中國新竹',部位_院內碼:'埋頭釘',大區:'桃竹苗',負責業務:'Dino'},
+  {院內碼:'18258893',院內碼_醫院:'',部位_院內碼:'鎖骨',大區:'桃竹苗',負責業務:'Dino'},
+  {院內碼:'18258896',院內碼_醫院:'中國醫(新竹)',部位_院內碼:'上肢',大區:'桃竹苗',負責業務:'Dino'},
+  {院內碼:'18258894',院內碼_醫院:'中國醫(新竹)',部位_院內碼:'長骨',大區:'桃竹苗',負責業務:'Dino'},
+  {院內碼:'18258895',院內碼_醫院:'中國醫(新竹)',部位_院內碼:'小骨',大區:'桃竹苗',負責業務:'Dino'},
+  {院內碼:'18258897',院內碼_醫院:'中國醫(新竹)',部位_院內碼:'下肢',大區:'桃竹苗',負責業務:'Dino'},
+  {院內碼:'18258898',院內碼_醫院:'中國醫(新竹)',部位_院內碼:'骨釘',大區:'桃竹苗',負責業務:'Dino'},
+  {院內碼:'18258892',院內碼_醫院:'中國醫(新竹)',部位_院內碼:'埋頭釘',大區:'桃竹苗',負責業務:'Dino'},
   {院內碼:'1030371',院內碼_醫院:'仁慈',部位_院內碼:'鎖骨',大區:'桃竹苗',負責業務:'Dino'},
   {院內碼:'1030372',院內碼_醫院:'仁慈',部位_院內碼:'上肢',大區:'桃竹苗',負責業務:'Dino'},
   {院內碼:'1030373',院內碼_醫院:'仁慈',部位_院內碼:'長骨',大區:'桃竹苗',負責業務:'Dino'},
@@ -650,8 +772,8 @@ const innerCodeDb = [
   {院內碼:'8A-A61-111681',院內碼_醫院:'聖保祿',部位_院內碼:'2.4 Volar L8H',大區:'桃竹苗',負責業務:'Kaley'},
   {院內碼:'8A-A61-442491',院內碼_醫院:'聖保祿',部位_院內碼:'2.4 Juxta R2H',大區:'桃竹苗',負責業務:'Kaley'},
   {院內碼:'8A-A61-442492',院內碼_醫院:'聖保祿',部位_院內碼:'2.4 Juxta L2H',大區:'桃竹苗',負責業務:'Kaley'},
-  {院內碼:'8A-A61-442493',院內碼_醫院:'聖保祿',部位_院內碼:'2.4 Juxta R3H',大區:'桃竹苗',負責業務:'Kaley'},
-  {院內碼:'8A-A61-442494',院內碼_醫院:'聖保祿',部位_院內碼:'2.4 Juxta L3H',大區:'桃竹苗',負責業務:'Kaley'},
+  {院內碼:'8A-A61-442493',院內碼_醫院:'聖保祿',部位_院內碼:'2.4 Juxta R5H',大區:'桃竹苗',負責業務:'Kaley'},
+  {院內碼:'8A-A61-442494',院內碼_醫院:'聖保祿',部位_院內碼:'2.4 Juxta L5H',大區:'桃竹苗',負責業務:'Kaley'},
   {院內碼:'8A-A61-112138',院內碼_醫院:'聖保祿',部位_院內碼:'Distal fibula R4H',大區:'桃竹苗',負責業務:'Kaley'},
   {院內碼:'8A-A61-112139',院內碼_醫院:'聖保祿',部位_院內碼:'Distal fibula L4H',大區:'桃竹苗',負責業務:'Kaley'},
   {院內碼:'8A-A61-112142',院內碼_醫院:'聖保祿',部位_院內碼:'Distal fibula R6H',大區:'桃竹苗',負責業務:'Kaley'},
@@ -667,52 +789,52 @@ const innerCodeDb = [
   {院內碼:'8A-A61-441683',院內碼_醫院:'聖保祿',部位_院內碼:'Radial head L3H',大區:'桃竹苗',負責業務:'Kaley'},
   {院內碼:'8A-A61-441684',院內碼_醫院:'聖保祿',部位_院內碼:'Radial head R4H',大區:'桃竹苗',負責業務:'Kaley'},
   {院內碼:'8A-A61-441685',院內碼_醫院:'聖保祿',部位_院內碼:'Radial head L4H',大區:'桃竹苗',負責業務:'Kaley'},
-  {院內碼:'BN640',院內碼_醫院:'桃榮',部位_院內碼:'鎖骨',大區:'桃竹苗',負責業務:'Tan'},
-  {院內碼:'BN672',院內碼_醫院:'桃榮',部位_院內碼:'上肢',大區:'桃竹苗',負責業務:'Tan'},
-  {院內碼:'BN674',院內碼_醫院:'桃榮',部位_院內碼:'長骨',大區:'桃竹苗',負責業務:'Tan'},
-  {院內碼:'BN621',院內碼_醫院:'桃榮',部位_院內碼:'小骨',大區:'桃竹苗',負責業務:'Tan'},
-  {院內碼:'BN641',院內碼_醫院:'桃榮',部位_院內碼:'下肢',大區:'桃竹苗',負責業務:'Tan'},
-  {院內碼:'BN619',院內碼_醫院:'桃榮',部位_院內碼:'埋頭釘',大區:'桃竹苗',負責業務:'Tan'},
-  {院內碼:'609Q',院內碼_醫院:'813',部位_院內碼:'鎖骨',大區:'桃竹苗',負責業務:'Tan'},
-  {院內碼:'609R',院內碼_醫院:'813',部位_院內碼:'上肢',大區:'桃竹苗',負責業務:'Tan'},
-  {院內碼:'609S',院內碼_醫院:'813',部位_院內碼:'長骨',大區:'桃竹苗',負責業務:'Tan'},
-  {院內碼:'609T',院內碼_醫院:'813',部位_院內碼:'小骨',大區:'桃竹苗',負責業務:'Tan'},
-  {院內碼:'609U',院內碼_醫院:'813',部位_院內碼:'下肢',大區:'桃竹苗',負責業務:'Tan'},
-  {院內碼:'529E',院內碼_醫院:'813',部位_院內碼:'埋頭釘',大區:'桃竹苗',負責業務:'Tan'},
-  {院內碼:'MA40890',院內碼_醫院:'南門',部位_院內碼:'鎖骨',大區:'桃竹苗',負責業務:'Tan'},
-  {院內碼:'MA40891',院內碼_醫院:'南門',部位_院內碼:'上肢',大區:'桃竹苗',負責業務:'Tan'},
-  {院內碼:'MA40892',院內碼_醫院:'南門',部位_院內碼:'長骨',大區:'桃竹苗',負責業務:'Tan'},
-  {院內碼:'MA40893',院內碼_醫院:'南門',部位_院內碼:'小骨',大區:'桃竹苗',負責業務:'Tan'},
-  {院內碼:'MA40894',院內碼_醫院:'南門',部位_院內碼:'下肢',大區:'桃竹苗',負責業務:'Tan'},
-  {院內碼:'MA40881',院內碼_醫院:'南門',部位_院內碼:'埋頭釘',大區:'桃竹苗',負責業務:'Tan'},
-  {院內碼:'MA40895',院內碼_醫院:'南門',部位_院內碼:'骨釘',大區:'桃竹苗',負責業務:'Tan'},
-  {院內碼:'18258893',院內碼_醫院:'為恭',部位_院內碼:'鎖骨',大區:'桃竹苗',負責業務:'Tan'},
-  {院內碼:'18258896',院內碼_醫院:'為恭',部位_院內碼:'上肢',大區:'桃竹苗',負責業務:'Tan'},
-  {院內碼:'18258894',院內碼_醫院:'為恭',部位_院內碼:'長骨',大區:'桃竹苗',負責業務:'Tan'},
-  {院內碼:'18258895',院內碼_醫院:'為恭',部位_院內碼:'小骨',大區:'桃竹苗',負責業務:'Tan'},
-  {院內碼:'18258897',院內碼_醫院:'為恭',部位_院內碼:'下肢',大區:'桃竹苗',負責業務:'Tan'},
-  {院內碼:'18258892',院內碼_醫院:'為恭',部位_院內碼:'埋頭釘',大區:'桃竹苗',負責業務:'Tan'},
-  {院內碼:'18258898',院內碼_醫院:'為恭',部位_院內碼:'骨釘',大區:'桃竹苗',負責業務:'Tan'},
-  {院內碼:'FBZ006187001',院內碼_醫院:'重光',部位_院內碼:'鎖骨',大區:'桃竹苗',負責業務:'Tan'},
-  {院內碼:'FBZ006187002',院內碼_醫院:'重光',部位_院內碼:'上肢',大區:'桃竹苗',負責業務:'Tan'},
-  {院內碼:'FBZ006187003',院內碼_醫院:'重光',部位_院內碼:'長骨',大區:'桃竹苗',負責業務:'Tan'},
-  {院內碼:'FBZ006187004',院內碼_醫院:'重光',部位_院內碼:'小骨',大區:'桃竹苗',負責業務:'Tan'},
-  {院內碼:'FBZ006187005',院內碼_醫院:'重光',部位_院內碼:'下肢',大區:'桃竹苗',負責業務:'Tan'},
-  {院內碼:'FBSS09228NNTF',院內碼_醫院:'重光',部位_院內碼:'埋頭釘',大區:'桃竹苗',負責業務:'Tan'},
-  {院內碼:'FBZ006187006',院內碼_醫院:'重光',部位_院內碼:'骨釘',大區:'桃竹苗',負責業務:'Tan'},
-  {院內碼:'FBZ006187001',院內碼_醫院:'慈祐',部位_院內碼:'鎖骨',大區:'桃竹苗',負責業務:'Tan'},
-  {院內碼:'FBZ006187002',院內碼_醫院:'慈祐',部位_院內碼:'上肢',大區:'桃竹苗',負責業務:'Tan'},
-  {院內碼:'FBZ006187003',院內碼_醫院:'慈祐',部位_院內碼:'長骨',大區:'桃竹苗',負責業務:'Tan'},
-  {院內碼:'FBZ006187004',院內碼_醫院:'慈祐',部位_院內碼:'小骨',大區:'桃竹苗',負責業務:'Tan'},
-  {院內碼:'FBZ006187005',院內碼_醫院:'慈祐',部位_院內碼:'下肢',大區:'桃竹苗',負責業務:'Tan'},
-  {院內碼:'FBSS09228NNTF',院內碼_醫院:'慈祐',部位_院內碼:'埋頭釘',大區:'桃竹苗',負責業務:'Tan'},
-  {院內碼:'FBZ006187006',院內碼_醫院:'慈祐',部位_院內碼:'骨釘',大區:'桃竹苗',負責業務:'Tan'},
-  {院內碼:'2608JHS1',院內碼_醫院:'署苗',部位_院內碼:'鎖骨',大區:'桃竹苗',負責業務:'Tan'},
-  {院內碼:'2608JGS1',院內碼_醫院:'署苗',部位_院內碼:'上肢',大區:'桃竹苗',負責業務:'Tan'},
-  {院內碼:'2608JJ81C',院內碼_醫院:'署苗',部位_院內碼:'長骨',大區:'桃竹苗',負責業務:'Tan'},
-  {院內碼:'2608JD81C',院內碼_醫院:'署苗',部位_院內碼:'小骨',大區:'桃竹苗',負責業務:'Tan'},
-  {院內碼:'2608JFS1',院內碼_醫院:'署苗',部位_院內碼:'下肢',大區:'桃竹苗',負責業務:'Tan'},
-  {院內碼:'D112ZBTF',院內碼_醫院:'署苗',部位_院內碼:'埋頭釘',大區:'桃竹苗',負責業務:'Tan'},
+  {院內碼:'BN640',院內碼_醫院:'桃榮',部位_院內碼:'鎖骨',大區:'桃竹苗',負責業務:'Mandy'},
+  {院內碼:'BN672',院內碼_醫院:'桃榮',部位_院內碼:'上肢',大區:'桃竹苗',負責業務:'Mandy'},
+  {院內碼:'BN674',院內碼_醫院:'桃榮',部位_院內碼:'長骨',大區:'桃竹苗',負責業務:'Mandy'},
+  {院內碼:'BN621',院內碼_醫院:'桃榮',部位_院內碼:'小骨',大區:'桃竹苗',負責業務:'Mandy'},
+  {院內碼:'BN641',院內碼_醫院:'桃榮',部位_院內碼:'下肢',大區:'桃竹苗',負責業務:'Mandy'},
+  {院內碼:'BN619',院內碼_醫院:'桃榮',部位_院內碼:'埋頭釘',大區:'桃竹苗',負責業務:'Mandy'},
+  {院內碼:'609Q',院內碼_醫院:'813',部位_院內碼:'鎖骨',大區:'桃竹苗',負責業務:'Mandy'},
+  {院內碼:'609R',院內碼_醫院:'813',部位_院內碼:'上肢',大區:'桃竹苗',負責業務:'Mandy'},
+  {院內碼:'609S',院內碼_醫院:'813',部位_院內碼:'長骨',大區:'桃竹苗',負責業務:'Mandy'},
+  {院內碼:'609T',院內碼_醫院:'813',部位_院內碼:'小骨',大區:'桃竹苗',負責業務:'Mandy'},
+  {院內碼:'609U',院內碼_醫院:'813',部位_院內碼:'下肢',大區:'桃竹苗',負責業務:'Mandy'},
+  {院內碼:'529E',院內碼_醫院:'813',部位_院內碼:'埋頭釘',大區:'桃竹苗',負責業務:'Mandy'},
+  {院內碼:'MA40890',院內碼_醫院:'南門',部位_院內碼:'鎖骨',大區:'桃竹苗',負責業務:'Mandy'},
+  {院內碼:'MA40891',院內碼_醫院:'南門',部位_院內碼:'上肢',大區:'桃竹苗',負責業務:'Mandy'},
+  {院內碼:'MA40892',院內碼_醫院:'南門',部位_院內碼:'長骨',大區:'桃竹苗',負責業務:'Mandy'},
+  {院內碼:'MA40893',院內碼_醫院:'南門',部位_院內碼:'小骨',大區:'桃竹苗',負責業務:'Mandy'},
+  {院內碼:'MA40894',院內碼_醫院:'南門',部位_院內碼:'下肢',大區:'桃竹苗',負責業務:'Mandy'},
+  {院內碼:'MA40881',院內碼_醫院:'南門',部位_院內碼:'埋頭釘',大區:'桃竹苗',負責業務:'Mandy'},
+  {院內碼:'MA40895',院內碼_醫院:'南門',部位_院內碼:'骨釘',大區:'桃竹苗',負責業務:'Mandy'},
+  {院內碼:'18258893',院內碼_醫院:'為恭',部位_院內碼:'鎖骨',大區:'桃竹苗',負責業務:'Mandy'},
+  {院內碼:'18258896',院內碼_醫院:'為恭',部位_院內碼:'上肢',大區:'桃竹苗',負責業務:'Mandy'},
+  {院內碼:'18258894',院內碼_醫院:'為恭',部位_院內碼:'長骨',大區:'桃竹苗',負責業務:'Mandy'},
+  {院內碼:'18258895',院內碼_醫院:'為恭',部位_院內碼:'小骨',大區:'桃竹苗',負責業務:'Mandy'},
+  {院內碼:'18258897',院內碼_醫院:'為恭',部位_院內碼:'下肢',大區:'桃竹苗',負責業務:'Mandy'},
+  {院內碼:'18258892',院內碼_醫院:'為恭',部位_院內碼:'埋頭釘',大區:'桃竹苗',負責業務:'Mandy'},
+  {院內碼:'18258898',院內碼_醫院:'為恭',部位_院內碼:'骨釘',大區:'桃竹苗',負責業務:'Mandy'},
+  {院內碼:'FBZ006187001',院內碼_醫院:'重光',部位_院內碼:'鎖骨',大區:'桃竹苗',負責業務:'Mandy'},
+  {院內碼:'FBZ006187002',院內碼_醫院:'重光',部位_院內碼:'上肢',大區:'桃竹苗',負責業務:'Mandy'},
+  {院內碼:'FBZ006187003',院內碼_醫院:'重光',部位_院內碼:'長骨',大區:'桃竹苗',負責業務:'Mandy'},
+  {院內碼:'FBZ006187004',院內碼_醫院:'重光',部位_院內碼:'小骨',大區:'桃竹苗',負責業務:'Mandy'},
+  {院內碼:'FBZ006187005',院內碼_醫院:'重光',部位_院內碼:'下肢',大區:'桃竹苗',負責業務:'Mandy'},
+  {院內碼:'FBSS09228NNTF',院內碼_醫院:'重光',部位_院內碼:'埋頭釘',大區:'桃竹苗',負責業務:'Mandy'},
+  {院內碼:'FBZ006187006',院內碼_醫院:'重光',部位_院內碼:'骨釘',大區:'桃竹苗',負責業務:'Mandy'},
+  {院內碼:'FBZ006187001',院內碼_醫院:'慈祐',部位_院內碼:'鎖骨',大區:'桃竹苗',負責業務:'Mandy'},
+  {院內碼:'FBZ006187002',院內碼_醫院:'慈祐',部位_院內碼:'上肢',大區:'桃竹苗',負責業務:'Mandy'},
+  {院內碼:'FBZ006187003',院內碼_醫院:'慈祐',部位_院內碼:'長骨',大區:'桃竹苗',負責業務:'Mandy'},
+  {院內碼:'FBZ006187004',院內碼_醫院:'慈祐',部位_院內碼:'小骨',大區:'桃竹苗',負責業務:'Mandy'},
+  {院內碼:'FBZ006187005',院內碼_醫院:'慈祐',部位_院內碼:'下肢',大區:'桃竹苗',負責業務:'Mandy'},
+  {院內碼:'FBSS09228NNTF',院內碼_醫院:'慈祐',部位_院內碼:'埋頭釘',大區:'桃竹苗',負責業務:'Mandy'},
+  {院內碼:'FBZ006187006',院內碼_醫院:'慈祐',部位_院內碼:'骨釘',大區:'桃竹苗',負責業務:'Mandy'},
+  {院內碼:'2608JHS1',院內碼_醫院:'署苗',部位_院內碼:'鎖骨',大區:'桃竹苗',負責業務:'Mandy'},
+  {院內碼:'2608JGS1',院內碼_醫院:'署苗',部位_院內碼:'上肢',大區:'桃竹苗',負責業務:'Mandy'},
+  {院內碼:'2608JJ81C',院內碼_醫院:'署苗',部位_院內碼:'長骨',大區:'桃竹苗',負責業務:'Mandy'},
+  {院內碼:'2608JD81C',院內碼_醫院:'署苗',部位_院內碼:'小骨',大區:'桃竹苗',負責業務:'Mandy'},
+  {院內碼:'2608JFS1',院內碼_醫院:'署苗',部位_院內碼:'下肢',大區:'桃竹苗',負責業務:'Mandy'},
+  {院內碼:'D112ZBTF',院內碼_醫院:'署苗',部位_院內碼:'埋頭釘',大區:'桃竹苗',負責業務:'Mandy'},
   // 北區 - 署北
   {院內碼:'2608JHS1',院內碼_醫院:'署北',部位_院內碼:'鎖骨',大區:'北區',負責業務:'Vincent'},
   {院內碼:'2608JGS1',院內碼_醫院:'署北',部位_院內碼:'上肢',大區:'北區',負責業務:'Vincent'},
@@ -771,11 +893,11 @@ const rulesDb = [
   {醫師:'劉昰國',醫院:'重光'},{醫師:'張東祥',醫院:'慈祐'},{醫師:'林俊良',醫院:'慈祐'},
   {醫師:'汪家成',醫院:'署苗'},{醫師:'李東穎',醫院:'署苗'},{醫師:'謝天傑',醫院:'署苗'},
   {醫師:'施國正',醫院:'署苗'},{醫師:'廖唯任',醫院:'署苗'},
-  // 中國新竹
-  {醫師:'葉詩翰', 醫院:'中國新竹'},
-  {醫師:'曾宗煒', 醫院:'中國新竹'},
-  {醫師:'陳冠融', 醫院:'中國新竹'},
-  {醫師:'楊子正', 醫院:'中國新竹'},
+  // 中國醫(新竹)
+  {醫師:'葉詩翰', 醫院:'中國醫(新竹)'},
+  {醫師:'曾宗煒', 醫院:'中國醫(新竹)'},
+  {醫師:'陳冠融', 醫院:'中國醫(新竹)'},
+  {醫師:'楊子正', 醫院:'中國醫(新竹)'},
   // 仁慈
   {醫師:'何慶安', 醫院:'仁慈'},
   {醫師:'陳俊橋', 醫院:'仁慈'},
@@ -803,6 +925,8 @@ const rulesDb = [
 window.onload = () => {
   renderDate(); renderSalesBadge(); renderWarehouseList();
   renderHospitals(); renderBuwei();
+  // 預熱 n8n，避免冷啟動拖慢送出
+  fetch('https://ydj.zeabur.app/webhook/verify-token',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'}).catch(()=>{});
 };
 
 // ── 選品層級邏輯 ──────────────────────────────────────────────
@@ -909,8 +1033,8 @@ const DB = [
   {部位:'小骨',v1:'Volar',v2:'L',v3:'8H',品號:'T2-04-111-681'},
   {部位:'小骨',v1:'Juxta',v2:'R',v3:'2H',品號:'T2-442-491'},
   {部位:'小骨',v1:'Juxta',v2:'L',v3:'2H',品號:'T2-442-492'},
-  {部位:'小骨',v1:'Juxta',v2:'R',v3:'3H',品號:'T2-442-493'},
-  {部位:'小骨',v1:'Juxta',v2:'L',v3:'3H',品號:'T2-442-494'},
+  {部位:'小骨',v1:'Juxta',v2:'R',v3:'5H',品號:'T2-442-493'},
+  {部位:'小骨',v1:'Juxta',v2:'L',v3:'5H',品號:'T2-442-494'},
   {部位:'小骨',v1:'Fibula',v2:'R',v3:'4H',品號:'T2-04-112-138'},
   {部位:'小骨',v1:'Fibula',v2:'L',v3:'4H',品號:'T2-04-112-139'},
   {部位:'小骨',v1:'Fibula',v2:'R',v3:'6H',品號:'T2-04-112-142'},
@@ -986,6 +1110,66 @@ const DB = [
   {部位:'人工骨',v1:'0.6cc',v2:'',v3:'',品號:'LCMBPCC06200'},
   {部位:'人工骨',v1:'1.0cc',v2:'',v3:'',品號:'LCMBPCC10200'},
   {部位:'人工骨',v1:'2.5cc',v2:'',v3:'',品號:'LCMBPCC25200'},
+  // VA小骨
+  {部位:'VA小骨',v1:'Volar [Narrow]',v2:"R't",v3:'2H',品號:'471502K-V00'},
+  {部位:'VA小骨',v1:'Volar [Narrow]',v2:"L't",v3:'2H',品號:'471502L-V00'},
+  {部位:'VA小骨',v1:'Volar [Narrow]',v2:"R't",v3:'3H',品號:'471503K-V00'},
+  {部位:'VA小骨',v1:'Volar [Narrow]',v2:"L't",v3:'3H',品號:'471503L-V00'},
+  {部位:'VA小骨',v1:'Volar [Narrow]',v2:"R't",v3:'4H',品號:'471504K-V00'},
+  {部位:'VA小骨',v1:'Volar [Narrow]',v2:"L't",v3:'4H',品號:'471504L-V00'},
+  {部位:'VA小骨',v1:'Volar [Narrow]',v2:"R't",v3:'5H',品號:'471505K-V00'},
+  {部位:'VA小骨',v1:'Volar [Narrow]',v2:"L't",v3:'5H',品號:'471505L-V00'},
+  {部位:'VA小骨',v1:'Volar [Narrow]',v2:"R't",v3:'6H',品號:'471506M-V00'},
+  {部位:'VA小骨',v1:'Volar [Narrow]',v2:"L't",v3:'6H',品號:'471506N-V00'},
+  {部位:'VA小骨',v1:'Volar [Narrow]',v2:"R't",v3:'8H',品號:'471508M-V00'},
+  {部位:'VA小骨',v1:'Volar [Narrow]',v2:"L't",v3:'8H',品號:'471508N-V00'},
+  {部位:'VA小骨',v1:'Volar [Narrow]',v2:"R't",v3:'10H',品號:'471510M-V00'},
+  {部位:'VA小骨',v1:'Volar [Narrow]',v2:"L't",v3:'10H',品號:'471510N-V00'},
+  {部位:'VA小骨',v1:'Volar [Narrow]',v2:"R't",v3:'12H',品號:'471512M-V00'},
+  {部位:'VA小骨',v1:'Volar [Narrow]',v2:"L't",v3:'12H',品號:'471512N-V00'},
+  {部位:'VA小骨',v1:'Volar [Standard]',v2:"R't",v3:'2H',品號:'470302K-V00'},
+  {部位:'VA小骨',v1:'Volar [Standard]',v2:"L't",v3:'2H',品號:'470302L-V00'},
+  {部位:'VA小骨',v1:'Volar [Standard]',v2:"R't",v3:'3H',品號:'470303K-V00'},
+  {部位:'VA小骨',v1:'Volar [Standard]',v2:"L't",v3:'3H',品號:'470303L-V00'},
+  {部位:'VA小骨',v1:'Volar [Standard]',v2:"R't",v3:'4H',品號:'470304K-V00'},
+  {部位:'VA小骨',v1:'Volar [Standard]',v2:"L't",v3:'4H',品號:'470304L-V00'},
+  {部位:'VA小骨',v1:'Volar [Standard]',v2:"R't",v3:'5H',品號:'470305K-V00'},
+  {部位:'VA小骨',v1:'Volar [Standard]',v2:"L't",v3:'5H',品號:'470305L-V00'},
+  {部位:'VA小骨',v1:'Volar [Standard]',v2:"R't",v3:'6H',品號:'470306M-V00'},
+  {部位:'VA小骨',v1:'Volar [Standard]',v2:"L't",v3:'6H',品號:'470306N-V00'},
+  {部位:'VA小骨',v1:'Volar [Standard]',v2:"R't",v3:'8H',品號:'470308M-V00'},
+  {部位:'VA小骨',v1:'Volar [Standard]',v2:"L't",v3:'8H',品號:'470308N-V00'},
+  {部位:'VA小骨',v1:'Volar [Standard]',v2:"R't",v3:'10H',品號:'470310M-V00'},
+  {部位:'VA小骨',v1:'Volar [Standard]',v2:"L't",v3:'10H',品號:'470310N-V00'},
+  {部位:'VA小骨',v1:'Volar [Standard]',v2:"R't",v3:'12H',品號:'470312M-V00'},
+  {部位:'VA小骨',v1:'Volar [Standard]',v2:"L't",v3:'12H',品號:'470312N-V00'},
+  {部位:'VA小骨',v1:'Volar [Wide]',v2:"R't",v3:'2H',品號:'471602K-V00'},
+  {部位:'VA小骨',v1:'Volar [Wide]',v2:"L't",v3:'2H',品號:'471602L-V00'},
+  {部位:'VA小骨',v1:'Volar [Wide]',v2:"R't",v3:'3H',品號:'471603K-V00'},
+  {部位:'VA小骨',v1:'Volar [Wide]',v2:"L't",v3:'3H',品號:'471603L-V00'},
+  {部位:'VA小骨',v1:'Volar [Wide]',v2:"R't",v3:'4H',品號:'471604K-V00'},
+  {部位:'VA小骨',v1:'Volar [Wide]',v2:"L't",v3:'4H',品號:'471604L-V00'},
+  {部位:'VA小骨',v1:'Volar [Wide]',v2:"R't",v3:'5H',品號:'471605K-V00'},
+  {部位:'VA小骨',v1:'Volar [Wide]',v2:"L't",v3:'5H',品號:'471605L-V00'},
+  {部位:'VA小骨',v1:'Volar [Wide]',v2:"R't",v3:'6H',品號:'471606M-V00'},
+  {部位:'VA小骨',v1:'Volar [Wide]',v2:"L't",v3:'6H',品號:'471606N-V00'},
+  {部位:'VA小骨',v1:'Volar [Wide]',v2:"R't",v3:'8H',品號:'471608M-V00'},
+  {部位:'VA小骨',v1:'Volar [Wide]',v2:"L't",v3:'8H',品號:'471608N-V00'},
+  {部位:'VA小骨',v1:'Volar [Wide]',v2:"R't",v3:'10H',品號:'471610M-V00'},
+  {部位:'VA小骨',v1:'Volar [Wide]',v2:"L't",v3:'10H',品號:'471610N-V00'},
+  {部位:'VA小骨',v1:'Volar [Wide]',v2:"R't",v3:'12H',品號:'471612M-V00'},
+  {部位:'VA小骨',v1:'Volar [Wide]',v2:"L't",v3:'12H',品號:'471612N-V00'},
+  {部位:'VA小骨',v1:'2.4直板',v2:'4H',v3:'',品號:'472004K-V00'},
+  {部位:'VA小骨',v1:'2.4直板',v2:'5H',v3:'',品號:'472005K-V00'},
+  {部位:'VA小骨',v1:'2.4直板',v2:'6H',v3:'',品號:'472006K-V00'},
+  {部位:'VA小骨',v1:'2.4直板',v2:'7H',v3:'',品號:'472007K-V00'},
+  {部位:'VA小骨',v1:'2.4直板',v2:'8H',v3:'',品號:'472008K-V00'},
+  {部位:'VA小骨',v1:'2.4 Y板',v2:'',v3:'',品號:'472101K-V00'},
+  {部位:'VA小骨',v1:'2.4 T板',v2:'',v3:'',品號:'472201K-V00'},
+  {部位:'VA小骨',v1:'2.4 關節板',v2:'',v3:'',品號:'471901K-V00'},
+  {部位:'VA小骨',v1:'2.4 H板',v2:'2X2',v3:'',品號:'472901K-V00'},
+  {部位:'VA小骨',v1:'2.4 H板',v2:'3X2',v3:'',品號:'473001K-V00'},
+  {部位:'VA小骨',v1:'2.4 H板',v2:'4X2',v3:'',品號:'473101K-V00'},
 ];
 
 // 埋頭釘長度資料
@@ -1006,7 +1190,7 @@ const SCREW_PN = {
   '7.5':{65:'T04750-065',70:'T04750-070',75:'T04750-075',80:'T04750-080',85:'T04750-085',90:'T04750-090',95:'T04750-095',100:'T04750-100',105:'T04750-105',110:'T04750-110'},
 };
 
-const BUWEI_LIST = ['鎖骨','上肢','長骨','小骨','下肢','埋頭釘','骨釘','人工骨','VA'];
+const BUWEI_LIST = ['鎖骨','上肢','長骨','小骨','下肢','埋頭釘','骨釘','人工骨','VA小骨','VA上肢','VA骨釘'];
 // 無左右的版型1
 const NO_RL = {
   '上肢':['LPHP'],
@@ -1047,11 +1231,12 @@ function renderLevels() {
 
   if (b === '埋頭釘') { renderScrewLevels(lc); return; }
   if (b === '人工骨') { renderSimpleLevels(lc); return; }
-  if (b === '骨釘' || b === 'VA') { renderNA(lc); return; }
+  if (b === '骨釘' || b === 'VA骨釘' || b === 'VA上肢') { renderNA(lc); return; }
 
   // 一般骨板：V1
   const v1opts = [...new Set(DB.filter(r=>r.部位===b).map(r=>r.v1))];
-  const makeBtnV1 = v => `<button class="sel-btn ${v===sel.v1?'selected':''}" onclick="setV1('${v}')">${v}</button>`;
+  const escQ = v => v.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+  const makeBtnV1 = v => `<button class="sel-btn ${v===sel.v1?'selected':''}" onclick="setV1('${escQ(v)}')">${v}</button>`;
 
   let html;
   if (b === '鎖骨') {
@@ -1066,6 +1251,12 @@ function renderLevels() {
       `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px;" class="grid-level">${['Volar','Juxta','Radial Head'].map(makeBtnV1).join('')}</div>` +
       `<div style="display:grid;grid-template-columns:repeat(1,1fr);gap:8px;" class="grid-level">${['Fibula'].map(makeBtnV1).join('')}</div>`;
     html = `<div style="margin-bottom:14px;"><div class="level-label"><span class="lnum">1</span>版型</div>${xiaoguHtml}</div>`;
+  } else if (b === 'VA小骨') {
+    const vaHtml =
+      `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px;" class="grid-level">${['Volar [Narrow]','Volar [Standard]','Volar [Wide]'].map(makeBtnV1).join('')}</div>` +
+      `<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:8px;" class="grid-level">${['2.4直板','2.4 Y板','2.4 T板','2.4 關節板'].map(makeBtnV1).join('')}</div>` +
+      `<div style="display:grid;grid-template-columns:repeat(1,1fr);gap:8px;" class="grid-level">${['2.4 H板'].map(makeBtnV1).join('')}</div>`;
+    html = `<div style="margin-bottom:14px;"><div class="level-label"><span class="lnum">1</span>版型</div>${vaHtml}</div>`;
   } else if (b === '下肢') {
     const xiaHtml =
       `<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:8px;" class="grid-level">${['Distal Femur','DHS'].map(makeBtnV1).join('')}</div>` +
@@ -1088,13 +1279,13 @@ function renderLevels() {
         if (isRL) {
           const sorted = [...v2opts].sort((a,b)=>a.startsWith('L')?-1:b.startsWith('L')?1:0);
           html += levelBlock(2, '左／右側', sorted.map(v =>
-            `<button class="sel-btn rl-${v[0].toLowerCase()} ${v===sel.v2?'selected':''}" onclick="setV2('${v}')">${v}</button>`
+            `<button class="sel-btn rl-${v[0].toLowerCase()} ${v===sel.v2?'selected':''}" onclick="setV2('${escQ(v)}')">${v}</button>`
           ).join(''), 2);
         } else {
           // 板型：直板/Y/T/Z 等，兩欄填滿
           const cols = v2opts.length <= 2 ? v2opts.length : 2;
           html += levelBlock(2, '板型', v2opts.map(v =>
-            `<button class="sel-btn ${v===sel.v2?'selected':''}" onclick="setV2('${v}')">${v}</button>`
+            `<button class="sel-btn ${v===sel.v2?'selected':''}" onclick="setV2('${escQ(v)}')">${v}</button>`
           ).join(''), cols);
         }
       }
@@ -1105,7 +1296,7 @@ function renderLevels() {
         html += levelBlock(2, '左／右側（Head）或無（Neck）',
           `<button class="sel-btn ${''===sel.v2?'selected':''}" onclick="setV2('')">Neck（無側）</button>` +
           v2opts.map(v=>
-            `<button class="sel-btn rl-${v[0].toLowerCase()} ${v===sel.v2?'selected':''}" onclick="setV2('${v}')">${v}</button>`
+            `<button class="sel-btn rl-${v[0].toLowerCase()} ${v===sel.v2?'selected':''}" onclick="setV2('${escQ(v)}')">${v}</button>`
           ).join(''), 2
         );
       }
@@ -1254,11 +1445,10 @@ function adjDhsLag(d){ dhsLagQty=Math.max(1,dhsLagQty+d); const el=document.getE
 function adjDhsComp(d){ dhsCompQty=Math.max(0,dhsCompQty+d); const el=document.getElementById('dhsCompQtyD'); if(el) el.textContent=dhsCompQty; }
 
 // ─── 選擇處理 ────────────────────────────────────────────────
-function setV1(v) { sel.v1=v; sel.v2=''; sel.v3=''; sel.品號=''; renderLevels(); updateCode(); }
+function setV1(v) { sel.v1=v; sel.v2=''; sel.v3=''; sel.品號=''; const r1=DB.find(x=>x.部位===sel.buwei&&x.v1===v&&x.v2===''&&x.v3===''); if(r1) sel.品號=r1.品號; renderLevels(); updateCode(); }
 function setV2(v) {
   sel.v2=v; sel.v3=''; sel.品號='';
-  // Y型/T型/Z型 無v3，直接查品號
-  if (NO_V3.includes(v)) {
+  if (NO_V3.includes(v) || !DB.some(x=>x.部位===sel.buwei&&x.v1===sel.v1&&x.v2===v&&x.v3)) {
     const r = DB.find(x=>x.部位===sel.buwei&&x.v1===sel.v1&&x.v2===v&&x.v3==='');
     sel.品號 = r?.品號||'';
   }
@@ -1298,7 +1488,7 @@ function showQtyAndAdd() {
   let done = false;
   if (b==='埋頭釘') done = !!(sel.v1 && sel.v3);
   else if (b==='人工骨') done = !!sel.v1;
-  else if (b==='骨釘'||b==='VA') done = true;
+  else if (b==='骨釘'||b==='VA骨釘'||b==='VA上肢') done = true;
   else {
     const needsV2 = DB.some(r=>r.部位===b&&r.v1===sel.v1&&r.v2);
     const needsV3 = sel.v1 && !NO_V3.includes(sel.v2) &&
@@ -1586,7 +1776,7 @@ function getHospitals(){
   let all;
   if(supportMode&&selectedZone){all=[...new Set(innerCodeDb.filter(r=>r['大區']===selectedZone).map(r=>r['院內碼_醫院']).filter(Boolean))];return{prioritized:[],rest:all};}
   if(supportMode){return{prioritized:[],rest:[]};}
-  if(currentSales){all=[...new Set(innerCodeDb.filter(r=>r['負責業務']===currentSales).map(r=>r['院內碼_醫院']).filter(Boolean))];}
+  if(currentSales){all=[...new Set(innerCodeDb.filter(r=>r['負責業務']?.toLowerCase()===currentSales.toLowerCase()).map(r=>r['院內碼_醫院']).filter(Boolean))];}
   else{all=[...new Set(innerCodeDb.map(r=>r['院內碼_醫院']).filter(Boolean))];}
   const pk=`tandry_priority_${currentSales}`;const p=JSON.parse(localStorage.getItem(pk)||'[]');
   return{prioritized:p.filter(h=>all.includes(h)),rest:all.filter(h=>!p.includes(h))};
@@ -1747,6 +1937,7 @@ function clearForm(){
   // 組件 / 工具 / 備註
   document.getElementById('componentInput').value='';
   document.getElementById('toolInput').value='';
+  clearQuickDamageItems();
   const cd=document.getElementById('componentDisplay');if(cd)cd.innerHTML='';
   const td=document.getElementById('toolDisplay');if(td)td.innerHTML='';
   document.getElementById('remarkInput').value='';
@@ -1785,7 +1976,7 @@ function buildPayload(){
     單據類型:selectedType,
     釘子明細:buildScrewText(),
     組件:document.getElementById('componentInput')?.value||'',
-    工具:document.getElementById('toolInput')?.value||'',
+    工具:[buildQuickDamageText(), document.getElementById('toolInput')?.value||''].filter(Boolean).join('\n'),
     備註:document.getElementById('remarkInput')?.value||'',
   };
 }
@@ -1870,7 +2061,10 @@ function showPreview(){
   const cb=t=>t===selectedType?'☑':'☐';
   const component=d.組件;
   const remark=d.備註;
-  const damageNote=[document.getElementById('toolInput')?.value||'',buildDamageScrewText()].filter(Boolean).join('\n');
+  const damageNote=[buildQuickDamageText(), document.getElementById('toolInput')?.value||'',buildDamageScrewText()].filter(Boolean).join('\n');
+  const damageHTML_screws = buildDamageScrewHTML();
+  const damageHTML_extra  = [buildQuickDamageText(), document.getElementById('toolInput')?.value||''].filter(Boolean).join('\n');
+  const damageHTML_combined = [damageHTML_screws, damageHTML_extra ? '<div style="white-space:pre-wrap;font-size:12px;margin-top:4px;">' + damageHTML_extra.replace(/&/g,'&amp;').replace(/</g,'&lt;') + '</div>' : ''].filter(Boolean).join('');
 
   let implantLines=[];
   let innerCodeLines=[];
@@ -1944,7 +2138,7 @@ function showPreview(){
             </div>
             <div style="padding:8px;min-height:60px;">
               <div style="font-weight:700;font-size:11px;margin-bottom:4px;">報損：</div>
-              <div style="line-height:2.2;">${buildDamageScrewHTML()||damageNote}</div>
+              <div style="line-height:2.2;">${damageHTML_combined||'無'}</div>
             </div>
           </td>
         </tr>
@@ -1955,6 +2149,7 @@ function showPreview(){
       </div>
     </div>`;
   document.getElementById('previewModal').classList.add('show');
+  renderSaveImgToggle();
 }
 
 function closePreview(){
@@ -1984,6 +2179,19 @@ function showSuccessOverlay(serial){
   overlay.onclick=()=>document.body.removeChild(overlay);
   document.body.appendChild(overlay);
   setTimeout(()=>{if(document.body.contains(overlay))document.body.removeChild(overlay);},4000);
+}
+
+function renderSaveImgToggle(){
+  const tog=document.getElementById('saveImgToggle');
+  const knob=document.getElementById('saveImgKnob');
+  if(!tog)return;
+  tog.style.background=saveImageEnabled?'#4CAF50':'#ccc';
+  knob.style.left=saveImageEnabled?'21px':'3px';
+}
+function toggleSaveImg(){
+  saveImageEnabled=!saveImageEnabled;
+  localStorage.setItem('tandry_save_image',saveImageEnabled);
+  renderSaveImgToggle();
 }
 
 function renderInfoGrid(){
@@ -2033,19 +2241,19 @@ async function confirmSubmit(){
       院內碼:codeOut, 費用類型:item.payNote||'',
       另洽:item.另洽?'是':'', DHS組件:item.dhsNote||'',
       組件:isFirst?document.getElementById('componentInput')?.value||'':'',
-      報損:isFirst?buildDamageScrewText():'',
+      報損:isFirst?[buildDamageScrewText(),buildQuickDamageText(),document.getElementById('toolInput')?.value||''].filter(Boolean).join('\n'):'',
       備註:isFirst?document.getElementById('remarkInput')?.value||'':'',
       單據類型:isFirst?selectedType:'',
     };
     console.log('[confirmSubmit] sending row:', JSON.stringify(row));
     try{
       const ctrl=new AbortController();
-      const t=setTimeout(()=>ctrl.abort(),8000);
+      const t=setTimeout(()=>ctrl.abort(),20000);
       const res=await fetch(WEBHOOK_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(row),signal:ctrl.signal});
       clearTimeout(t);
       console.log('[confirmSubmit] response status:', res.status);
-      if(!res.ok){console.error('[confirmSubmit] HTTP error:', res.status); anyFailed=true;}
       if(isFirst){try{const json=await res.json();serialNo=json.serialNo||json.流水號||'';console.log('[confirmSubmit] serialNo:', serialNo);}catch(e){console.warn('[confirmSubmit] parse json failed:', e);}}
+      if(!res.ok && !serialNo){console.error('[confirmSubmit] HTTP error:', res.status); anyFailed=true;}
     }catch(e){console.error('報刀資料送出失敗',e);anyFailed=true;}
   }
   if(anyFailed){showToast('部分資料送出失敗，請檢查網路','error');btn.disabled=false;btn.textContent='✅ 確認送出';return;}
@@ -2066,6 +2274,7 @@ async function confirmSubmit(){
     }catch(e){console.error('追蹤送出失敗',e);}
   }
   // 截圖 → 下載 + 上傳 Drive
+  if(saveImageEnabled){
   try{
     const previewEl=document.getElementById('previewContent');
     const prevMaxHeight=previewEl.style.maxHeight;
@@ -2101,6 +2310,7 @@ async function confirmSubmit(){
       clearTimeout(t2);
     }catch(e){console.error('Drive上傳失敗',e);}
   }catch(e){console.error('截圖失敗',e);}
+  }
   closePreview();
   showSuccessOverlay(serialNo);
   btn.disabled=false; btn.textContent='✅ 確認送出';
@@ -2123,6 +2333,8 @@ const std20L = [...std20, 22].sort((a,b)=>a-b);
 const std50L = genLengths([{from:20,to:50,step:2},{from:55,to:90,step:5}]);
 const std50C = genLengths([{from:20,to:50,step:2}]);
 std50C.push(...[54,60,64,70,80,90]); std50C.sort((a,b)=>a-b);
+const vaL = genLengths([{from:6,to:14,step:1},{from:16,to:30,step:2}]);
+const vaC = genLengths([{from:10,to:30,step:2}]);
 
 const screwBoardDefs = {
   '1.5':{types:[{type:'L',color:'#4CAF50',dark:'#2E7D32'},{type:'C',color:'#FF9800',dark:'#E65100'}],lengths:std15},
@@ -2130,7 +2342,7 @@ const screwBoardDefs = {
   '2.4':{types:[{type:'L',color:'#4CAF50',dark:'#2E7D32'},{type:'C',color:'#FF9800',dark:'#E65100'}],lengths:std24},
   '3.5':{types:[{type:'L',color:'#4CAF50',dark:'#2E7D32'},{type:'C',color:'#FF9800',dark:'#E65100'}],lengths:std35},
   '5.0':{types:[{type:'L',color:'#4CAF50',dark:'#2E7D32'},{type:'C',color:'#FF9800',dark:'#E65100'}],lengthsL:std50L,lengthsC:std50C},
-  'VA': {types:[{type:'L',color:'#9C27B0',dark:'#6A1B9A'},{type:'C',color:'#FF9800',dark:'#E65100'}],lengths:[]},
+  'VA': {types:[{type:'L',color:'#9C27B0',dark:'#6A1B9A'},{type:'C',color:'#FF9800',dark:'#E65100'}],lengthsL:vaL,lengthsC:vaC},
 };
 let activeScrewBoards = [];
 let screwState = {};
@@ -2143,7 +2355,7 @@ function removeScrewBoard(id){activeScrewBoards=activeScrewBoards.filter(b=>b.id
 function toggleScrewBoard(id){const body=document.getElementById(`body_${id}`);const arrow=document.getElementById(`arrow_${id}`);const isOpen=body.style.display!=='none';body.style.display=isOpen?'none':'block';arrow.textContent=isOpen?'▶':'▼';}
 
 function toggleDamageSection(){const body=document.getElementById('damageSectionBody');const arrow=document.getElementById('damageSectionArrow');const isOpen=body.style.display!=='none';body.style.display=isOpen?'none':'block';arrow.textContent=isOpen?'▶':'▼';}
-function updateDamageIndicator(){const hasScrews=activeDamageScrewBoards.length>0&&Object.values(damageScrewState).some(v=>v>0);const hasNote=(document.getElementById('toolInput')?.value||'').trim().length>0;const dot=document.getElementById('damageSectionDot');if(dot)dot.style.display=(hasScrews||hasNote)?'inline-block':'none';}
+function updateDamageIndicator(){const hasScrews=activeDamageScrewBoards.length>0&&Object.values(damageScrewState).some(v=>v>0);const hasNote=(document.getElementById('toolInput')?.value||'').trim().length>0;const hasQuick=typeof quickDamageItems!=='undefined'&&quickDamageItems.length>0;const dot=document.getElementById('damageSectionDot');if(dot)dot.style.display=(hasScrews||hasNote||hasQuick)?'inline-block':'none';}
 
 function showAddDamageScrewBoard(){const p=document.getElementById('addDamageScrewPanel');p.style.display=p.style.display==='none'?'block':'none';}
 function addDamageScrewBoard(dia){if(activeDamageScrewBoards.find(b=>b.dia===dia)){showToast(`已有 ${dia} mm 釘盤`,'error');document.getElementById('addDamageScrewPanel').style.display='none';return;}const id=`dmg_${dia}_${Date.now()}`;activeDamageScrewBoards.push({dia,id});document.getElementById('addDamageScrewPanel').style.display='none';renderAllDamageScrewBoards();}
@@ -2158,8 +2370,8 @@ function renderAllDamageScrewBoards(){
     const def=screwBoardDefs[dia];if(!def)return'';
     const typesHtml=def.types.map(({type,color,dark})=>{
       const lengths=def.lengthsL?(type==='L'?def.lengthsL:def.lengthsC):def.lengths;
-      if(!lengths.length)return`<div style="color:var(--muted);font-size:12px;padding:6px 0;">${type} — 尺寸待補齊</div>`;
-      return`<div class="screw-type-label" style="color:${color};margin-top:8px;">● ${type} — ${type==='L'?'Locking':'Cortex'}</div>
+      if(!lengths.length)return`<div style="color:var(--muted);font-size:12px;padding:6px 0;">${(dia==='VA'&&type==='L')?'QL':type} — 尺寸待補齊</div>`;
+      return`<div class="screw-type-label" style="color:${color};margin-top:8px;">● ${(dia==='VA'&&type==='L')?'QL':type} — ${type==='L'?'Locking':'Cortex'}</div>
       <div class="screw-row">${lengths.map(len=>`
         <div class="screw-dot-wrap">
           <div class="screw-len">${len}</div>
@@ -2169,7 +2381,7 @@ function renderAllDamageScrewBoards(){
     }).join('');
     return`<div style="margin-bottom:10px;border:1px solid var(--border);border-radius:10px;overflow:hidden;">
       <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg);cursor:pointer;" onclick="toggleDamageScrewBoard('${id}')">
-        <div style="font-size:13px;font-weight:700;color:var(--accent);"><span id="arrow_${id}">▼</span> ⌀ ${dia} mm</div>
+        <div style="font-size:13px;font-weight:700;color:var(--accent);"><span id="arrow_${id}">▼</span> ⌀ ${dia==='VA'?'2.4VA':dia} mm</div>
         <button onclick="event.stopPropagation();removeDamageScrewBoard('${id}')" style="padding:3px 10px;border-radius:6px;border:1px solid var(--accent2);background:white;color:var(--accent2);font-size:11px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;">移除</button>
       </div>
       <div id="body_${id}" style="padding:12px;">${typesHtml}</div>
@@ -2189,8 +2401,8 @@ function renderAllScrewBoards(){
     const def=screwBoardDefs[dia];if(!def)return'';
     const typesHtml=def.types.map(({type,color,dark})=>{
       const lengths=def.lengthsL?(type==='L'?def.lengthsL:def.lengthsC):def.lengths;
-      if(!lengths.length)return`<div style="color:var(--muted);font-size:12px;padding:6px 0;">${type} — 尺寸待補齊</div>`;
-      return`<div class="screw-type-label" style="color:${color};margin-top:8px;">● ${type} — ${type==='L'?'Locking':'Cortex'}</div>
+      if(!lengths.length)return`<div style="color:var(--muted);font-size:12px;padding:6px 0;">${(dia==='VA'&&type==='L')?'QL':type} — 尺寸待補齊</div>`;
+      return`<div class="screw-type-label" style="color:${color};margin-top:8px;">● ${(dia==='VA'&&type==='L')?'QL':type} — ${type==='L'?'Locking':'Cortex'}</div>
       <div class="screw-row">${lengths.map(len=>`
         <div class="screw-dot-wrap">
           <div class="screw-len">${len}</div>
@@ -2200,7 +2412,7 @@ function renderAllScrewBoards(){
     }).join('');
     return`<div style="margin-bottom:10px;border:1px solid var(--border);border-radius:10px;overflow:hidden;">
       <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg);cursor:pointer;" onclick="toggleScrewBoard('${id}')">
-        <div style="font-size:13px;font-weight:700;color:var(--accent);"><span id="arrow_${id}">▼</span> ⌀ ${dia} mm</div>
+        <div style="font-size:13px;font-weight:700;color:var(--accent);"><span id="arrow_${id}">▼</span> ⌀ ${dia==='VA'?'2.4VA':dia} mm</div>
         <button onclick="event.stopPropagation();removeScrewBoard('${id}')" style="padding:3px 10px;border-radius:6px;border:1px solid var(--accent2);background:white;color:var(--accent2);font-size:11px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;">移除</button>
       </div>
       <div id="body_${id}" style="padding:12px;">${typesHtml}</div>
@@ -2224,7 +2436,7 @@ function updateComponentFromScrews(){
       const entries=[];
       for(const len of lengths){const cnt=screwState[`${id}_${type}_${len}`]||0;if(cnt>0)entries.push(`${len}x${toZheng(cnt)}`);}
       if(entries.length>0){
-      const prefix=`${dia} ${type}: `;
+      const prefix=`${dia==='VA'?'2.4':dia}${dia==='VA'?'':' '}${(dia==='VA'&&type==='L')?'QL':type}: `;
       const indent=' '.repeat(prefix.length);
       const rows=[];
       for(let i=0;i<entries.length;i+=6){rows.push(entries.slice(i,i+6).join('・'));}
@@ -2281,7 +2493,7 @@ function buildScrewText(){
       const entries=[];
       for(const len of lengths){const cnt=screwState[`${id}_${type}_${len}`]||0;if(cnt>0)entries.push(`${len}x${toZheng(cnt)}`);}
       if(entries.length>0){
-        const prefix=`${dia} ${type}: `;
+        const prefix=`${dia==='VA'?'2.4':dia}${dia==='VA'?'':' '}${(dia==='VA'&&type==='L')?'QL':type}: `;
         const indent=' '.repeat(prefix.length);
         const rows=[];
         for(let i=0;i<entries.length;i+=6){rows.push(entries.slice(i,i+6).join('・'));}
@@ -2303,7 +2515,7 @@ function buildDamageScrewText(){
       const entries=[];
       for(const len of lengths){const cnt=damageScrewState[`${id}_${type}_${len}`]||0;if(cnt>0)entries.push(`${len}x${toZheng(cnt)}`);}
       if(entries.length>0){
-        const prefix=`${dia} ${type}: `;
+        const prefix=`${dia==='VA'?'2.4':dia}${dia==='VA'?'':' '}${(dia==='VA'&&type==='L')?'QL':type}: `;
         const indent=' '.repeat(prefix.length);
         const rows=[];
         for(let i=0;i<entries.length;i+=6){rows.push(entries.slice(i,i+6).join('・'));}
@@ -2337,7 +2549,7 @@ function _buildZhengHTML(boards, state){
         }
       }
       if(entries.length>0){
-        const label=`<span style="font-weight:700;color:${tc};font-family:'Inconsolata',monospace;">${dia} ${type}:</span>`;
+        const label=`<span style="font-weight:700;color:${tc};font-family:'Inconsolata',monospace;">${dia==='VA'?'2.4':dia}${dia==='VA'?'':' '}${(dia==='VA'&&type==='L')?'QL':type}:</span>`;
         const sep=`<span style="font-size:13px;color:#bbb;margin:0 4px;">/</span>`;
         const tagged=entries.map((e,i)=>i<entries.length-1?e+sep:e).join('');
         diaLines.push(`<div style="display:block;line-height:2.2;">${label} ${tagged}</div>`);
@@ -2349,6 +2561,70 @@ function _buildZhengHTML(boards, state){
 }
 function buildScrewHTML(){ return _buildZhengHTML(activeScrewBoards, screwState); }
 function buildDamageScrewHTML(){ return _buildZhengHTML(activeDamageScrewBoards, damageScrewState); }
+
+// ── 常用報損快選 ──
+let quickDamageItems = [];
+
+function toggleQuickDamage(){
+  document.getElementById('qdHeader').classList.toggle('open');
+}
+
+function addQuickDamage(btn, name, code){
+  const exist = quickDamageItems.find(it => it.code === code);
+  if (exist) { exist.qty++; }
+  else { quickDamageItems.push({ name, code, qty: 1 }); }
+  renderQdItems();
+  syncQdToInput();
+  btn.classList.add('flash');
+  setTimeout(() => btn.classList.remove('flash'), 300);
+}
+
+function changeQdQty(idx, delta){
+  const item = quickDamageItems[idx];
+  if (!item) return;
+  item.qty = Math.max(1, item.qty + delta);
+  renderQdItems();
+  syncQdToInput();
+}
+
+function removeQdItem(idx){
+  quickDamageItems.splice(idx, 1);
+  renderQdItems();
+  syncQdToInput();
+}
+
+function renderQdItems(){
+  const wrap = document.getElementById('qdSelected');
+  const list = document.getElementById('qdItemList');
+  if (!quickDamageItems.length) { wrap.style.display = 'none'; return; }
+  wrap.style.display = '';
+  list.innerHTML = quickDamageItems.map((it, i) => `
+    <div class="qd-item">
+      <span class="qd-item-name">${it.name}</span>
+      <span class="qd-item-code">${it.code}</span>
+      <div class="qd-item-qty-wrap">
+        <button class="qd-item-qty-btn" onclick="changeQdQty(${i},-1)">−</button>
+        <span class="qd-item-qty">${it.qty}</span>
+        <button class="qd-item-qty-btn" onclick="changeQdQty(${i},+1)">+</button>
+      </div>
+      <button class="qd-item-remove" onclick="removeQdItem(${i})">✕</button>
+    </div>`).join('');
+}
+
+function buildQuickDamageText(){
+  return quickDamageItems.map(it =>
+    it.name + '(' + it.code + ')' + (it.qty > 1 ? ' x' + it.qty : '')
+  ).join('\n');
+}
+
+function syncQdToInput(){
+  updateDamageIndicator();
+}
+
+function clearQuickDamageItems(){
+  quickDamageItems = [];
+  renderQdItems();
+}
 </script>
 <script>
 if ('serviceWorker' in navigator) {

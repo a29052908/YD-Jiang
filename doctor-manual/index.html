@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#14355a">
+<title>Tandry 骨科耗材手冊</title>
+<link rel="manifest" href="./manifest.json">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Noto+Sans+TC:wght@300;400;500;700&family=Bebas+Neue&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f0efec;--white:#fff;--ink:#181818;--ink2:#555;--ink3:#999;
+  --border:#e2e0db;--accent:#14355a;--accent2:#1a4a78;
+  --gold:#9a7200;--gold-bg:#fdf6e3;--gold-border:#e8d48a;
+  --green:#1a5c3a;--green-bg:#e8f5ef;
+  --radius:12px;--shadow:0 2px 8px rgba(0,0,0,0.09);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font-family:'Noto Sans TC',sans-serif;max-width:480px;margin:0 auto;min-height:100vh;font-size:14px}
+
+/* HEADER */
+.hdr{background:var(--accent);padding:12px 16px 10px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;box-shadow:0 2px 8px rgba(0,0,0,.22)}
+.brand{font-family:'Bebas Neue',cursive;font-size:22px;letter-spacing:3px;color:#fff;line-height:1}
+.brand-sub{font-size:9px;letter-spacing:2px;color:rgba(255,255,255,.5);margin-top:2px;font-family:'DM Mono',monospace}
+.contact-row{display:flex;gap:6px;justify-content:flex-end;margin-top:4px}
+.cbtn{display:flex;align-items:center;gap:4px;background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.22);border-radius:20px;padding:3px 10px;color:#fff;font-size:11px;text-decoration:none;cursor:pointer;font-family:inherit}
+.cbtn svg{width:11px;height:11px;fill:currentColor}
+.rep{font-size:12px;color:rgba(255,255,255,.85);font-weight:500;text-align:right}
+
+/* TABS */
+.tabs{background:var(--white);border-bottom:2px solid var(--border);display:flex;overflow-x:auto;scrollbar-width:none;position:sticky;top:58px;z-index:190}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex-shrink:0;padding:10px 16px;font-size:13px;font-weight:500;color:var(--ink3);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;white-space:nowrap;transition:all .18s;user-select:none}
+.tab.on{color:var(--accent);border-bottom-color:var(--accent);font-weight:700}
+
+/* SECTION */
+.sec{display:none;padding:12px 12px 50px}
+.sec.on{display:block}
+
+/* 院內碼 BANNER */
+.banner{display:flex;align-items:center;background:var(--accent);border-radius:10px;margin-bottom:12px;padding:9px 14px;gap:8px}
+.banner-lbl{font-size:11px;color:rgba(255,255,255,.65);letter-spacing:1px;white-space:nowrap}
+.banner-code{font-family:'DM Mono',monospace;font-size:17px;color:#fff;letter-spacing:2px;flex:1;text-align:center}
+.copy-btn{display:flex;align-items:center;gap:4px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);border-radius:7px;padding:5px 11px;color:#fff;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:background .15s}
+.copy-btn:active{background:rgba(255,255,255,.3)}
+.copy-btn.ok{background:rgba(50,180,100,.4);border-color:rgba(50,180,100,.5)}
+.copy-btn svg{width:11px;height:11px;fill:currentColor}
+
+/* PRODUCT GRID */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+/* PRODUCT TILE */
+.tile{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;cursor:pointer;transition:transform .15s,box-shadow .15s;-webkit-user-select:none;user-select:none;position:relative}
+.tile:active{transform:scale(.96);box-shadow:0 1px 4px rgba(0,0,0,.1)}
+.tile-img{width:100%;aspect-ratio:1/1;object-fit:contain;background:#f8f8f6;padding:10px;display:block}
+.tile-img-ph{width:100%;aspect-ratio:1/1;background:#f0eeeb;display:flex;align-items:center;justify-content:center}
+.tile-img-ph svg{width:36px;height:36px;opacity:.2}
+.tile-name{padding:7px 10px 9px;font-size:12px;font-weight:600;color:var(--ink);line-height:1.3;border-top:1px solid #f0ede8}
+.tile-price{position:absolute;top:7px;right:7px;background:rgba(20,53,90,.82);color:#fff;font-size:10px;font-family:'DM Mono',monospace;border-radius:5px;padding:2px 7px;letter-spacing:.5px}
+.tile-screw{position:absolute;top:7px;left:7px;background:rgba(26,92,58,.8);color:#fff;font-size:10px;font-family:'DM Mono',monospace;border-radius:5px;padding:2px 7px;letter-spacing:.3px}
+.tile-lr{position:absolute;bottom:46px;right:7px;font-size:10px;font-weight:700;border-radius:5px;padding:2px 7px;letter-spacing:.5px}
+.tile-lr.has-lr{background:rgba(154,114,0,.85);color:#fff}
+.tile-lr.no-lr{background:rgba(80,80,80,.7);color:#fff}
+
+/* ── BOTTOM SHEET MODAL ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:300;opacity:0;pointer-events:none;transition:opacity .25s}
+.overlay.show{opacity:1;pointer-events:all}
+.sheet{position:fixed;bottom:0;left:50%;transform:translateX(-50%) translateY(100%);width:100%;max-width:480px;background:var(--white);border-radius:18px 18px 0 0;z-index:301;transition:transform .3s cubic-bezier(.25,.46,.45,.94);max-height:88vh;display:flex;flex-direction:column;overflow:hidden}
+.sheet.show{transform:translateX(-50%) translateY(0)}
+.sheet-handle{width:38px;height:4px;background:#ddd;border-radius:2px;margin:10px auto 0}
+.sheet-img-wrap{position:relative;background:#f5f4f1;flex-shrink:0;height:200px;overflow:hidden;touch-action:pan-y}
+.sheet-track{display:flex;height:100%;transition:transform .3s cubic-bezier(.25,.46,.45,.94)}
+.sheet-slide{min-width:100%;height:100%;display:flex;align-items:center;justify-content:center}
+.sheet-slide img{max-height:100%;max-width:100%;object-fit:contain;padding:14px}
+.sheet-dots{position:absolute;bottom:7px;left:0;right:0;display:flex;justify-content:center;gap:5px;pointer-events:none}
+.sdot{width:6px;height:6px;border-radius:50%;background:rgba(0,0,0,.18);transition:all .2s}
+.sdot.on{background:var(--accent);width:14px;border-radius:3px}
+.sarr{position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.85);border:none;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 5px rgba(0,0,0,.15);z-index:2}
+.sarr.l{left:8px}.sarr.r{right:8px}
+.sarr svg{width:14px;height:14px;fill:var(--accent)}
+.sheet-body{padding:14px 16px 28px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.sheet-title{font-size:17px;font-weight:700;color:var(--ink);margin-bottom:10px}
+.sheet-meta{display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.sheet-code{font-family:'DM Mono',monospace;font-size:12px;background:var(--accent);color:#fff;border-radius:6px;padding:3px 9px;letter-spacing:1px}
+.sheet-price{font-family:'DM Mono',monospace;font-size:14px;font-weight:700;color:var(--gold);background:var(--gold-bg);border:1px solid var(--gold-border);border-radius:6px;padding:3px 10px}
+.sheet-note{font-size:12px;color:var(--ink3);margin-bottom:10px}
+.holes-lbl{font-size:11px;font-weight:700;color:var(--ink3);letter-spacing:1px;margin-bottom:8px}
+.holes{display:flex;flex-wrap:wrap;gap:7px}
+.hole{font-family:'DM Mono',monospace;font-size:13px;background:#eef2f7;border:1px solid #c5d5e8;border-radius:8px;padding:5px 12px;color:var(--accent);font-weight:500}
+.sheet-close{display:block;width:100%;margin-top:18px;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif}
+
+/* SCREW SECTION */
+.screw-group{margin-bottom:16px}
+.screw-diam{font-size:12px;font-weight:700;color:var(--accent);background:#eef2f7;border-radius:6px;padding:5px 10px;margin-bottom:8px;letter-spacing:.5px}
+.chip-grid{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-family:'DM Mono',monospace;font-size:12px;background:#eef2f7;border:1px solid #c5d5e8;border-radius:8px;padding:5px 11px;color:var(--accent);cursor:pointer;transition:all .15s;user-select:none}
+.chip:active{transform:scale(.93)}
+.chip.ok{background:var(--green-bg);border-color:#8cc8a8;color:var(--green)}
+
+/* mixed-content notice */
+.http-notice{background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:8px 12px;font-size:12px;margin-bottom:10px;display:none}
+
+/* TOAST */
+.toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(12px);background:#181818;color:#fff;font-size:13px;padding:8px 20px;border-radius:22px;opacity:0;transition:all .25s;z-index:500;white-space:nowrap;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+.footer{text-align:center;padding:16px;color:var(--ink3);font-size:10px;letter-spacing:1.5px;font-family:'DM Mono',monospace}
+
+/* SPLASH */
+#splash{position:fixed;inset:0;background:#f5f0e6;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 32px;gap:0;transition:opacity .5s ease}
+#splash.hide{opacity:0;pointer-events:none}
+.splash-logo{margin-bottom:28px}
+.splash-logo img{max-width:220px;max-height:110px;object-fit:contain;display:block}
+.splash-divider{width:48px;height:2px;background:#c8b99a;border-radius:1px;margin-bottom:28px}
+.splash-msg{width:100%;max-width:300px;min-height:72px;background:rgba(255,255,255,.72);border:1px solid #ddd5c2;border-radius:14px;padding:18px 20px;font-size:13px;color:#8a7a68;text-align:center;line-height:1.8;letter-spacing:.5px}
+</style>
+</head>
+<body>
+
+<!-- SPLASH SCREEN -->
+<div id="splash">
+  <div class="splash-logo">
+    <img src="../圖片1.png" alt="Tandry" onerror="this.style.display='none'">
+  </div>
+  <div class="splash-divider"></div>
+  <div class="splash-msg">
+    （文字待填入）
+  </div>
+</div>
+
+<div class="hdr">
+  <div>
+    <div class="brand">TANDRY</div>
+    <div class="brand-sub">ORTHOPEDIC · TAIWAN</div>
+  </div>
+  <div>
+    <div class="rep">業務：江育德 阿德</div>
+    <div class="contact-row">
+      <button class="cbtn" onclick="copyPhone()"><svg viewBox="0 0 24 24"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z" fill="currentColor"/></svg>0976-736-282</button>
+      <a class="cbtn" href="https://line.me/ti/p/~black_07" target="_blank"><svg viewBox="0 0 24 24"><path d="M19.365 9.89c.5 0 .866.37.866.87s-.366.87-.866.87h-2.55v1.27h2.55c.5 0 .866.37.866.87s-.366.87-.866.87H15.95c-.5 0-.866-.37-.866-.87V8.14c0-.5.366-.87.866-.87h3.415zm-5.7 4.73c0 .48-.366.87-.866.87-.29 0-.55-.14-.71-.36l-2.55-3.36v2.85c0 .48-.366.87-.866.87s-.866-.39-.866-.87V8.14c0-.48.366-.87.866-.87.29 0 .55.14.71.36l2.55 3.36V8.14c0-.48.366-.87.866-.87s.866.39.866.87v6.48zM7.2 14.62c-.5 0-.866-.39-.866-.87V8.14c0-.48.366-.87.866-.87s.866.39.866.87v5.61c0 .48-.366.87-.866.87zm-2.7 0H1.085c-.5 0-.866-.39-.866-.87V8.14c0-.48.366-.87.866-.87s.866.39.866.87v4.74H4.5c.5 0 .866.39.866.87s-.366.87-.866.87zM24 10.31C24 4.62 18.615 0 12 0S0 4.62 0 10.31c0 5.1 4.52 9.37 10.63 10.18.41.09.98.28 1.12.63.13.33.08.84.04 1.17l-.18 1.1c-.05.33-.26 1.28 1.12.7 1.38-.58 7.44-4.38 10.15-7.5C23.13 14.63 24 12.58 24 10.31z"/></svg>LINE</a>
+    </div>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="tab on" data-cat="clavicle">鎖骨</div>
+  <div class="tab" data-cat="upper">上肢</div>
+  <div class="tab" data-cat="long">長骨</div>
+  <div class="tab" data-cat="small">小骨</div>
+  <div class="tab" data-cat="lower">下肢</div>
+  <div class="tab" data-cat="screw">骨釘</div>
+  <div class="tab" data-cat="compression">埋頭釘</div>
+</div>
+
+<div class="sec on" id="cat-clavicle"></div>
+<div class="sec" id="cat-upper"></div>
+<div class="sec" id="cat-long"></div>
+<div class="sec" id="cat-small"></div>
+<div class="sec" id="cat-lower"></div>
+
+<!-- 骨釘 (靜態) -->
+<div class="sec" id="cat-screw">
+  <div class="banner">
+    <span class="banner-lbl">院內碼</span>
+    <span class="banner-code">OS0211F</span>
+    <button class="copy-btn" onclick="copyBanner(this,'OS0211F')">
+      <svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>複製
+    </button>
+  </div>
+  <div style="background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden">
+    <img src="./images/Cortex Screw.png?v=2" alt="Cortex Screw"
+      style="width:100%;display:block;object-fit:contain;background:#f8f8f6;padding:20px;max-height:320px"
+      onerror="this.style.display='none'">
+  </div>
+</div>
+
+<!-- 埋頭釘 (靜態) -->
+<div class="sec" id="cat-compression">
+  <div class="banner">
+    <span class="banner-lbl">院內碼</span>
+    <span class="banner-code">MHRSTF</span>
+    <button class="copy-btn" onclick="copyBanner(this,'MHRSTF')">
+      <svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>複製
+    </button>
+  </div>
+  <div style="display:flex;gap:8px;margin-bottom:14px">
+    <div style="flex:1;background:var(--gold-bg);border:1px solid var(--gold-border);border-radius:8px;padding:8px 12px;text-align:center">
+      <div style="font-size:10px;font-weight:700;color:var(--gold);margin-bottom:3px">自費</div>
+      <div style="font-family:'DM Mono',monospace;font-size:16px;font-weight:700;color:var(--gold)">$14,000</div>
+      <div style="font-size:10px;color:var(--gold)">元/支</div>
+    </div>
+    <div style="flex:1;background:#eef2f7;border:1px solid #c5d5e8;border-radius:8px;padding:8px 12px;text-align:center">
+      <div style="font-size:10px;font-weight:700;color:var(--accent);margin-bottom:3px">健保給付</div>
+      <div style="font-family:'DM Mono',monospace;font-size:16px;font-weight:700;color:var(--accent)">12,000</div>
+      <div style="font-size:10px;color:var(--accent)">點/支</div>
+    </div>
+  </div>
+
+  <div class="screw-group">
+    <div class="screw-diam">Ø 2.0mm</div>
+    <div class="chip-grid">
+      <span class="chip" onclick="copyChip(this,'T0415-007')">7mm</span><span class="chip" onclick="copyChip(this,'T0415-008')">8mm</span><span class="chip" onclick="copyChip(this,'T0415-009')">9mm</span><span class="chip" onclick="copyChip(this,'T0415-010')">10mm</span><span class="chip" onclick="copyChip(this,'T0415-011')">11mm</span><span class="chip" onclick="copyChip(this,'T0415-012')">12mm</span><span class="chip" onclick="copyChip(this,'T0415-014')">14mm</span><span class="chip" onclick="copyChip(this,'T0415-016')">16mm</span><span class="chip" onclick="copyChip(this,'T0415-018')">18mm</span><span class="chip" onclick="copyChip(this,'T0415-020')">20mm</span>
+    </div>
+  </div>
+  <div class="screw-group">
+    <div class="screw-diam">Ø 2.8mm</div>
+    <div class="chip-grid">
+      <span class="chip" onclick="copyChip(this,'T04280-008')">8mm</span><span class="chip" onclick="copyChip(this,'T04280-009')">9mm</span><span class="chip" onclick="copyChip(this,'T04280-010')">10mm</span><span class="chip" onclick="copyChip(this,'T04280-011')">11mm</span><span class="chip" onclick="copyChip(this,'T04280-012')">12mm</span><span class="chip" onclick="copyChip(this,'T04280-014')">14mm</span><span class="chip" onclick="copyChip(this,'T04280-016')">16mm</span><span class="chip" onclick="copyChip(this,'T04280-018')">18mm</span><span class="chip" onclick="copyChip(this,'T04280-020')">20mm</span><span class="chip" onclick="copyChip(this,'T04280-022')">22mm</span><span class="chip" onclick="copyChip(this,'T04280-024')">24mm</span><span class="chip" onclick="copyChip(this,'T04280-026')">26mm</span><span class="chip" onclick="copyChip(this,'T04280-028')">28mm</span><span class="chip" onclick="copyChip(this,'T04280-030')">30mm</span>
+    </div>
+  </div>
+  <div class="screw-group">
+    <div class="screw-diam">Ø 3.6mm</div>
+    <div class="chip-grid">
+      <span class="chip" onclick="copyChip(this,'T04360-016')">16mm</span><span class="chip" onclick="copyChip(this,'T04360-018')">18mm</span><span class="chip" onclick="copyChip(this,'T04360-020')">20mm</span><span class="chip" onclick="copyChip(this,'T04360-022')">22mm</span><span class="chip" onclick="copyChip(this,'T04360-024')">24mm</span><span class="chip" onclick="copyChip(this,'T04360-026')">26mm</span><span class="chip" onclick="copyChip(this,'T04360-028')">28mm</span><span class="chip" onclick="copyChip(this,'T04360-030')">30mm</span><span class="chip" onclick="copyChip(this,'T04360-032')">32mm</span><span class="chip" onclick="copyChip(this,'T04360-034')">34mm</span><span class="chip" onclick="copyChip(this,'T04360-038')">38mm</span><span class="chip" onclick="copyChip(this,'T04360-042')">42mm</span><span class="chip" onclick="copyChip(this,'T04360-046')">46mm</span><span class="chip" onclick="copyChip(this,'T04360-050')">50mm</span>
+    </div>
+  </div>
+  <div class="screw-group">
+    <div class="screw-diam">Ø 4.7mm</div>
+    <div class="chip-grid">
+      <span class="chip" onclick="copyChip(this,'T04470-030')">30mm</span><span class="chip" onclick="copyChip(this,'T04470-032')">32mm</span><span class="chip" onclick="copyChip(this,'T04470-034')">34mm</span><span class="chip" onclick="copyChip(this,'T04470-036')">36mm</span><span class="chip" onclick="copyChip(this,'T04470-038')">38mm</span><span class="chip" onclick="copyChip(this,'T04470-040')">40mm</span><span class="chip" onclick="copyChip(this,'T04470-042')">42mm</span><span class="chip" onclick="copyChip(this,'T04470-044')">44mm</span><span class="chip" onclick="copyChip(this,'T04470-046')">46mm</span><span class="chip" onclick="copyChip(this,'T04470-048')">48mm</span><span class="chip" onclick="copyChip(this,'T04470-050')">50mm</span><span class="chip" onclick="copyChip(this,'T04470-055')">55mm</span><span class="chip" onclick="copyChip(this,'T04470-060')">60mm</span><span class="chip" onclick="copyChip(this,'T04470-065')">65mm</span><span class="chip" onclick="copyChip(this,'T04470-070')">70mm</span>
+    </div>
+  </div>
+  <div class="screw-group">
+    <div class="screw-diam">Ø 5.5mm</div>
+    <div class="chip-grid">
+      <span class="chip" onclick="copyChip(this,'T04550-035')">35mm</span><span class="chip" onclick="copyChip(this,'T04550-040')">40mm</span><span class="chip" onclick="copyChip(this,'T04550-045')">45mm</span><span class="chip" onclick="copyChip(this,'T04550-050')">50mm</span><span class="chip" onclick="copyChip(this,'T04550-055')">55mm</span><span class="chip" onclick="copyChip(this,'T04550-060')">60mm</span><span class="chip" onclick="copyChip(this,'T04550-065')">65mm</span><span class="chip" onclick="copyChip(this,'T04550-070')">70mm</span><span class="chip" onclick="copyChip(this,'T04550-075')">75mm</span><span class="chip" onclick="copyChip(this,'T04550-080')">80mm</span>
+    </div>
+  </div>
+  <div class="screw-group">
+    <div class="screw-diam">Ø 7.5mm</div>
+    <div class="chip-grid">
+      <span class="chip" onclick="copyChip(this,'T04750-065')">65mm</span><span class="chip" onclick="copyChip(this,'T04750-070')">70mm</span><span class="chip" onclick="copyChip(this,'T04750-075')">75mm</span><span class="chip" onclick="copyChip(this,'T04750-080')">80mm</span><span class="chip" onclick="copyChip(this,'T04750-085')">85mm</span><span class="chip" onclick="copyChip(this,'T04750-090')">90mm</span><span class="chip" onclick="copyChip(this,'T04750-095')">95mm</span><span class="chip" onclick="copyChip(this,'T04750-100')">100mm</span><span class="chip" onclick="copyChip(this,'T04750-105')">105mm</span><span class="chip" onclick="copyChip(this,'T04750-110')">110mm</span>
+    </div>
+  </div>
+</div>
+
+<div class="footer">TANDRY ORTHOPEDIC · 2025 · 僅供醫療人員參考</div>
+
+<!-- OVERLAY + SHEET -->
+<div class="overlay" id="overlay" onclick="closeSheet()"></div>
+<div class="sheet" id="sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-img-wrap" id="sheetImgWrap">
+    <div class="sheet-track" id="sheetTrack"></div>
+    <button class="sarr l" id="sarrL" hidden><svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg></button>
+    <button class="sarr r" id="sarrR" hidden><svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg></button>
+    <div class="sheet-dots" id="sheetDots"></div>
+  </div>
+  <div class="sheet-body">
+    <div class="sheet-title" id="sheetTitle"></div>
+    <div class="sheet-meta" id="sheetMeta"></div>
+    <div class="sheet-note" id="sheetNote"></div>
+    <div class="holes-lbl">洞數</div>
+    <div class="holes" id="sheetHoles"></div>
+    <button class="sheet-close" onclick="closeSheet()">關閉</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const BASE = './images/';
+const VER = '?v=2';
+
+const CATS = {
+  clavicle: {
+    code: 'OS0211A',
+    items: [
+      { name:'Hook Plate',        imgs:['3.5%20Clavicle%20Hook%20Plate.png'],    price:'$55,000', holes:['4H','6H'],                          note:'Hook深度 15 / 18 mm', lr:true,  screw:'3.5' },
+      { name:'Superior Clavicle', imgs:['3.5%20Superior%20Clavicle%20Plate.png'],price:'$55,000', holes:['6H','7H','8H'],                                                  lr:true,  screw:'3.5' },
+      { name:'Distal Clavicle',   imgs:['3.5%20Distal%20Clavicle%20Plate.png'],  price:'$55,000', holes:['4H','5H','6H','7H'],                                             lr:true,  screw:'2.4/3.5' },
+    ]
+  },
+  upper: {
+    code: 'OS0211B',
+    items: [
+      { name:'LPHP',    imgs:['3.5%20Proximal%20Humeral%20Plate.png'],        price:'$70,000', holes:['3H','5H','8H'],          lr:false, screw:'3.5' },
+      { name:'Olecranon',imgs:['3.5%20Olecranon%20Plate2.png'],               price:'$70,000', holes:['2H','4H','6H'],          lr:true,  screw:'3.5' },
+      { name:'LDHP 外', imgs:['3.5%20Lateral%20Distal%20Humeral%20Plate.png'],price:'$70,000', holes:['5H','7H','9H'],          lr:true,  screw:'2.4/3.5' },
+      { name:'LDHP 內', imgs:['3.5%20Medial%20Humeral%20Plate.png'],          price:'$70,000', holes:['3H','5H','7H'],          lr:true,  screw:'2.4/3.5' },
+    ]
+  },
+  long: {
+    code: 'OS0211C',
+    items: [
+      { name:'3.5 Recon',      imgs:['3.5%20Reconstruction%20Plate.png'],         price:'$55,000', holes:['5H','6H','7H','8H','10H','12H','16H','18H','20H'], lr:false, screw:'3.5' },
+      { name:'3.5 1/3 Tubular',imgs:['3.5%20One-thierd%20Tubular%20Plate.png'],   price:'$55,000', holes:['6H','8H','10H'],                                   lr:false, screw:'3.5' },
+      { name:'5.0 Broad',      imgs:['5.0%20Straight%20Broad.png'],               price:'$55,000', holes:['6H','8H','10H','12H'],                             lr:false, screw:'5.0' },
+      { name:'3.5 直板',       imgs:['3.5%20Straignt%20Plate.png'],               price:'$55,000', holes:['5H','6H','7H','8H','10H','12H'],                   lr:false, screw:'3.5' },
+      { name:'5.0 Narrow',     imgs:['5.0%20Straight%20Narrow%20Plate.png'],      price:'$55,000', holes:['6H','8H','10H','12H'],                             lr:false, screw:'5.0' },
+    ]
+  },
+  small: {
+    code: 'OS0211D',
+    items: [
+      { name:'1.5 直板',        imgs:['1.5%20Plate.png'],                                                     price:'$55,000', holes:['5H','6H','7H','8H','10H','12H'], lr:false, screw:'1.5' },
+      { name:'1.5 Y / T / Z',   imgs:['1.5%20Y%20Plate.png','1.5%20T%20Plate.png','1.5%20Z%20Plate.png'],   price:'$55,000', holes:['Y','T','Z'],  note:'各版型獨立品項',  lr:false, screw:'1.5' },
+      { name:'2.0 直版',        imgs:['2.0mm%20Locking%20Plate.png'],                                        price:'$55,000', holes:['4H','5H','6H','7H','8H'],         lr:false, screw:'2.0' },
+      { name:'2.0 Y / T',       imgs:['2.0%20Y%20Plate.png','2.0%20T%20Plate.png'],                          price:'$55,000', holes:['Y','T'],      note:'各版型獨立品項',  lr:false, screw:'2.0' },
+      { name:'Volar',           imgs:['2.4%20Volar%20Plate.png'],                                             price:'$55,000', holes:['2H','3H','6H','8H'],              lr:true,  screw:'2.4' },
+      { name:'Juxta',           imgs:['2.4%20Juxta%20Plate.png'],                                             price:'$55,000', holes:['3H','5H'],                        lr:true,  screw:'2.4' },
+      { name:'Fibula',          imgs:['3.5%20Distal%20Fibula%20Plate.png'],                                   price:'$55,000', holes:['4H','6H','8H'],                   lr:true,  screw:'2.4/3.5' },
+      { name:'Radial Head/Neck',imgs:['2.4mm%20Radial%20Head%20Plate.png','2.4%20mm%20Radial%20Neck%20Plate.png'], price:'$55,000', holes:['2H','3H','4H'],            lr:true,  screw:'2.4' },
+    ]
+  },
+  lower: {
+    code: 'OS0211E',
+    items: [
+      { name:'Distal Femur',    imgs:['5.0%20Distal%20Femoral%20Plate.png'],          price:'$70,000', holes:['5H','7H','9H','11H','13H'],  lr:true,  screw:'5.0' },
+      { name:'DHS',             imgs:['5.0mm%20Proximal%20Femoral%20Plate.png'],       price:'$70,000', holes:['2H','3H','4H','6H'],          lr:false, screw:'5.0' },
+      { name:'LPTP 外',         imgs:['5.0%20Lateral%20Proximal%20Tibial%20Plate.png'],price:'$70,000', holes:['4H','6H','8H','10H','12H'],  lr:true,  screw:'5.0' },
+      { name:'LPTP 內',         imgs:['5.0%20Medial%20Proximal%20Tibial%20Plate.png'], price:'$70,000', holes:['4H','6H','8H','10H','12H'],  lr:true,  screw:'5.0' },
+      { name:'Distal Tibia 內', imgs:['3.5%20Medial%20Distal%20Tibial%20Plate.png'],   price:'$70,000', holes:['6H','8H','10H','12H','14H'], lr:true,  screw:'3.5' },
+      { name:'Distal Tibia 前外',imgs:['3.5%20Anterolateral%20Tibial%20Plate.png'],   price:'$70,000', holes:['7H','9H','11H'],              lr:true,  screw:'3.5' },
+      { name:'Calcaneus',       imgs:['3.5%20Calcaneal%20Plate.png'],                  price:'$70,000', holes:['14H'],                        lr:true,  screw:'3.5' },
+    ]
+  }
+};
+
+// ── BUILD GRIDS ──
+Object.entries(CATS).forEach(([cat, data]) => {
+  const sec = document.getElementById('cat-' + cat);
+
+
+
+  // banner
+  const banner = document.createElement('div');
+  banner.className = 'banner';
+  banner.innerHTML = `<span class="banner-lbl">院內碼</span><span class="banner-code">${data.code}</span><button class="copy-btn" onclick="copyBanner(this,'${data.code}')"><svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>複製</button>`;
+  sec.appendChild(banner);
+
+  const grid = document.createElement('div');
+  grid.className = 'grid';
+
+  data.items.forEach(item => {
+    const tile = document.createElement('div');
+    tile.className = 'tile';
+    tile.onclick = () => openSheet(item, data.code);
+
+    const img = document.createElement('img');
+    img.className = 'tile-img';
+    img.src = BASE + item.imgs[0] + VER;
+    img.alt = item.name;
+    img.loading = 'lazy';
+    img.onerror = function() {
+      const ph = document.createElement('div');
+      ph.className = 'tile-img-ph';
+      ph.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>';
+      this.replaceWith(ph);
+    };
+
+    const name = document.createElement('div');
+    name.className = 'tile-name';
+    name.textContent = item.name;
+
+    const price = document.createElement('div');
+    price.className = 'tile-price';
+    price.textContent = item.price;
+
+    const screw = document.createElement('div');
+    screw.className = 'tile-screw';
+    screw.textContent = item.screw;
+
+    const lr = document.createElement('div');
+    lr.className = 'tile-lr ' + (item.lr ? 'has-lr' : 'no-lr');
+    lr.textContent = item.lr ? 'L / R' : '無左右';
+
+    tile.appendChild(img);
+    tile.appendChild(price);
+    tile.appendChild(screw);
+    tile.appendChild(lr);
+    tile.appendChild(name);
+    grid.appendChild(tile);
+  });
+
+  sec.appendChild(grid);
+});
+
+// ── SHEET ──
+let sheetCur = 0, sheetTotal = 0;
+
+function openSheet(item, code) {
+  const track = document.getElementById('sheetTrack');
+  const dots = document.getElementById('sheetDots');
+  const wrap = document.getElementById('sheetImgWrap');
+
+  track.innerHTML = '';
+  dots.innerHTML = '';
+  sheetCur = 0;
+  sheetTotal = item.imgs.length;
+
+  item.imgs.forEach((src, i) => {
+    const slide = document.createElement('div');
+    slide.className = 'sheet-slide';
+    const img = document.createElement('img');
+    img.src = BASE + src + VER;
+    img.alt = item.name;
+    img.onerror = function() { this.style.display='none'; };
+    slide.appendChild(img);
+    track.appendChild(slide);
+
+    const dot = document.createElement('span');
+    dot.className = 'sdot' + (i === 0 ? ' on' : '');
+    dots.appendChild(dot);
+  });
+
+  const sarrL = document.getElementById('sarrL');
+  const sarrR = document.getElementById('sarrR');
+  if (sheetTotal > 1) {
+    sarrL.hidden = false; sarrR.hidden = false;
+  } else {
+    sarrL.hidden = true; sarrR.hidden = true;
+  }
+
+  document.getElementById('sheetTitle').textContent = item.name;
+  document.getElementById('sheetMeta').innerHTML =
+    `<span class="sheet-code">${code}</span><span class="sheet-price">${item.price} / 片</span>`;
+  document.getElementById('sheetNote').textContent = item.note || '';
+  document.getElementById('sheetNote').style.display = item.note ? 'block' : 'none';
+
+  const holesEl = document.getElementById('sheetHoles');
+  holesEl.innerHTML = '';
+  item.holes.forEach(h => {
+    const el = document.createElement('span');
+    el.className = 'hole';
+    el.textContent = h;
+    holesEl.appendChild(el);
+  });
+
+  document.getElementById('overlay').classList.add('show');
+  document.getElementById('sheet').classList.add('show');
+  document.body.style.overflow = 'hidden';
+
+  // Touch swipe on sheet image
+  let sx = 0;
+  wrap.ontouchstart = e => { sx = e.touches[0].clientX; };
+  wrap.ontouchend = e => {
+    const dx = e.changedTouches[0].clientX - sx;
+    if (Math.abs(dx) > 40) goSlide(dx < 0 ? sheetCur + 1 : sheetCur - 1);
+  };
+}
+
+function goSlide(idx) {
+  sheetCur = (idx + sheetTotal) % sheetTotal;
+  document.getElementById('sheetTrack').style.transform = `translateX(-${sheetCur * 100}%)`;
+  document.querySelectorAll('.sdot').forEach((d, i) => d.classList.toggle('on', i === sheetCur));
+}
+
+document.getElementById('sarrL').onclick = e => { e.stopPropagation(); goSlide(sheetCur - 1); };
+document.getElementById('sarrR').onclick = e => { e.stopPropagation(); goSlide(sheetCur + 1); };
+
+function closeSheet() {
+  document.getElementById('overlay').classList.remove('show');
+  document.getElementById('sheet').classList.remove('show');
+  document.body.style.overflow = '';
+}
+
+// ── TABS ──
+document.querySelectorAll('.tab').forEach(t => {
+  t.onclick = () => {
+    document.querySelectorAll('.tab').forEach(x => x.classList.remove('on'));
+    document.querySelectorAll('.sec').forEach(x => x.classList.remove('on'));
+    t.classList.add('on');
+    document.getElementById('cat-' + t.dataset.cat).classList.add('on');
+    t.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
+  };
+});
+
+// ── COPY BANNER ──
+function copyBanner(btn, code) {
+  doCopy(code);
+  btn.classList.add('ok');
+  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>已複製';
+  setTimeout(() => {
+    btn.classList.remove('ok');
+    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>複製';
+  }, 2200);
+  showToast('已複製：' + code);
+}
+
+// ── COPY CHIP ──
+function copyChip(chip, code) {
+  doCopy(code);
+  document.querySelectorAll('.chip.ok').forEach(c => c.classList.remove('ok'));
+  chip.classList.add('ok');
+  setTimeout(() => chip.classList.remove('ok'), 2000);
+  showToast('已複製：' + code);
+}
+
+function doCopy(text) {
+  if (navigator.clipboard) { navigator.clipboard.writeText(text).catch(() => fbCopy(text)); }
+  else { fbCopy(text); }
+}
+function fbCopy(text) {
+  const el = Object.assign(document.createElement('textarea'), {value:text,style:'position:fixed;opacity:0'});
+  document.body.appendChild(el); el.focus(); el.select(); document.execCommand('copy'); el.remove();
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = '✓ ' + msg; t.classList.add('show');
+  clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+if (location.protocol === 'https:') {
+  const n = document.getElementById('httpNotice');
+  if (n) n.style.display = 'block';
+}
+
+function copyPhone() {
+  doCopy('0976736282');
+  showToast('已複製：0976-736-282');
+}
+
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
+
+// Splash fade-out
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    const s = document.getElementById('splash');
+    s.classList.add('hide');
+    setTimeout(() => s.remove(), 500);
+  }, 1200);
+});
+</script>
+</body>
+</html>

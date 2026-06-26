@@ -105,6 +105,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', s
       <a href="edit-request.html" class="menu-item" id="editRequestBtn" style="display:none;">✏️ 變更申請</a>
       <a href="review.html" class="menu-item" id="reviewBtn" style="display:none;">🔍 審核</a>
       <a href="pickup.html" class="menu-item" id="pickupBtn" style="display:none;">📦 抓貨管理</a>
+      <a href="performance.html" class="menu-item" id="perfBtn" style="display:none;">📊 業績儀表板</a>
       <button class="menu-item danger" onclick="tandryLogout()">登出</button>
     </div>
   </div>
@@ -137,7 +138,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', s
         <option>Henry</option>
         <option>Vincent</option>
         <option>Kaley</option>
-        <option>Tan</option>
+        <option>Mandy</option>
         <option>Eddie</option>
         <option>Bruce</option>
       </select>
@@ -208,6 +209,10 @@ document.addEventListener('click', () => {
   const el = document.getElementById(id);
   if (el) el.style.display = 'flex';
 });
+if ((window.TANDRY_USER||{}).role === 'admin') {
+  const p = document.getElementById('perfBtn');
+  if (p) p.style.display = 'flex';
+}
 
 // ── 常數 ────────────────────────────────────
 const WEBHOOK_SUBMIT = 'https://ydj.zeabur.app/webhook/submit-track';

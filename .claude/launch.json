@@ -1,0 +1,20 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "報刀_v2",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "5500"],
+      "port": 5500
+    },
+    {
+      "name": "doctor-manual",
+      "runtimeExecutable": "powershell.exe",
+      "runtimeArgs": [
+        "-NoProfile", "-Command",
+        "$l=New-Object Net.HttpListener;$l.Prefixes.Add('http://localhost:5501/');$l.Start();Write-Host 'Serving on http://localhost:5501/';while($l.IsListening){$c=$l.GetContext();$p=$c.Request.Url.LocalPath.TrimStart('/');if($p -eq ''){$p='index.html'};$f=Join-Path 'doctor-manual' $p;if(Test-Path $f){$b=[IO.File]::ReadAllBytes($f);$c.Response.ContentLength64=$b.Length;$c.Response.OutputStream.Write($b,0,$b.Length)}else{$c.Response.StatusCode=404};$c.Response.OutputStream.Close()}"
+      ],
+      "port": 5501
+    }
+  ]
+}

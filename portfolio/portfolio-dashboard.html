@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>財務儀表板</title>
+<!-- Firebase SDK — 必須在 inline script 之前載入 -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@300;400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -227,6 +231,18 @@ header{display:flex;align-items:center;justify-content:space-between;padding:26p
 .sell-info-row span:last-child{color:var(--text);font-weight:500}
 .sell-calc{background:var(--green-l);border:1px solid #c6e8d4;border-radius:8px;padding:13px 16px;margin-top:11px;text-align:center;font-family:var(--mono)}
 .sell-calc.crypto-bg{background:var(--purple-l);border-color:#d4c6f0}
+
+/* ── Login overlay ── */
+#loginOverlay{position:fixed;inset:0;z-index:999;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px}
+.login-card{background:var(--white);border:1px solid var(--border);border-radius:16px;padding:40px 48px;box-shadow:var(--sh2);display:flex;flex-direction:column;align-items:center;gap:20px;min-width:320px}
+.login-logo{font-family:var(--serif);font-size:1.3rem;color:var(--text);text-align:center}
+.login-sub{font-family:var(--mono);font-size:.65rem;color:var(--muted);text-align:center;line-height:1.6}
+.google-btn{display:flex;align-items:center;gap:10px;background:var(--white);border:1px solid var(--border);border-radius:8px;padding:11px 22px;font-family:var(--sans);font-size:.82rem;font-weight:500;cursor:pointer;box-shadow:var(--sh);transition:box-shadow .15s;width:100%;justify-content:center}
+.google-btn:hover{box-shadow:var(--sh2)}
+.login-status{font-family:var(--mono);font-size:.62rem;color:var(--faint);min-height:1rem}
+/* ── User chip ── */
+.user-chip{display:none;align-items:center;gap:7px;font-family:var(--mono);font-size:.63rem;color:var(--muted)}
+.user-chip img{width:22px;height:22px;border-radius:50%;border:1px solid var(--border)}
 </style>
 </head>
 <body>
@@ -234,13 +250,21 @@ header{display:flex;align-items:center;justify-content:space-between;padding:26p
 
 <!-- ── Setup Card ── -->
 <div id="setupCard">
-  <div class="setup-title">💾 本機儲存模式</div>
+  <div class="setup-title">🔗 連線 N8N Cloud + Google Sheets</div>
   <div class="setup-sub">
-    所有資料儲存於瀏覽器 <code>localStorage</code>，不需要任何後端設定。<br>
-    換裝置或清除瀏覽器資料前，請至「設定」匯出 JSON 備份。
+    在 N8N Cloud 匯入 Workflow 並啟用後，複製 Production Webhook URL（格式：<code>https://xxx.app.n8n.cloud/webhook/portfolio</code>）貼入下方。<br>
+    未設定則使用本機 localStorage 離線模式，資料不會跨裝置同步。
   </div>
-  <div class="setup-row" style="max-width:240px">
-    <button class="setup-save" onclick="skipSetup()">開始使用</button>
+  <div class="setup-row">
+    <input class="setup-input" id="n8nInput" type="url" placeholder="https://xxx.app.n8n.cloud/webhook/portfolio">
+    <button class="setup-save" onclick="saveN8nUrl()">儲存並連線</button>
+    <button class="setup-skip" onclick="skipSetup()">離線使用</button>
+  </div>
+  <div class="setup-steps">
+    <div class="step"><div class="step-num">Step 1</div><div class="step-text">在 Google Sheets 建立試算表，新增兩個工作表：<code>assets</code> 和 <code>liabilities</code></div></div>
+    <div class="step"><div class="step-num">Step 2</div><div class="step-text">在 N8N Cloud 匯入 <code>portfolio-n8n-cloud-workflow.json</code>，填入試算表 ID 和 Google 憑證</div></div>
+    <div class="step"><div class="step-num">Step 3</div><div class="step-text">點 Workflow 右上角 <code>Activate</code>，複製 Production Webhook URL</div></div>
+    <div class="step"><div class="step-num">Step 4</div><div class="step-text">將 URL 貼入上方輸入框，點「儲存並連線」。手機和電腦使用同一個 HTML 即可同步</div></div>
   </div>
 </div>
 
@@ -251,6 +275,10 @@ header{display:flex;align-items:center;justify-content:space-between;padding:26p
     <div class="logo-sub"><span class="live-dot"></span>資產 · 負債 · 淨值</div>
   </div>
   <div class="hright">
+    <div class="user-chip" id="userChip">
+      <img id="userAvatar" src="" alt="">
+      <span id="userDisplayName"></span>
+    </div>
     <span id="syncPill" class="sync-pill local">● 本機模式</span>
     <span class="last-upd" id="lastUpd"></span>
     <div class="cur-toggle">
@@ -419,6 +447,20 @@ header{display:flex;align-items:center;justify-content:space-between;padding:26p
 
 </div><!-- /shell -->
 
+<!-- ── Login Overlay ── -->
+<div id="loginOverlay">
+  <div class="login-card">
+    <div class="login-logo">財務儀表板</div>
+    <div class="login-sub">登入後資料自動跨裝置同步<br>僅你本人可存取自己的資料</div>
+    <button class="google-btn" onclick="signInWithGoogle()">
+      <svg width="18" height="18" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+      使用 Google 帳號登入
+    </button>
+    <button class="setup-skip" onclick="skipSetup()" style="width:100%;margin-top:4px">不登入，本機使用</button>
+    <div class="login-status" id="loginStatus"></div>
+  </div>
+</div>
+
 <!-- ── Settings Panel ── -->
 <div class="settings-overlay" id="settingsOverlay" onclick="closeSettings()"></div>
 <div class="settings-panel" id="settingsPanel">
@@ -427,22 +469,51 @@ header{display:flex;align-items:center;justify-content:space-between;padding:26p
     <button class="settings-close" onclick="closeSettings()">×</button>
   </div>
 
-  <div class="settings-section">
-    <div class="settings-section-title">儲存模式</div>
-    <div class="status-badge">
-      <div class="status-dot green"></div>
-      <div class="status-text">本機 localStorage 模式</div>
+  <div class="settings-section" id="fbUserSection" style="display:none">
+    <div class="settings-section-title">登入帳號</div>
+    <div class="status-badge" style="margin-bottom:10px">
+      <img id="settingsAvatar" src="" style="width:28px;height:28px;border-radius:50%;border:1px solid var(--border)">
+      <div>
+        <div class="status-text" id="settingsUserName" style="font-weight:500"></div>
+        <div style="font-family:var(--mono);font-size:.58rem;color:var(--faint)" id="settingsUserEmail"></div>
+      </div>
     </div>
-    <div style="font-family:var(--mono);font-size:.65rem;color:var(--muted);line-height:1.7;margin-top:8px">
-      資料儲存於瀏覽器 localStorage，換裝置或清除瀏覽器快取前請先備份。
+    <button class="btn btn-ghost" onclick="signOutUser()" style="width:100%">登出</button>
+  </div>
+
+  <div class="settings-section">
+    <div class="settings-section-title">N8N Cloud 連線狀態</div>
+    <div class="status-badge">
+      <div class="status-dot" id="sdot"></div>
+      <div class="status-text" id="stext">未連線</div>
+    </div>
+    <div class="fg">
+      <label class="fl">Webhook URL</label>
+      <input class="fi" id="settingsN8nInput" placeholder="https://xxx.app.n8n.cloud/webhook/portfolio">
+      <div class="fhint">N8N Cloud Production Webhook URL</div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <button class="btn btn-green" onclick="saveSettingsUrl()" style="flex:1">儲存</button>
+      <button class="btn btn-ghost" onclick="testConnection()" style="flex:1">測試連線</button>
     </div>
   </div>
 
   <div class="settings-section">
     <div class="settings-section-title">資料管理</div>
+    <button class="btn btn-ghost" onclick="forceSync()" style="width:100%;margin-bottom:8px">強制從 N8N 重新載入</button>
+    <button class="btn btn-ghost" onclick="clearPriceCache()" style="width:100%;margin-bottom:8px">清除報價快取</button>
     <button class="btn btn-ghost" onclick="exportJSON()" style="width:100%;margin-bottom:8px">匯出 JSON 備份</button>
-    <button class="btn btn-ghost" onclick="importJSON()" style="width:100%;margin-bottom:8px;color:var(--blue);border-color:var(--blue-l)">匯入 JSON 備份</button>
     <button class="btn" onclick="clearAll()" style="width:100%;background:var(--red-l);color:var(--red);border:1px solid #fecaca">清除所有本機資料</button>
+  </div>
+
+  <div class="settings-section">
+    <div class="settings-section-title">Google Sheets 設定說明</div>
+    <div style="font-family:var(--mono);font-size:.65rem;color:var(--muted);line-height:1.7">
+      試算表需有兩個工作表：<br>
+      • <code style="background:var(--bg);padding:1px 5px;border-radius:3px;border:1px solid var(--border)">assets</code> — 存放資產資料<br>
+      • <code style="background:var(--bg);padding:1px 5px;border-radius:3px;border:1px solid var(--border)">liabilities</code> — 存放負債資料<br><br>
+      第一列需為欄位標題，Workflow 匯入後會自動寫入。
+    </div>
   </div>
 </div>
 
@@ -477,13 +548,17 @@ header{display:flex;align-items:center;justify-content:space-between;padding:26p
         <option value="cash">現金 / 活存</option>
       </select>
     </div>
-    <div class="frow">
+    <!-- 基金搜尋（僅 fund 類型顯示） -->
+    <div class="fg" id="fundSearchFg" style="display:none;position:relative">
+      <label class="fl">搜尋基金名稱</label>
+      <input class="fi" id="aFundSearch" placeholder="輸入基金名稱關鍵字（至少 2 字）…" autocomplete="off" oninput="onFundSearch(this.value)">
+      <div id="fundDropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--surface,#fff);border:1px solid var(--border,#e0e0e0);border-radius:8px;max-height:220px;overflow-y:auto;z-index:200;box-shadow:0 4px 16px rgba(0,0,0,.12)"></div>
+      <div class="fhint" id="fundSearchHint">資料來源：集保結算所 TDCC</div>
+    </div>
+    <div class="frow" id="tickerNameRow">
       <div class="fg">
         <label class="fl">代碼 / Ticker</label>
-        <div style="display:flex;gap:6px;align-items:stretch">
-          <input class="fi" id="aTicker" placeholder="如 0050、BTC" style="flex:1">
-          <button type="button" id="searchFundBtn" style="display:none;background:var(--blue);color:#fff;border:none;border-radius:8px;font-family:var(--mono);font-size:.65rem;padding:9px 13px;cursor:pointer;white-space:nowrap;transition:opacity .15s;font-weight:500" onclick="openFundSearch()">搜尋基金</button>
-        </div>
+        <input class="fi" id="aTicker" placeholder="如 0050、BTC">
         <div class="fhint" id="aHint">台股代號：2330、0050、006208</div>
       </div>
       <div class="fg">
@@ -503,11 +578,8 @@ header{display:flex;align-items:center;justify-content:space-between;padding:26p
     </div>
     <div class="fg" id="navFg" style="display:none">
       <label class="fl">目前淨值 NAV</label>
-      <div style="display:flex;gap:8px;align-items:stretch">
-        <input class="fi" type="number" id="aNav" placeholder="0.0000" step="any" style="flex:1">
-        <button type="button" id="navQueryBtn" onclick="queryFundNAV()" style="background:var(--green);color:#fff;border:none;border-radius:8px;font-family:var(--mono);font-size:.65rem;padding:9px 13px;cursor:pointer;white-space:nowrap;transition:opacity .15s">查詢 NAV</button>
-      </div>
-      <div class="fhint" id="navHint">支援境內基金代碼及 ISIN Code（如 LU0820561818），查不到時可手動填入 NAV</div>
+      <input class="fi" type="number" id="aNav" placeholder="0.0000" step="any">
+      <div class="fhint" id="navHint">選取基金後自動填入</div>
     </div>
     <div class="fg">
       <label class="fl">計價幣別</label>
@@ -673,30 +745,6 @@ header{display:flex;align-items:center;justify-content:space-between;padding:26p
   </div>
 </div>
 
-<!-- ── Fund Search Modal ── -->
-<div class="backdrop" id="fundSearchModal">
-  <div class="modal" style="width:560px;max-height:85vh">
-    <div class="modal-head"><div class="modal-title">搜尋基金</div><button class="modal-close" onclick="closeFundSearch()">×</button></div>
-    <div style="display:flex;gap:8px;margin-bottom:14px;padding:0 0 0 0">
-      <input class="fi" id="fundSearchInput" style="flex:1;margin:0" type="text" placeholder="輸入基金名稱、代碼或 ISIN…" oninput="searchFunds()">
-      <select class="fs" id="fundCategoryFilter" style="min-width:100px;margin:0" onchange="searchFunds()">
-        <option value="">全部分類</option>
-        <option value="tw">台灣 ETF</option>
-        <option value="us">美國基金</option>
-        <option value="offshore">境外基金</option>
-      </select>
-    </div>
-    <div style="max-height:calc(85vh - 180px);overflow-y:auto;border:1px solid var(--border-light);border-radius:8px;background:var(--bg)">
-      <div id="fundSearchResults" style="max-height:100%;overflow-y:auto">
-        <div style="padding:20px;text-align:center;color:var(--faint);font-family:var(--mono);font-size:.68rem">輸入關鍵字開始搜尋</div>
-      </div>
-    </div>
-    <div class="modal-footer" style="border-top:1px solid var(--border-light)">
-      <button class="btn btn-ghost" onclick="closeFundSearch()">取消</button>
-    </div>
-  </div>
-</div>
-
 <!-- ── Sell Modal ── -->
 <div class="backdrop" id="sellModal">
   <div class="modal" style="width:420px">
@@ -723,6 +771,9 @@ header{display:flex;align-items:center;justify-content:space-between;padding:26p
 // ══════════════════════════════════════
 // State
 // ══════════════════════════════════════
+const N8N_BASE = 'https://ydj.zeabur.app/webhook/portfolio';
+let N8N_URL = localStorage.getItem('n8n_url') || N8N_BASE;
+const _N8N_USER_CONFIGURED = !!localStorage.getItem('n8n_url');
 let assets = [], liabilities = [], fixedAssets = [], prices = {};
 let usdTwd = 32.5, dispCur = 'TWD';
 let assetFilter = 'all', liabFilter = 'all';
@@ -746,98 +797,62 @@ const FXCAT = {
 };
 
 // ══════════════════════════════════════
-// Fund Catalog
-// ══════════════════════════════════════
-const FUNDS_CATALOG = [
-  // 台灣 ETF
-  {id:'0050',name:'元大台灣50',ticker:'0050',category:'tw'},
-  {id:'0056',name:'元大高股息',ticker:'0056',category:'tw'},
-  {id:'00878',name:'元大美股優選高股息',ticker:'00878',category:'tw'},
-  {id:'0057',name:'元大台灣中型100',ticker:'0057',category:'tw'},
-  {id:'006208',name:'富邦台灣優質高息',ticker:'006208',category:'tw'},
-  {id:'00713',name:'元大台灣電子科技',ticker:'00713',category:'tw'},
-  {id:'0061',name:'元大寶滬深',ticker:'0061',category:'tw'},
-  // 美國基金
-  {id:'VTI',name:'Vanguard US Total Stock Market ETF',ticker:'VTI',category:'us'},
-  {id:'VOO',name:'Vanguard S&P 500 ETF',ticker:'VOO',category:'us'},
-  {id:'VEA',name:'Vanguard FTSE Developed Markets ETF',ticker:'VEA',category:'us'},
-  {id:'BND',name:'Vanguard US Total Bond Market ETF',ticker:'BND',category:'us'},
-  {id:'SCHD',name:'Schwab US Dividend Equity ETF',ticker:'SCHD',category:'us'},
-  {id:'ITOT',name:'iShares Core S&P Total US Stock Market ETF',ticker:'ITOT',category:'us'},
-  // 境外基金（ISIN Code）
-  {id:'LU0820561818',name:'安聯收益成長基金',ticker:'LU0820561818',category:'offshore'},
-  {id:'IE00B4L5Y983',name:'iShares Core MSCI World UCITS ETF',ticker:'IE00B4L5Y983',category:'offshore'},
-  {id:'IE00B0M63284',name:'iShares Core MSCI EM IMI UCITS ETF',ticker:'IE00B0M63284',category:'offshore'},
-  {id:'LU0274211480',name:'富達環球多元債券基金',ticker:'LU0274211480',category:'offshore'},
-  {id:'IE00BK5BQT80',name:'Vanguard ESG Global Corporate Bond UCITS ETF',ticker:'IE00BK5BQT80',category:'offshore'},
-  {id:'LU0170899867',name:'貝萊德全球配置基金 A2',ticker:'LU0170899867',category:'offshore'},
-  {id:'IE00B1FZS798',name:'iShares Global Tech ETF',ticker:'IE00B1FZS798',category:'offshore'},
-  {id:'LU0061474960',name:'DWS 頂級股票基金',ticker:'LU0061474960',category:'offshore'},
-];
-
-// ══════════════════════════════════════
-// Fund Search
-// ══════════════════════════════════════
-function openFundSearch() {
-  document.getElementById('fundSearchModal').classList.add('open');
-  document.getElementById('fundSearchInput').focus();
-}
-function closeFundSearch() {
-  document.getElementById('fundSearchModal').classList.remove('open');
-  document.getElementById('fundSearchInput').value='';
-  document.getElementById('fundSearchResults').innerHTML='<div style="padding:20px;text-align:center;color:var(--faint);font-family:var(--mono);font-size:.68rem">輸入關鍵字開始搜尋</div>';
-}
-function searchFunds() {
-  const query=document.getElementById('fundSearchInput').value.trim().toLowerCase();
-  const category=document.getElementById('fundCategoryFilter').value;
-  if(!query){
-    document.getElementById('fundSearchResults').innerHTML='<div style="padding:20px;text-align:center;color:var(--faint);font-family:var(--mono);font-size:.68rem">輸入關鍵字開始搜尋</div>';
-    return;
-  }
-  const results=FUNDS_CATALOG.filter(f=>{
-    const matchQuery=f.name.toLowerCase().includes(query)||f.ticker.toLowerCase().includes(query);
-    const matchCat=!category||f.category===category;
-    return matchQuery&&matchCat;
-  });
-  if(!results.length){
-    document.getElementById('fundSearchResults').innerHTML='<div style="padding:20px;text-align:center;color:var(--faint);font-family:var(--mono);font-size:.68rem">找不到符合的基金</div>';
-    return;
-  }
-  const html=results.map((f,idx)=>`
-    <div data-ticker="${f.ticker}" data-name="${f.name}" style="padding:11px 14px;border-bottom:1px solid var(--border-light);cursor:pointer;transition:background .12s;display:flex;justify-content:space-between;align-items:center" onmouseover="this.style.background='var(--bg)'" onmouseout="this.style.background=''" onclick="selectFundRow(this)">
-      <div>
-        <div style="font-family:var(--sans);font-weight:500;font-size:.81rem;color:var(--text)">${f.name}</div>
-        <div style="font-family:var(--mono);font-size:.61rem;color:var(--muted);margin-top:2px">${f.ticker}</div>
-      </div>
-      <div style="font-family:var(--mono);font-size:.65rem;color:var(--muted);background:var(--border-light);padding:3px 8px;border-radius:4px;white-space:nowrap">${f.category==='tw'?'台灣':f.category==='us'?'美國':'境外'}</div>
-    </div>
-  `).join('');
-  document.getElementById('fundSearchResults').innerHTML=html;
-}
-function selectFundRow(el) {
-  const ticker=el.getAttribute('data-ticker');
-  const name=el.getAttribute('data-name');
-  document.getElementById('aTicker').value=ticker;
-  if(!document.getElementById('aName').value)document.getElementById('aName').value=name;
-  closeFundSearch();
-}
+// Setup / Settings
 // ══════════════════════════════════════
 function initUI() {
   const card = document.getElementById('setupCard');
-  if (localStorage.getItem('pf_visited') || localStorage.getItem('pf_assets_v3')) {
+  if (N8N_URL) {
     card.classList.add('hidden');
+    document.getElementById('n8nInput').value = N8N_URL;
   }
-  updateSyncPill();
+  document.getElementById('settingsN8nInput').value = N8N_URL;
+  updateSyncPill(N8N_URL ? 'connected' : 'local');
+}
+
+function saveN8nUrl() {
+  const v = document.getElementById('n8nInput').value.trim();
+  if (!v) { alert('請輸入 Webhook URL'); return; }
+  N8N_URL = v; localStorage.setItem('n8n_url', v);
+  document.getElementById('setupCard').classList.add('hidden');
+  document.getElementById('settingsN8nInput').value = v;
+  updateSyncPill('connected');
+  loadData();
 }
 
 function skipSetup() {
-  localStorage.setItem('pf_visited','1');
   document.getElementById('setupCard').classList.add('hidden');
+  loadData();
 }
 
-function updateSyncPill() {
+function saveSettingsUrl() {
+  const v = document.getElementById('settingsN8nInput').value.trim();
+  N8N_URL = v; localStorage.setItem('n8n_url', v);
+  updateSyncPill(v ? 'connected' : 'local');
+  if (v) loadData();
+}
+
+async function testConnection() {
+  if (!N8N_URL) { alert('請先輸入 URL'); return; }
+  updateSyncPill('syncing');
+  const ok = await n8nGet();
+  updateSyncPill(ok ? 'ok' : 'err');
+  alert(ok ? '✅ 連線成功！N8N 回應正常。' : '❌ 連線失敗。請確認 Workflow 已啟用且 URL 正確。');
+}
+
+function updateSyncPill(state) {
   const el = document.getElementById('syncPill');
-  el.className='sync-pill local'; el.textContent='● 本機模式';
+  const dot = document.getElementById('sdot');
+  const txt = document.getElementById('stext');
+  const states = {
+    local:    {pill:'local',  label:'● 本機模式',dot:'gray',  stxt:'未連線 N8N'},
+    connected:{pill:'ok',    label:'● N8N 連線', dot:'green', stxt:'已設定 Webhook URL'},
+    syncing:  {pill:'syncing',label:'⟳ 同步中…', dot:'gray',  stxt:'同步中…'},
+    ok:       {pill:'ok',    label:'● 已同步',   dot:'green', stxt:'同步成功'},
+    err:      {pill:'err',   label:'● 同步失敗', dot:'red',   stxt:'請確認 N8N Workflow 已啟用'},
+  };
+  const s = states[state] || states.local;
+  el.className='sync-pill '+s.pill; el.textContent=s.label;
+  if(dot){dot.className='status-dot '+s.dot;} if(txt){txt.textContent=s.stxt;}
 }
 
 function openSettings() {
@@ -849,41 +864,82 @@ function closeSettings() {
   document.getElementById('settingsOverlay').classList.remove('open');
 }
 
+async function forceSync() {
+  updateSyncPill('syncing');
+  const d = await n8nGet();
+  if (d) { assets=d.assets||[]; liabilities=d.liabilities||[]; saveLocal(); renderAll(); updateSyncPill('ok'); }
+  else updateSyncPill('err');
+}
+
 function exportJSON() {
-  const blob = new Blob([JSON.stringify({assets,liabilities,fixedAssets},null,2)],{type:'application/json'});
+  const blob = new Blob([JSON.stringify({assets,liabilities},null,2)],{type:'application/json'});
   const a = document.createElement('a'); a.href=URL.createObjectURL(blob);
   a.download=`portfolio-backup-${new Date().toISOString().slice(0,10)}.json`; a.click();
 }
 
-function importJSON() {
-  const input = document.createElement('input');
-  input.type='file'; input.accept='.json';
-  input.onchange = e => {
-    const file=e.target.files[0]; if(!file)return;
-    const reader=new FileReader();
-    reader.onload = ev => {
-      try {
-        const d=JSON.parse(ev.target.result);
-        if(Array.isArray(d.assets))assets=d.assets;
-        if(Array.isArray(d.liabilities))liabilities=d.liabilities;
-        if(Array.isArray(d.fixedAssets))fixedAssets=d.fixedAssets;
-        saveLocal(); renderAll();
-        if(assets.length)fetchPrices();
-        alert('✅ 匯入成功');
-      } catch { alert('❌ 檔案格式錯誤，請確認是本系統匯出的 JSON'); }
-    };
-    reader.readAsText(file);
-  };
-  input.click();
-}
-
 function clearAll() {
-  if (!confirm('確認清除所有本機資料？此動作無法復原。')) return;
-  localStorage.removeItem('pf_assets_v3'); localStorage.removeItem('pf_liabs_v1');
-  localStorage.removeItem('pf_fixed_v1'); localStorage.removeItem('pf_visited');
+  if (!confirm('確認清除所有本機資料？此動作不會影響 N8N/Google Sheets 中的資料。')) return;
+  localStorage.removeItem('pf_assets_v3'); localStorage.removeItem('pf_liabs_v1'); localStorage.removeItem('pf_fixed_v1'); localStorage.removeItem('pf_prices_v1');
   assets=[]; liabilities=[]; fixedAssets=[]; prices={}; renderAll();
 }
 
+// ══════════════════════════════════════
+// N8N API
+// ══════════════════════════════════════
+// 欄位對應（原本在 n8n Code node，現在移到前端）
+const COL_ASSET_MAP = {
+  '識別碼':'id','類型':'type','代碼':'ticker','名稱':'name',
+  '持有量':'qty','平均成本':'costPerUnit','計價幣別':'currency','基金淨值':'nav'
+};
+const COL_LIAB_MAP = {
+  '識別碼':'id','項目名稱':'name','負債類型':'type','剩餘本金':'principal',
+  '原始貸款':'original','月還款':'monthly','年利率':'rate','還款日':'dueDay',
+  '剩餘期數':'terms','計價幣別':'currency','備註':'note',
+  '還款方式':'repayType','繳款週期':'payFreq','還款月份':'dueMonth','最後扣繳':'lastDeducted'
+};
+const NUM_ASSET_F = ['qty','costPerUnit','nav'];
+const NUM_LIAB_F  = ['principal','original','monthly','rate','dueDay','terms','dueMonth'];
+function remapRow(row, colMap, numF) {
+  const out={};
+  for(const [zh,en] of Object.entries(colMap)){
+    const v=row[zh];
+    out[en]=numF.includes(en)?(v===''||v==null?null:Number(v)):(v??null);
+  }
+  return out;
+}
+
+async function n8nGet() {
+  if (!N8N_URL) return null;
+  try {
+    const [r1,r2] = await Promise.all([
+      fetch(N8N_URL+'/assets',  {signal:AbortSignal.timeout(10000)}),
+      fetch(N8N_URL+'/liabilities',{signal:AbortSignal.timeout(10000)})
+    ]);
+    if (!r1.ok||!r2.ok) return null;
+    const rawA=await r1.json(), rawL=await r2.json();
+    const assets      = rawA.filter(r=>r['識別碼']&&r['識別碼']!=='').map(r=>remapRow(r,COL_ASSET_MAP,NUM_ASSET_F));
+    const liabilities = rawL.filter(r=>r['識別碼']&&r['識別碼']!=='').map(r=>remapRow(r,COL_LIAB_MAP,NUM_LIAB_F));
+    return {assets,liabilities};
+  } catch {return null;}
+}
+
+async function n8nPost(body) {
+  if (!N8N_URL) return;
+  try {
+    updateSyncPill('syncing');
+    const r = await fetch(N8N_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal:AbortSignal.timeout(10000)});
+    updateSyncPill(r.ok?'ok':'err');
+  } catch { updateSyncPill('err'); }
+}
+
+async function n8nDelete(type,id) {
+  if (!N8N_URL) return;
+  try {
+    updateSyncPill('syncing');
+    const r = await fetch(N8N_URL,{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({type,id}),signal:AbortSignal.timeout(10000)});
+    updateSyncPill(r.ok?'ok':'err');
+  } catch { updateSyncPill('err'); }
+}
 
 // ══════════════════════════════════════
 // Data loading
@@ -892,30 +948,103 @@ function saveLocal() {
   localStorage.setItem('pf_assets_v3',JSON.stringify(assets));
   localStorage.setItem('pf_liabs_v1',JSON.stringify(liabilities));
   localStorage.setItem('pf_fixed_v1',JSON.stringify(fixedAssets));
+  fsSave(); // 同步到 Firestore（Firebase 未設定時為 no-op）
 }
 function loadLocal() {
   assets       = JSON.parse(localStorage.getItem('pf_assets_v3')||'[]');
   liabilities  = JSON.parse(localStorage.getItem('pf_liabs_v1') ||'[]');
   fixedAssets  = JSON.parse(localStorage.getItem('pf_fixed_v1') ||'[]');
 }
+function savePriceCache() {
+  if(Object.keys(prices).length) localStorage.setItem('pf_prices_v1',JSON.stringify(prices));
+}
+function loadPriceCache() {
+  const cached=localStorage.getItem('pf_prices_v1');
+  if(!cached) return;
+  const c=JSON.parse(cached);
+  for(const [id,p] of Object.entries(c)){
+    // 台股快取幣別必須是 TWD，過濾掉誤存的外幣報價
+    const a=assets.find(x=>x.id===id);
+    if(a && a.type==='tw' && p.currency!=='TWD') continue;
+    if(!prices[id]) prices[id]=p; // 已有 in-memory 的不覆蓋
+  }
+}
+function clearPriceCache() {
+  localStorage.removeItem('pf_prices_v1');
+  prices={};renderAll();
+  alert('報價快取已清除，點「更新報價」重新抓取。');
+}
 
 async function loadData() {
-  loadLocal();
+  loadLocal(); // 先載入本機快取，確保 fixedAssets 不因同步遺失
+  updateSyncPill('syncing');
+
+  // ── 優先從 Firestore 載入（Firebase 已設定且已登入）──
+  if (FB_READY && currentUser) {
+    const fd = await fsLoad();
+    if (fd && (fd.assets?.length || fd.liabilities?.length || fd.fixedAssets?.length)) {
+      assets      = fd.assets      || [];
+      liabilities = fd.liabilities || [];
+      fixedAssets = fd.fixedAssets || [];
+      localStorage.setItem('pf_assets_v3', JSON.stringify(assets));
+      localStorage.setItem('pf_liabs_v1',  JSON.stringify(liabilities));
+      localStorage.setItem('pf_fixed_v1',  JSON.stringify(fixedAssets));
+      updateSyncPill('ok');
+    } else if (fd !== null) {
+      // Firestore 空（第一次使用）→ 把本機資料上傳
+      if (assets.length || liabilities.length || fixedAssets.length) await fsSave();
+      updateSyncPill('ok');
+    } else {
+      updateSyncPill('err');
+    }
+  } else if (N8N_URL) {
+    // ── Fallback：n8n（Firebase 未設定時）──
+    const d = await n8nGet();
+    if (d && (d.assets.length || d.liabilities.length)) {
+      assets      = Array.isArray(d.assets)      ? d.assets      : [];
+      liabilities = Array.isArray(d.liabilities) ? d.liabilities : [];
+      saveLocal(); updateSyncPill('ok');
+    } else if (d) {
+      updateSyncPill('local');
+    } else {
+      updateSyncPill(_N8N_USER_CONFIGURED ? 'err' : 'local');
+    }
+  } else {
+    updateSyncPill('local');
+  }
+
+  loadPriceCache();
   autoDeductLiabilities();
   renderAll();
-  if (assets.length) await fetchPrices();
+  if (assets.length) { await fetchPrices(); savePriceCache(); renderAll(); }
 }
 
 // ══════════════════════════════════════
 // Price APIs
 // ══════════════════════════════════════
 async function fetchYahoo(ticker) {
-  const url   = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?interval=1d&range=1d`;
-  const proxy = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?interval=1d&range=5d`;
+  const proxies=[
+    `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+    `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
+    `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
+  ];
+  let r=null;
+  for(const proxy of proxies){
+    try{const res=await fetch(proxy,{signal:AbortSignal.timeout(8000)});if(res.ok){r=res;break;}}catch{}
+  }
   try {
-    const r=await fetch(proxy,{signal:AbortSignal.timeout(8000)});
+    if(!r)return null;
     const d=await r.json(); const m=d?.chart?.result?.[0]?.meta; if(!m)return null;
-    return {price:m.regularMarketPrice||m.chartPreviousClose,currency:m.currency,name:m.shortName||''};
+    // 非交易日 regularMarketPrice 可能為 0，從 close 陣列取最後一筆有效收盤價作為備援
+    // 驗證回傳 symbol 必須與請求一致，防止 proxy 回錯標的
+    const retSym=(m.symbol||'').toUpperCase();
+    if(retSym && retSym!==ticker.toUpperCase()) return null;
+    const closes=d?.chart?.result?.[0]?.indicators?.quote?.[0]?.close;
+    const lastClose=closes?.filter(v=>v!=null&&v>0)?.slice(-1)?.[0];
+    const price=m.regularMarketPrice||m.chartPreviousClose||lastClose;
+    if(!price)return null;
+    return {price,currency:m.currency,name:m.shortName||''};
   } catch {return null;}
 }
 async function fetchPionex(symbol) {
@@ -938,58 +1067,80 @@ async function fetchExchangeRate() {
   } catch {}
   return null;
 }
-async function fetchFundNAV(ticker) {
-  const proxy='https://api.allorigins.win/raw?url=';
-  const upper=ticker.toUpperCase().trim();
-  const isISIN=/^[A-Z]{2}[A-Z0-9]{9}[0-9]$/.test(upper);
-
-  // Source 1: FundClear SearchFundNAVByCode（境內基金代碼）
-  try {
-    const url=`https://www.fundclear.com.tw/MFCConsumer.B2C/Fund/SearchFundNAVByCode?fundCode=${encodeURIComponent(ticker)}`;
-    const r=await fetch(proxy+encodeURIComponent(url),{signal:AbortSignal.timeout(10000)});
-    if(r.ok){
-      const text=await r.text();
-      try {
-        const d=JSON.parse(text);
-        const nav=d?.NAV??d?.nav??d?.Data?.[0]?.NAV??d?.data?.[0]?.nav??d?.data?.[0]?.NAV;
-        if(nav!=null&&!isNaN(parseFloat(nav)))return parseFloat(nav);
-      } catch {}
-      const m=text.match(/["']NAV["']\s*:\s*["']?([0-9]+(?:\.[0-9]+)?)["']?/i);
-      if(m)return parseFloat(m[1]);
-    }
-  } catch {}
-
-  // Source 2: Yahoo Finance 搜尋（支援 ISIN Code，如 LU0820561818）
-  if(isISIN){
-    try {
-      const searchUrl=`https://query2.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(upper)}&quotesCount=5&newsCount=0`;
-      const r=await fetch(proxy+encodeURIComponent(searchUrl),{signal:AbortSignal.timeout(8000)});
-      if(r.ok){
-        const d=await r.json();
-        const quote=d?.quotes?.find(q=>q.quoteType==='MUTUALFUND'||q.quoteType==='ETF')||d?.quotes?.[0];
-        if(quote?.symbol){
-          const chartUrl=`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(quote.symbol)}?interval=1d&range=1d`;
-          const r2=await fetch(proxy+encodeURIComponent(chartUrl),{signal:AbortSignal.timeout(8000)});
-          if(r2.ok){
-            const d2=await r2.json();
-            const meta=d2?.chart?.result?.[0]?.meta;
-            const price=meta?.regularMarketPrice||meta?.chartPreviousClose;
-            if(price&&price>0)return price;
-          }
-        }
-      }
-    } catch {}
-  }
-
-  // Source 3: 直接用 Yahoo Finance chart 嘗試 ISIN 作為 ticker
-  if(isISIN){
-    try {
-      const r=await fetchYahoo(upper);
-      if(r?.price&&r.price>0)return r.price;
-    } catch {}
-  }
-
-  return null;
+let _tdccData=null,_tdccLoading=false,_tdccCallbacks=[];
+async function loadTDCCData(){
+  if(_tdccData)return _tdccData;
+  if(_tdccLoading)return new Promise(r=>_tdccCallbacks.push(r));
+  _tdccLoading=true;
+  try{
+    const tdccUrl='https://openapi-t.tdcc.com.tw/v1/opendata/3-4';
+    const tdccProxies=[
+      'https://api.allorigins.win/raw?url='+encodeURIComponent(tdccUrl),
+      'https://corsproxy.io/?url='+encodeURIComponent(tdccUrl),
+    ];
+    let r=null;
+    for(const p of tdccProxies){try{const res=await fetch(p,{signal:AbortSignal.timeout(20000)});if(res.ok){r=res;break;}}catch{}}
+    if(!r)throw new Error('all proxies failed');
+    const d=await r.json();
+    if(Array.isArray(d)&&d.length){_tdccData=d;}
+  }catch{}
+  _tdccLoading=false;
+  _tdccCallbacks.forEach(cb=>cb(_tdccData));
+  _tdccCallbacks=[];
+  return _tdccData;
+}
+async function fetchFundNAV(ticker){
+  const data=await loadTDCCData();
+  if(!data)return null;
+  const rows=data.filter(r=>r['基金代碼']===ticker).sort((a,b)=>b['日期'].localeCompare(a['日期']));
+  const nav=parseFloat(rows[0]?.['基金淨值(金額)']||rows[0]?.['基金淨值']);
+  return isNaN(nav)?null:nav;
+}
+let _fundSearchTimer=null;
+async function onFundSearch(q){
+  clearTimeout(_fundSearchTimer);
+  const dd=document.getElementById('fundDropdown'),hint=document.getElementById('fundSearchHint');
+  if(!q||q.length<2){dd.style.display='none';return;}
+  hint.textContent='搜尋中…';
+  _fundSearchTimer=setTimeout(async()=>{
+    const data=await loadTDCCData();
+    if(!data){hint.textContent='❌ 無法載入基金清單';return;}
+    const q2=document.getElementById('aFundSearch').value.trim();
+    if(q2.length<2)return;
+    // 取各基金代碼最新一筆
+    const latest={};
+    for(const r of data){const c=r['基金代碼'];if(!latest[c]||r['日期']>latest[c]['日期'])latest[c]=r;}
+    const hits=Object.values(latest).filter(r=>r['基金名稱']?.includes(q2)).slice(0,12);
+    if(!hits.length){dd.style.display='none';hint.textContent='找不到符合的基金';return;}
+    dd.innerHTML=hits.map(r=>{
+      const nav=parseFloat(r['基金淨值(金額)']||r['基金淨值'])||0;
+      const cur=r['計價幣別']||'';
+      const date=(r['日期']||'').replace(/(\d{4})(\d{2})(\d{2})/,'$1/$2/$3');
+      return `<div style="padding:10px 12px;cursor:pointer;border-bottom:1px solid var(--border,#eee);font-family:var(--mono);font-size:.7rem;line-height:1.5" onmousedown="selectFund(${JSON.stringify(JSON.stringify(r))})" onmouseover="this.style.background='var(--faint-bg,#f5f5f5)'" onmouseout="this.style.background=''">
+        <div style="font-weight:600;color:var(--fg,#1a1916)">${r['基金名稱']}</div>
+        <div style="color:var(--muted,#888);margin-top:2px">${r['基金代碼']} · ${cur} · NAV ${nav.toFixed(4)} · ${date}</div>
+      </div>`;
+    }).join('');
+    dd.style.display='block';
+    hint.textContent=`找到 ${hits.length} 筆（共 ${Object.keys(latest).length} 檔）`;
+  },300);
+}
+function selectFund(jsonStr){
+  const r=JSON.parse(jsonStr);
+  const nav=parseFloat(r['基金淨值(金額)']||r['基金淨值'])||0;
+  const cur=r['計價幣別']||'TWD';
+  document.getElementById('aFundSearch').value=r['基金名稱']||'';
+  document.getElementById('aTicker').value=r['基金代碼']||'';
+  document.getElementById('aName').value=r['基金名稱']||'';
+  document.getElementById('aNav').value=nav||'';
+  // 設定幣別
+  const curSel=document.getElementById('aCur');
+  const opt=[...curSel.options].find(o=>o.value===cur);
+  if(!opt){const o=new Option(cur+' '+cur,cur);curSel.add(o);}
+  curSel.value=cur;
+  document.getElementById('fundDropdown').style.display='none';
+  const date=(r['日期']||'').replace(/(\d{4})(\d{2})(\d{2})/,'$1/$2/$3');
+  document.getElementById('fundSearchHint').textContent=`✅ 已選取，NAV ${nav.toFixed(4)} ${cur}（${date}）`;
 }
 async function fetchPrices() {
   // 匯率：ExchangeRate-API 優先，Yahoo 備援
@@ -1010,15 +1161,22 @@ async function fetchPrices() {
       if(r)prices[a.id]={price:(a.currency==='TWD'||a.currency==='USDT')?r.usd:r.usd,currency:'USD'};
       return;
     }
-    const t=a.type==='tw'?a.ticker+'.TW':a.ticker;
-    const r=await fetchYahoo(t);
+    let r;
+    if(a.type==='tw'){
+      r=await fetchYahoo(a.ticker+'.TW');
+      if(!r) r=await fetchYahoo(a.ticker+'.TWO');
+      if(r && r.currency!=='TWD') r=null; // 台股必須是 TWD，過濾掉同名外國標的
+    } else {
+      r=await fetchYahoo(a.ticker);
+    }
     if(r){prices[a.id]={price:r.price,currency:r.currency||a.currency};if(!a.name&&r.name)a.name=r.name;}
+    else if(a.type==='tw') delete prices[a.id]; // 清除幣別錯誤的舊快取
   }));
 }
 async function refreshAll() {
   const btn=document.getElementById('refreshBtn'),icon=document.getElementById('refreshIcon');
   btn.disabled=true;icon.classList.add('spin');
-  await fetchPrices(); saveLocal(); renderAll();
+  await fetchPrices(); savePriceCache(); saveLocal(); renderAll();
   const n=new Date();
   document.getElementById('lastUpd').textContent=`更新 ${n.getHours().toString().padStart(2,'0')}:${n.getMinutes().toString().padStart(2,'0')}`;
   btn.disabled=false;icon.classList.remove('spin');
@@ -1283,26 +1441,30 @@ function onAssetTypeChange(){
   const hints={
     tw:'台股代號：2330、0050、006208',
     us:'美股 Ticker：AAPL、MSFT、SPY、QQQ',
-    fund:'點「搜尋基金」選擇，或輸入代碼/ISIN Code',
+    fund:'基金代碼（選取後自動填入）',
     crypto:'支援：BTC、ETH、SOL、BNB、XRP、ADA…（派網報價）',
     cash:'留空或填入帳戶名稱（如 玉山活存）',
   };
+  const isFund=t==='fund';
   document.getElementById('aHint').textContent=hints[t]||'';
-  document.getElementById('navFg').style.display=t==='fund'?'':'none';
-  document.getElementById('searchFundBtn').style.display=t==='fund'?'':'none';
-  // ticker row: hide for cash (not needed)
+  document.getElementById('navFg').style.display=isFund?'':'none';
+  document.getElementById('fundSearchFg').style.display=isFund?'':'none';
+  // 基金模式：代碼欄唯讀（由搜尋填入），其他類型正常
+  document.getElementById('aTicker').readOnly=isFund;
+  document.getElementById('aTicker').style.opacity=isFund?'.6':'1';
   if(t==='cash'){
     document.getElementById('aTicker').placeholder='帳戶名稱（選填）';
     document.getElementById('aQty').placeholder='金額';
     document.getElementById('aCost').placeholder='0（現金成本=面額）';
     document.getElementById('aCur').value='TWD';
   } else {
-    document.getElementById('aTicker').placeholder=t==='fund'?'基金代碼或 ISIN':'如 0050、BTC';
+    document.getElementById('aTicker').placeholder=isFund?'（由搜尋自動填入）':'如 0050、BTC';
     document.getElementById('aQty').placeholder='0';
     document.getElementById('aCost').placeholder='0.00';
     document.getElementById('aCur').value=(t==='us'||t==='crypto')?'USD':'TWD';
   }
-  if(t==='fund'){document.getElementById('navHint').innerHTML='<strong>點「搜尋基金」</strong>選擇，或輸入基金代碼/ISIN Code（如 LU0820561818）';}
+  // 預載 TDCC 資料
+  if(isFund&&!_tdccData)loadTDCCData();
 }
 
 function onLiabRepayChange(){
@@ -1321,22 +1483,13 @@ function onLiabFreqChange(){
 }
 async function queryFundNAV(){
   const ticker=document.getElementById('aTicker').value.trim();
-  if(!ticker){alert('請先輸入基金代碼或 ISIN Code');return;}
+  if(!ticker){alert('請先輸入基金代碼');return;}
   const btn=document.getElementById('navQueryBtn'),hint=document.getElementById('navHint');
   btn.textContent='查詢中…';btn.disabled=true;btn.style.opacity='.6';
   const nav=await fetchFundNAV(ticker);
   btn.textContent='查詢 NAV';btn.disabled=false;btn.style.opacity='1';
-  if(nav){
-    document.getElementById('aNav').value=nav;
-    hint.textContent=`✅ 查詢成功：NAV = ${nav}`;
-    hint.style.color='';
-  } else {
-    const isISIN=/^[A-Z]{2}[A-Z0-9]{9}[0-9]$/.test(ticker.toUpperCase());
-    hint.innerHTML=isISIN
-      ?'❌ 自動查詢未找到此 ISIN，請手動輸入 NAV<br>（可至鉅亨網、MoneyDJ 或基金公司官網查詢淨值）'
-      :'❌ 查詢失敗。境外基金請輸入 <strong>ISIN Code</strong>（如 LU0820561818），或手動填入 NAV';
-    hint.style.color='';
-  }
+  if(nav){document.getElementById('aNav').value=nav;hint.textContent=`✅ 查詢成功：NAV = ${nav}`;}
+  else{hint.textContent='❌ 自動查詢失敗，請至 fundclear.com.tw 手動輸入 NAV';}
 }
 
 async function addAsset(){
@@ -1356,8 +1509,11 @@ async function addAsset(){
   if(type==='cash')prices[a.id]={price:1,currency:cur};
   else if(type==='fund'&&nav>0)prices[a.id]={price:nav,currency:cur};
   closeModal('assetModal');
-  ['aTicker','aName','aQty','aCost','aNav'].forEach(id=>document.getElementById(id).value='');
+  ['aTicker','aName','aQty','aCost','aNav','aFundSearch'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('fundDropdown').style.display='none';
+  document.getElementById('aTicker').readOnly=false;document.getElementById('aTicker').style.opacity='1';
   saveLocal();renderAll();
+  await n8nPost({action:'save_asset',payload:a});
   if(type!=='fund'&&type!=='cash'){
     (async()=>{
       if(type==='crypto'){
@@ -1366,17 +1522,17 @@ async function addAsset(){
       } else {
         const t2=type==='tw'?a.ticker+'.TW':a.ticker;
         const r=await fetchYahoo(t2);
-        if(r){prices[a.id]={price:r.price,currency:r.currency||cur};if(!a.name&&r.name)a.name=r.name;}
+        if(r){prices[a.id]={price:r.price,currency:r.currency||cur};if(!a.name&&r.name){a.name=r.name;await n8nPost({action:'save_asset',payload:a});}}
       }
       saveLocal();renderAll();
     })();
   }
 }
 
-function deleteAsset(id){
+async function deleteAsset(id){
   if(!confirm('確認刪除此資產？'))return;
   assets=assets.filter(a=>a.id!==id);delete prices[id];
-  saveLocal();renderAll();
+  saveLocal();renderAll();await n8nDelete('asset',id);
 }
 
 async function addLiability(){
@@ -1403,13 +1559,13 @@ async function addLiability(){
   liabilities.push(l);
   closeModal('liabModal');
   ['lName','lPrincipal','lOriginal','lMonthly','lRate','lDueDay','lTerms','lNote'].forEach(id=>document.getElementById(id).value='');
-  saveLocal();renderAll();
+  saveLocal();renderAll();await n8nPost({action:'save_liability',payload:l});
 }
 
-function deleteLiab(id){
+async function deleteLiab(id){
   if(!confirm('確認刪除此負債？'))return;
   liabilities=liabilities.filter(l=>l.id!==id);
-  saveLocal();renderAll();
+  saveLocal();renderAll();await n8nDelete('liability',id);
 }
 
 // ══════════════════════════════════════
@@ -1464,13 +1620,33 @@ function buildPortfolioPayload(income) {
   };
 }
 
-function runAI(){
+async function runAI(){
+  const income=document.getElementById('aiIncome').value;
+  const btn=document.getElementById('aiRunBtn');
   const resultEl=document.getElementById('aiResult');
-  resultEl.innerHTML=`<div class="ai-placeholder">
-    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--faint)" stroke-width="1.5"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 8v4l3 3"/><circle cx="18" cy="6" r="3"/></svg>
-    <span>本機模式不支援 AI 分析</span>
-    <span style="font-size:.6rem;color:var(--faint)">需連接後端服務才能使用</span>
-  </div>`;
+  btn.disabled=true;btn.textContent='分析中…';
+  resultEl.innerHTML='<div class="ai-placeholder"><div class="ai-spinner"></div>AI 分析中，請稍候…</div>';
+  const payload=buildPortfolioPayload(income);
+  try{
+    const r=await fetch(N8N_URL+'/analyze',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(payload),signal:AbortSignal.timeout(60000)
+    });
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const d=await r.json();
+    const text=d.analysis||d.text||JSON.stringify(d);
+    // 將 markdown 簡單轉成 HTML
+    const html=text
+      .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+      .replace(/^#+\s(.+)$/gm,'<div class="ai-section-title">$1</div>')
+      .split(/\n\n+/)
+      .map(p=>`<div class="ai-section">${p.replace(/\n/g,'<br>')}</div>`)
+      .join('');
+    resultEl.innerHTML=html;
+  }catch(e){
+    resultEl.innerHTML=`<div class="ai-placeholder" style="color:var(--red)">分析失敗：${e.message}<br><br>請確認 n8n AI workflow 已啟用</div>`;
+  }
+  btn.disabled=false;btn.textContent='重新分析';
 }
 
 // ══════════════════════════════════════
@@ -1666,13 +1842,126 @@ async function confirmSell(){
   }
   closeModal('sellModal');
   saveLocal();renderAll();
+  if(assets.find(x=>x.id===sellTargetId)){
+    await n8nPost({action:'save_asset',payload:assets.find(x=>x.id===sellTargetId)});
+  } else {
+    await n8nDelete('asset',sellTargetId);
+  }
   alert(resultMsg);
+}
+
+// ══════════════════════════════════════
+// Firebase Auth + Firestore
+// ══════════════════════════════════════
+// 請至 console.firebase.google.com 建立專案後填入以下設定
+// 步驟：建立專案 → 新增 Web App → 啟用 Google 登入 → 建立 Firestore Database
+// Firestore 規則（Rules tab 貼上）：
+//   rules_version = '2';
+//   service cloud.firestore {
+//     match /databases/{database}/documents {
+//       match /users/{uid}/{doc=**} {
+//         allow read, write: if request.auth != null && request.auth.uid == uid;
+//       }
+//     }
+//   }
+const FIREBASE_CONFIG = {
+  apiKey:            "AIzaSyAsXKeSOrcTjKZMCwnnvE6pZBhNhKOj_xw",
+  authDomain:        "protfoliodashboard.firebaseapp.com",
+  projectId:         "protfoliodashboard",
+  storageBucket:     "protfoliodashboard.firebasestorage.app",
+  messagingSenderId: "894679882665",
+  appId:             "1:894679882665:web:e90b51747a3b5481fc02b8"
+};
+
+let _auth = null, _db = null, currentUser = null;
+const FB_READY = FIREBASE_CONFIG.apiKey !== 'YOUR_API_KEY';
+
+function initFirebase() {
+  if (!FB_READY) {
+    // Firebase 未設定，直接進入本機模式
+    document.getElementById('loginOverlay').style.display = 'none';
+    loadData();
+    return;
+  }
+  firebase.initializeApp(FIREBASE_CONFIG);
+  _auth = firebase.auth();
+  _db   = firebase.firestore();
+
+  _auth.onAuthStateChanged(async user => {
+    currentUser = user;
+    const overlay  = document.getElementById('loginOverlay');
+    const chip     = document.getElementById('userChip');
+    const fbSec    = document.getElementById('fbUserSection');
+    if (user) {
+      overlay.style.display = 'none';
+      chip.style.display    = 'flex';
+      fbSec.style.display   = '';
+      document.getElementById('userAvatar').src         = user.photoURL || '';
+      document.getElementById('userDisplayName').textContent = user.displayName?.split(' ')[0] || '';
+      document.getElementById('settingsAvatar').src     = user.photoURL || '';
+      document.getElementById('settingsUserName').textContent  = user.displayName || '';
+      document.getElementById('settingsUserEmail').textContent = user.email || '';
+      await loadData();
+    } else {
+      overlay.style.display = 'flex';
+      chip.style.display    = 'none';
+      fbSec.style.display   = 'none';
+      assets = []; liabilities = []; fixedAssets = []; prices = {};
+      renderAll();
+    }
+  });
+}
+
+async function signInWithGoogle() {
+  if (!_auth) return;
+  document.getElementById('loginStatus').textContent = '登入中…';
+  try {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    await _auth.signInWithPopup(provider);
+  } catch(e) {
+    document.getElementById('loginStatus').textContent = '登入失敗：' + (e.code || e.message);
+  }
+}
+
+function signOutUser() {
+  if (!_auth || !confirm('確認登出？')) return;
+  _auth.signOut();
+  closeSettings();
+}
+
+// ── Firestore helpers ──
+function _fsRef() {
+  return currentUser && _db
+    ? _db.collection('users').doc(currentUser.uid).collection('portfolio').doc('data')
+    : null;
+}
+
+async function fsLoad() {
+  const ref = _fsRef(); if (!ref) return null;
+  try {
+    const snap = await ref.get();
+    return snap.exists ? snap.data() : {};
+  } catch { return null; }
+}
+
+async function fsSave() {
+  const ref = _fsRef(); if (!ref) return;
+  try {
+    await ref.set({
+      assets, liabilities, fixedAssets,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    updateSyncPill('ok');
+  } catch(e) {
+    console.warn('Firestore save error:', e);
+    updateSyncPill('err');
+  }
 }
 
 // ══════════════════════════════════════
 // Init
 // ══════════════════════════════════════
-(async()=>{initUI();await loadData();})();
+(async()=>{ initUI(); initFirebase(); })();
 </script>
 </body>
 </html>
