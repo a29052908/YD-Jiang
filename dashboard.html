@@ -390,8 +390,8 @@ function computeDuplicates() {
       row['醫師'] || '',
       row['病人'] || '',
       row['病歷號'] || '',
-      (row['品項'] || []).length
-    ].join('|');
+      (row['組件'] || '').trim()
+    ].join('|||');
     if (!keyMap[key]) keyMap[key] = [];
     keyMap[key].push(row['流水號']);
   }
