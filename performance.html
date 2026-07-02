@@ -166,7 +166,6 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', s
       <a href="track.html" class="menu-item" id="trackBtn" style="display:none;">📌 追蹤</a>
       <a href="edit-request.html" class="menu-item" id="editRequestBtn" style="display:none;">✏️ 變更申請</a>
       <a href="review.html" class="menu-item" id="reviewBtn" style="display:none;">🔍 審核</a>
-      <a href="review.html?tab=void" class="menu-item" id="voidMenuBtn" style="display:none;">🗑 作廢申請</a>
       <a href="pickup.html" class="menu-item" id="pickupBtn" style="display:none;">📦 抓貨管理</a>
       <a href="export.html" class="menu-item">📤 匯出統計表</a>
       <button class="menu-item danger" onclick="tandryLogout()">登出</button>
@@ -256,7 +255,7 @@ document.addEventListener('click', () => document.getElementById('hamburgerMenu'
 
 window.addEventListener('DOMContentLoaded', () => {
   if (IS_ADMIN) {
-    ['trackBtn','editRequestBtn','reviewBtn','voidMenuBtn','pickupBtn'].forEach(id => {
+    ['trackBtn','editRequestBtn','reviewBtn','pickupBtn'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.style.display = '';
     });
