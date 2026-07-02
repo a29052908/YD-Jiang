@@ -181,7 +181,6 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', s
       <a href="dashboard.html" class="menu-item">📋 總表</a>
       <a href="track.html" class="menu-item" id="trackBtn" style="display:none;">📌 追蹤</a>
       <a href="review.html" class="menu-item" id="reviewBtn" style="display:none;">🔍 審核</a>
-      <a href="review.html?tab=void" class="menu-item" id="voidMenuBtn" style="display:none;">🗑 作廢申請</a>
       <a href="pickup.html" class="menu-item" id="pickupBtn" style="display:none;">📦 抓貨管理</a>
       <a href="performance.html" class="menu-item" id="perfBtn" style="display:none;">📊 業績儀表板</a>
       <a href="export.html" class="menu-item">📤 匯出統計表</a>
@@ -196,6 +195,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', s
   <div class="tabs">
     <button class="tab-btn active" onclick="switchTab('apply')">📝 新增申請</button>
     <button class="tab-btn" onclick="switchTab('history')">📋 我的申請</button>
+    <button class="tab-btn" onclick="switchTab('void')">🗑 作廢</button>
   </div>
 
   <!-- 新增申請 -->
@@ -295,6 +295,26 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', s
   <div id="historyTab" style="display:none;">
     <div id="historyList"><div class="spinner"></div></div>
   </div>
+
+  <!-- 作廢申請 -->
+  <div id="voidTab" style="display:none;">
+    <div class="card">
+      <div class="card-title">🗑 作廢申請</div>
+      <div class="field">
+        <label>流水號</label>
+        <input type="text" id="voidSerialInput" placeholder="如 IV26050801" style="font-family:'JetBrains Mono',monospace;">
+      </div>
+      <div class="field" style="margin-bottom:0;">
+        <label>申請原因 <span style="color:var(--muted);font-size:10px;font-weight:400;">（選填）</span></label>
+        <textarea id="voidReasonInput" rows="2" placeholder="說明為何要作廢此筆報刀單..."></textarea>
+      </div>
+    </div>
+    <div style="background:#fff0f1;border:1px solid #ffc0c4;border-radius:10px;padding:12px 14px;margin-bottom:12px;font-size:13px;color:#c0333f;line-height:1.7;">
+      ⚠️ 作廢申請送出後，將由內勤審核後執行。執行後該筆資料將從報表中移除。
+    </div>
+    <button class="submit-btn" style="background:var(--red);" onclick="submitVoidTab()">🗑 送出作廢申請</button>
+    <div id="voidStatus" style="text-align:center;padding:10px;font-size:13px;color:var(--muted);min-height:36px;"></div>
+  </div>
 </div>
 
 <script>
@@ -326,7 +346,7 @@ document.addEventListener('click', () => {
   if (m) m.classList.remove('open');
 });
 
-['trackBtn','reviewBtn','voidMenuBtn','pickupBtn'].forEach(id => {
+['trackBtn','reviewBtn','pickupBtn'].forEach(id => {
   const el = document.getElementById(id);
   if (el) el.style.display = 'flex';
 });
@@ -639,10 +659,60 @@ function autoFillNewSpec() {
 function switchTab(tab) {
   document.getElementById('applyTab').style.display = tab === 'apply' ? 'block' : 'none';
   document.getElementById('historyTab').style.display = tab === 'history' ? 'block' : 'none';
+  document.getElementById('voidTab').style.display = tab === 'void' ? 'block' : 'none';
   document.querySelectorAll('.tab-btn').forEach((b, i) => {
-    b.classList.toggle('active', (i === 0 && tab === 'apply') || (i === 1 && tab === 'history'));
+    b.classList.toggle('active',
+      (i === 0 && tab === 'apply') ||
+      (i === 1 && tab === 'history') ||
+      (i === 2 && tab === 'void')
+    );
   });
   if (tab === 'history') loadHistory();
+}
+
+// 從 URL 帶入 void serial（dashboard 直接跳轉時用）
+(function() {
+  const params = new URLSearchParams(location.search);
+  const vSerial = params.get('void');
+  if (vSerial) {
+    switchTab('void');
+    document.getElementById('voidSerialInput').value = vSerial;
+  }
+})();
+
+async function submitVoidTab() {
+  const serial = document.getElementById('voidSerialInput').value.trim();
+  const reason = document.getElementById('voidReasonInput').value.trim();
+  const status = document.getElementById('voidStatus');
+  if (!serial) { status.textContent = '⚠️ 請填入流水號'; return; }
+
+  const btn = document.querySelector('#voidTab .submit-btn');
+  btn.disabled = true;
+  status.textContent = '送出中…';
+  try {
+    const res = await fetch('https://ydj.zeabur.app/webhook/submit-void', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        token: localStorage.getItem('tandry_token'),
+        流水號: serial,
+        申請原因: reason,
+        申請者: USER.displayName || USER.username,
+        role: USER.role
+      })
+    });
+    const data = await res.json();
+    if (data.success) {
+      status.textContent = '✅ 作廢申請已送出，待內勤審核';
+      document.getElementById('voidSerialInput').value = '';
+      document.getElementById('voidReasonInput').value = '';
+    } else {
+      status.textContent = '❌ 送出失敗：' + (data.message || '');
+    }
+  } catch(e) {
+    status.textContent = '❌ 無法連線';
+  }
+  btn.disabled = false;
 }
 
 // ── 欄位選擇 ─────────────────────────────────
