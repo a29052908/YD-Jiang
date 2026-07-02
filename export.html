@@ -7,7 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
-:root{--bg:#f5f4f0;--card:#fff;--border:#e0ddd6;--accent:#1a1a2e;--text:#1a1a2e;--muted:#888680;--radius:12px;--shadow:0 2px 12px rgba(0,0,0,0.08);--green:#2e7d32;--accent2:#e63946;}
+:root{--bg:#f5f4f0;--card:#fff;--border:#e0ddd6;--accent:#1a1a2e;--text:#1a1a2e;--muted:#888680;--radius:12px;--shadow:0 2px 12px rgba(0,0,0,0.08);--green:#2e7d32;--blue:#065A82;--accent2:#e63946;}
 *{box-sizing:border-box;margin:0;padding:0;}
 body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-serif;min-height:100vh;padding-bottom:40px;}
 .topbar{background:var(--accent);color:white;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
@@ -23,10 +23,15 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-seri
 .form-group label{font-size:12px;font-weight:600;color:var(--muted);}
 select,input{padding:10px 12px;border:2px solid var(--border);border-radius:10px;font-size:14px;font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text);outline:none;width:100%;}
 select:focus,input:focus{border-color:var(--accent);}
+.name-display{padding:10px 12px;border:2px solid var(--border);border-radius:10px;font-size:14px;background:var(--bg);color:var(--text);font-weight:600;}
+.load-btn{width:100%;padding:14px;background:var(--blue);color:white;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;display:flex;align-items:center;justify-content:center;gap:8px;transition:all 0.2s;margin-top:4px;}
+.load-btn:hover{background:#054a6b;transform:translateY(-1px);}
+.load-btn:disabled{opacity:0.4;cursor:not-allowed;transform:none;}
 .export-btn{width:100%;padding:16px;background:var(--green);color:white;border:none;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;display:flex;align-items:center;justify-content:center;gap:8px;transition:all 0.2s;margin-top:4px;}
 .export-btn:hover{background:#1b5e20;transform:translateY(-1px);}
 .export-btn:disabled{opacity:0.4;cursor:not-allowed;transform:none;}
-.status{text-align:center;padding:12px;font-size:14px;color:var(--muted);min-height:40px;}
+.status{text-align:center;padding:10px;font-size:13px;color:var(--muted);min-height:36px;}
+.data-info{font-size:13px;color:var(--muted);margin-bottom:12px;}
 .preview-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:12px;}
 .preview-table th{background:#f0f0f0;padding:6px 8px;text-align:left;border:1px solid var(--border);font-weight:600;font-size:11px;}
 .preview-table td{padding:5px 8px;border:1px solid var(--border);white-space:nowrap;}
@@ -43,8 +48,9 @@ select:focus,input:focus{border-color:var(--accent);}
 </div>
 
 <div class="content">
+  <!-- Step 1: 選月份 -->
   <div class="card">
-    <div class="card-label">匯出設定</div>
+    <div class="card-label">Step 1 — 選擇月份</div>
     <div class="form-row">
       <div class="form-group">
         <label>年份</label>
@@ -54,15 +60,24 @@ select:focus,input:focus{border-color:var(--accent);}
         <label>月份</label>
         <select id="selMonth"></select>
       </div>
-      <div class="form-group" id="salesGroup">
-        <label>業務</label>
-        <select id="selSales"></select>
-      </div>
     </div>
-    <button class="export-btn" id="exportBtn" onclick="doExport()">📊 下載 Excel</button>
-    <div class="status" id="status"></div>
+    <button class="load-btn" id="loadBtn" onclick="loadData()">🔍 載入月份資料</button>
+    <div class="status" id="loadStatus"></div>
   </div>
 
+  <!-- Step 2: 選業務 + 匯出（載入後出現） -->
+  <div class="card" id="step2Card" style="display:none;">
+    <div class="card-label">Step 2 — 選擇業務並匯出</div>
+    <div class="data-info" id="dataInfo"></div>
+    <div class="form-group" id="salesGroup" style="margin-bottom:12px;">
+      <label>業務</label>
+      <!-- admin: select；非admin: 顯示自己名字 -->
+    </div>
+    <button class="export-btn" id="exportBtn" onclick="doExport()">📊 下載 Excel</button>
+    <div class="status" id="exportStatus"></div>
+  </div>
+
+  <!-- 預覽 -->
   <div class="card" id="previewCard" style="display:none;">
     <div class="card-label">預覽（前 10 筆）</div>
     <div style="overflow-x:auto;">
@@ -81,46 +96,43 @@ select:focus,input:focus{border-color:var(--accent);}
 const USER = window.TANDRY_USER || {};
 const IS_ADMIN = USER.role === 'admin' || USER.role === 'manager';
 const WEBHOOK = 'https://ydj.zeabur.app/webhook/get-cases';
-const SALES_LIST = ['Ivan','Dino','Henry','Vincent','Kaley','Mandy','Eddie','Bruce'];
+
+let cachedAllRows = [];
 
 const now = new Date();
 const selYear = document.getElementById('selYear');
 const selMonth = document.getElementById('selMonth');
-const selSales = document.getElementById('selSales');
 
-// 年份選項
 for (let y = now.getFullYear(); y >= 2025; y--) {
   const o = document.createElement('option');
   o.value = y; o.textContent = y + '年';
   selYear.appendChild(o);
 }
-// 月份選項
 for (let m = 1; m <= 12; m++) {
   const o = document.createElement('option');
   o.value = m; o.textContent = m + '月';
   if (m === now.getMonth() + 1) o.selected = true;
   selMonth.appendChild(o);
 }
-// 業務選項
-if (IS_ADMIN) {
-  SALES_LIST.forEach(s => {
-    const o = document.createElement('option');
-    o.value = s; o.textContent = s;
-    selSales.appendChild(o);
-  });
-} else {
-  document.getElementById('salesGroup').style.display = 'none';
+
+// 重設 step2 當年月改變
+selYear.addEventListener('change', resetStep2);
+selMonth.addEventListener('change', resetStep2);
+function resetStep2() {
+  document.getElementById('step2Card').style.display = 'none';
+  document.getElementById('previewCard').style.display = 'none';
+  document.getElementById('loadStatus').textContent = '';
+  cachedAllRows = [];
 }
 
-async function doExport() {
+async function loadData() {
   const year = parseInt(selYear.value);
   const month = parseInt(selMonth.value);
-  const salesName = IS_ADMIN ? selSales.value : (USER.displayName || USER.username || '');
-  const btn = document.getElementById('exportBtn');
-  const status = document.getElementById('status');
+  const loadBtn = document.getElementById('loadBtn');
+  const loadStatus = document.getElementById('loadStatus');
 
-  btn.disabled = true;
-  status.textContent = '載入資料中…';
+  loadBtn.disabled = true;
+  loadStatus.textContent = '載入中…';
 
   try {
     const ctrl = new AbortController();
@@ -140,18 +152,96 @@ async function doExport() {
     const json = await res.json();
     if (!json.success) throw new Error(json.message || '載入失敗');
 
-    let rows = json.data || [];
-    // 篩選業務
-    if (salesName) rows = rows.filter(r => (r['業務'] || '').toLowerCase() === salesName.toLowerCase());
-    if (!rows.length) { status.textContent = '該月份無資料'; btn.disabled = false; return; }
+    cachedAllRows = json.data || [];
+    if (!cachedAllRows.length) {
+      loadStatus.textContent = '該月份尚無資料';
+      loadBtn.disabled = false;
+      return;
+    }
 
-    buildExcel(rows, year, month, salesName);
-    showPreview(rows);
-    status.textContent = `✅ 已匯出 ${salesName} ${year}年${month}月，共 ${rows.length} 筆報刀單`;
+    buildStep2(year, month);
+    loadStatus.textContent = '';
   } catch(e) {
-    status.textContent = '❌ 錯誤：' + e.message;
+    loadStatus.textContent = '❌ ' + e.message;
   }
-  btn.disabled = false;
+  loadBtn.disabled = false;
+}
+
+function buildStep2(year, month) {
+  const salesGroup = document.getElementById('salesGroup');
+  salesGroup.innerHTML = '<label>業務</label>';
+
+  if (IS_ADMIN) {
+    // 從資料中抽出唯一業務名稱，依出現順序排列
+    const seen = new Set();
+    const salesNames = [];
+    for (const row of cachedAllRows) {
+      const s = (row['業務'] || '').trim();
+      if (s && !seen.has(s)) { seen.add(s); salesNames.push(s); }
+    }
+    salesNames.sort();
+
+    const sel = document.createElement('select');
+    sel.id = 'selSales';
+    // 加「全部」選項
+    const allOpt = document.createElement('option');
+    allOpt.value = ''; allOpt.textContent = '（全部）';
+    sel.appendChild(allOpt);
+    salesNames.forEach(s => {
+      const o = document.createElement('option');
+      o.value = s; o.textContent = s;
+      sel.appendChild(o);
+    });
+    salesGroup.appendChild(sel);
+  } else {
+    const name = USER.displayName || USER.username || '';
+    const div = document.createElement('div');
+    div.className = 'name-display';
+    div.textContent = name;
+    salesGroup.appendChild(div);
+  }
+
+  // 更新資料筆數提示
+  document.getElementById('dataInfo').textContent =
+    `${year}年${month}月共載入 ${cachedAllRows.length} 筆報刀單`;
+
+  document.getElementById('step2Card').style.display = '';
+  document.getElementById('previewCard').style.display = 'none';
+  document.getElementById('exportStatus').textContent = '';
+}
+
+function doExport() {
+  const year = parseInt(selYear.value);
+  const month = parseInt(selMonth.value);
+  const exportStatus = document.getElementById('exportStatus');
+  const exportBtn = document.getElementById('exportBtn');
+
+  let salesName;
+  if (IS_ADMIN) {
+    const sel = document.getElementById('selSales');
+    salesName = sel ? sel.value : '';
+  } else {
+    salesName = USER.displayName || USER.username || '';
+  }
+
+  let rows = cachedAllRows;
+  if (salesName) {
+    rows = rows.filter(r => (r['業務'] || '').toLowerCase() === salesName.toLowerCase());
+  }
+  if (!rows.length) {
+    exportStatus.textContent = '該業務本月無資料';
+    return;
+  }
+
+  exportBtn.disabled = true;
+  try {
+    buildExcel(rows, year, month, salesName || '全部');
+    showPreview(rows);
+    exportStatus.textContent = `✅ 已匯出 ${salesName || '全部'} ${year}年${month}月，共 ${rows.length} 筆`;
+  } catch(e) {
+    exportStatus.textContent = '❌ ' + e.message;
+  }
+  exportBtn.disabled = false;
 }
 
 function buildExcel(rows, year, month, salesName) {
@@ -159,20 +249,16 @@ function buildExcel(rows, year, month, salesName) {
   const wb = XLSX.utils.book_new();
   const wsData = [];
 
-  // Row 1: 標題
   wsData.push([`${rocYear}年  ${month}月  業務跟刀量統計表  業務：${salesName}`]);
-  // Row 2: email 提醒
   wsData.push(['每月1號 請mail給 annie27962677@gmail.com, patti50884012@gmail.com']);
-  // Row 3: 欄位標題
   wsData.push(['日期','部位','醫院','醫師','品號','數量','病人','院內碼','','','類別','總數']);
 
-  // 展開品項
   const itemRows = [];
   for (const row of rows) {
-    const dateStr = formatDate(row['日期'], month);
+    const dateStr = formatDate(row['日期']);
     const items = row['品項'] || [];
     if (items.length === 0) {
-      itemRows.push({ dateStr, buwei:'', hospital:row['醫院']||'', doctor:row['醫師']||'', pn:'', qty:'', patient:row['病人']||'', ic:row['院內碼']||'' });
+      itemRows.push({ dateStr, buwei:'', hospital:row['醫院']||'', doctor:row['醫師']||'', pn:'', qty:'', patient:row['病人']||'', ic:'' });
     } else {
       for (const item of items) {
         const ic = item['院內碼'] || '';
@@ -185,17 +271,13 @@ function buildExcel(rows, year, month, salesName) {
           pn: item['品號'] || '',
           qty: item['數量'] || 1,
           patient: row['病人'] || '',
-          ic: icStr,
-          serial: row['流水號'] || ''
+          ic: icStr
         });
       }
     }
   }
 
-  // 統計
   const summary = calcSummary(rows);
-
-  // 合併輸出（資料列 + 右側統計）
   const summaryKeys = Object.keys(summary);
   for (let i = 0; i < Math.max(itemRows.length, summaryKeys.length); i++) {
     const item = itemRows[i];
@@ -203,20 +285,15 @@ function buildExcel(rows, year, month, salesName) {
     const row = item
       ? [item.dateStr, item.buwei, item.hospital, item.doctor, item.pn, item.qty, item.patient, item.ic, '', '']
       : ['','','','','','','','','',''];
-    if (sk) row.push(sk, summary[sk]);
-    else row.push('','');
+    row.push(sk || '', sk ? summary[sk] : '');
     wsData.push(row);
   }
 
   const ws = XLSX.utils.aoa_to_sheet(wsData);
-
-  // 樣式：合併標題列
   ws['!merges'] = [
     { s:{r:0,c:0}, e:{r:0,c:11} },
     { s:{r:1,c:0}, e:{r:1,c:11} },
   ];
-
-  // 欄寬
   ws['!cols'] = [
     {wch:8},{wch:8},{wch:10},{wch:8},{wch:16},{wch:5},{wch:8},{wch:14},{wch:2},{wch:2},{wch:8},{wch:6}
   ];
@@ -225,13 +302,11 @@ function buildExcel(rows, year, month, salesName) {
   XLSX.writeFile(wb, `${salesName}_${rocYear}年${month}月跟刀量統計表.xlsx`);
 }
 
-function formatDate(dateStr, month) {
+function formatDate(dateStr) {
   if (!dateStr) return '';
   const parts = dateStr.split('/');
   if (parts.length < 3) return dateStr;
-  const m = parseInt(parts[1]);
-  const d = parseInt(parts[2]);
-  return `${m}/${d}`;
+  return `${parseInt(parts[1])}/${parseInt(parts[2])}`;
 }
 
 function calcSummary(rows) {
@@ -258,7 +333,6 @@ function calcSummary(rows) {
   PLATE_TYPES.forEach(t => { result[t] = counts[t]; });
   result['骨釘'] = counts['骨釘'];
   result['人工骨'] = counts['人工骨'];
-
   return result;
 }
 
