@@ -79,6 +79,13 @@ tr:hover td { background: #faf9f7; cursor: pointer; }
 .pickup-pending { background: #fff0f1; color: var(--accent2); }
 .pickup-done { background: var(--green-light); color: var(--green); }
 
+/* duplicate row */
+tr.dup-row td { background: #fff0f1 !important; }
+tr.dup-row:hover td { background: #ffe0e2 !important; }
+.dup-badge { display: inline-block; background: var(--accent2); color: white; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 4px; margin-right: 4px; vertical-align: middle; letter-spacing: 0.3px; }
+.void-btn { padding: 4px 10px; border-radius: 6px; border: none; background: var(--accent2); color: white; font-size: 11px; font-weight: 600; cursor: pointer; font-family: 'Noto Sans TC', sans-serif; white-space: nowrap; }
+.void-btn:hover { background: #c0333f; }
+
 /* empty / loading */
 .state-box { text-align: center; padding: 60px 20px; color: var(--muted); }
 .state-box .icon { font-size: 36px; margin-bottom: 12px; }
@@ -372,6 +379,26 @@ document.addEventListener('click', () => {
 // ── 狀態 ──────────────────────────────────────
 let allData = [];
 let filteredData = [];
+let duplicateSerials = new Set();
+
+function computeDuplicates() {
+  const keyMap = {};
+  for (const row of allData) {
+    const key = [
+      row['日期'] || '',
+      row['醫師'] || '',
+      row['病人'] || '',
+      row['病歷號'] || '',
+      (row['品項'] || []).length
+    ].join('|');
+    if (!keyMap[key]) keyMap[key] = [];
+    keyMap[key].push(row['流水號']);
+  }
+  duplicateSerials = new Set();
+  for (const serials of Object.values(keyMap)) {
+    if (serials.length >= 2) serials.forEach(s => duplicateSerials.add(s));
+  }
+}
 let currentMonth = new Date().getMonth() + 1;
 let currentYear = new Date().getFullYear();
 
@@ -444,6 +471,7 @@ async function loadData() {
     if (json.success) {
       allData = json.data || [];
       filteredData = [...allData];
+      computeDuplicates();
       applyFilter();
     } else {
       showError('載入失敗：' + (json.message || '未知錯誤'));
@@ -540,10 +568,17 @@ function renderTable() {
       ? `<td><span class="pickup-badge ${pickup === '已處理' ? 'pickup-done' : 'pickup-pending'}">${pickup}</span></td>`
       : '';
     const parts = (row['品項'] || []).map(p => p['部位']).filter(Boolean).join('、');
+    const isDup = duplicateSerials.has(row['流水號'] || '');
+    const dupBadge = isDup ? `<span class="dup-badge">重複</span>` : '';
+    const ownRow = (row['業務'] || '').toLowerCase() === (USER.username || '').toLowerCase();
+    const canVoid = isDup && (IS_ADMIN || ownRow);
+    const voidBtn = canVoid
+      ? `<button class="void-btn" onclick="event.stopPropagation();submitVoidRequest(${i})">🗑 作廢</button>`
+      : '';
 
     if (IS_ADMIN) {
-      return `<tr onclick="openDrawer(${i})">
-        <td class="td-date">${row['日期'] || ''}</td>
+      return `<tr class="${isDup ? 'dup-row' : ''}" onclick="openDrawer(${i})">
+        <td class="td-date">${dupBadge}${row['日期'] || ''}</td>
         <td class="td-serial">${row['流水號'] || '-'}</td>
         <td class="td-name">${row['業務'] || ''}</td>
         <td>${row['醫院'] || ''}</td>
@@ -551,17 +586,17 @@ function renderTable() {
         <td>${row['病人'] || ''}</td>
         <td>${parts || '-'}</td>
         ${pickupBadge}
-        <td style="display:flex;gap:4px;"><button class="detail-btn" onclick="event.stopPropagation();openDrawer(${i})">詳細</button><button class="detail-btn" style="background:#e8f4fd;color:#1a5276;" onclick="event.stopPropagation();openPreview(${i})">預覽</button></td>
+        <td style="display:flex;gap:4px;flex-wrap:wrap;"><button class="detail-btn" onclick="event.stopPropagation();openDrawer(${i})">詳細</button><button class="detail-btn" style="background:#e8f4fd;color:#1a5276;" onclick="event.stopPropagation();openPreview(${i})">預覽</button>${voidBtn}</td>
       </tr>`;
     } else {
-      return `<tr onclick="openDrawer(${i})">
-        <td class="td-date">${row['日期'] || ''}</td>
+      return `<tr class="${isDup ? 'dup-row' : ''}" onclick="openDrawer(${i})">
+        <td class="td-date">${dupBadge}${row['日期'] || ''}</td>
         <td class="td-serial">${row['流水號'] || '-'}</td>
         <td>${row['醫院'] || ''}</td>
         <td>${row['醫師'] || ''}</td>
         <td>${row['病人'] || ''}</td>
         <td>${parts || '-'}</td>
-        <td style="display:flex;gap:4px;"><button class="detail-btn" onclick="event.stopPropagation();openDrawer(${i})">詳細</button><button class="detail-btn" style="background:#e8f4fd;color:#1a5276;" onclick="event.stopPropagation();openPreview(${i})">預覽</button></td>
+        <td style="display:flex;gap:4px;flex-wrap:wrap;"><button class="detail-btn" onclick="event.stopPropagation();openDrawer(${i})">詳細</button><button class="detail-btn" style="background:#e8f4fd;color:#1a5276;" onclick="event.stopPropagation();openPreview(${i})">預覽</button>${voidBtn}</td>
       </tr>`;
     }
   }).join('');
@@ -655,6 +690,37 @@ function requestEdit(index) {
     報損:   row['報損'] || '',
   }));
   window.location.href = `edit-request.html?serial=${row['流水號']}`;
+}
+
+async function submitVoidRequest(index) {
+  const row = filteredData[index];
+  if (!confirm(`申請作廢以下報刀單？\n\n流水號：${row['流水號']}\n日期：${row['日期']}\n醫院：${row['醫院']}\n病人：${row['病人']}\n\n此申請將通知內勤審核後執行。`)) return;
+  try {
+    const res = await fetch('https://ydj.zeabur.app/webhook/submit-void', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        token: localStorage.getItem('tandry_token'),
+        流水號: row['流水號'],
+        日期: row['日期'],
+        醫院: row['醫院'],
+        醫師: row['醫師'],
+        病人: row['病人'],
+        病歷號: row['病歷號'] || '',
+        品項數量: (row['品項'] || []).length,
+        申請者: USER.displayName || USER.username,
+        role: USER.role
+      })
+    });
+    const data = await res.json();
+    if (data.success) {
+      showToast('✅ 作廢申請已送出，待內勤審核');
+    } else {
+      showToast('❌ 送出失敗：' + (data.message || ''));
+    }
+  } catch(e) {
+    showToast('❌ 無法連線');
+  }
 }
 
 // ══════════════════════════════════════════════
