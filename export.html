@@ -93,6 +93,9 @@ select:focus,input:focus{border-color:var(--accent);}
   if (!token || Date.now() >= exp) { window.location.href = 'login.html'; return; }
 })();
 
+try { window.TANDRY_USER = JSON.parse(localStorage.getItem('tandry_user') || '{}'); }
+catch(e) { window.TANDRY_USER = {}; }
+
 const USER = window.TANDRY_USER || {};
 const IS_ADMIN = USER.role === 'admin' || USER.role === 'manager';
 const WEBHOOK = 'https://ydj.zeabur.app/webhook/get-cases';
