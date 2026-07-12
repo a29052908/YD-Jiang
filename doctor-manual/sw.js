@@ -1,4 +1,4 @@
-const CACHE = 'tandry-manual-v3';
+const CACHE = 'tandry-manual-v4';
 const SHELL = [
   './index.html',
   './manifest.json'

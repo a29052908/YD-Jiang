@@ -6,6 +6,8 @@
 <meta name="theme-color" content="#14355a">
 <title>Tandry 骨科耗材手冊</title>
 <link rel="manifest" href="./manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Noto+Sans+TC:wght@300;400;500;700&family=Bebas+Neue&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -169,7 +171,7 @@ body{background:var(--bg);color:var(--ink);font-family:'Noto Sans TC',sans-serif
     </button>
   </div>
   <div style="background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden">
-    <img src="./images/Cortex Screw.png?v=2" alt="Cortex Screw"
+    <img src="./images/Cortex Screw.webp" alt="Cortex Screw"
       style="width:100%;display:block;object-fit:contain;background:#f8f8f6;padding:20px;max-height:320px"
       onerror="this.style.display='none'">
   </div>
@@ -267,53 +269,53 @@ const CATS = {
   clavicle: {
     code: 'OS0211A',
     items: [
-      { name:'Hook Plate',        imgs:['3.5%20Clavicle%20Hook%20Plate.png'],    price:'$55,000', holes:['4H','6H'],                          note:'Hook深度 15 / 18 mm', lr:true,  screw:'3.5' },
-      { name:'Superior Clavicle', imgs:['3.5%20Superior%20Clavicle%20Plate.png'],price:'$55,000', holes:['6H','7H','8H'],                                                  lr:true,  screw:'3.5' },
-      { name:'Distal Clavicle',   imgs:['3.5%20Distal%20Clavicle%20Plate.png'],  price:'$55,000', holes:['4H','5H','6H','7H'],                                             lr:true,  screw:'2.4/3.5' },
+      { name:'Hook Plate',        imgs:['3.5%20Clavicle%20Hook%20Plate.webp'],    price:'$55,000', holes:['4H','6H'],                          note:'Hook深度 15 / 18 mm', lr:true,  screw:'3.5' },
+      { name:'Superior Clavicle', imgs:['3.5%20Superior%20Clavicle%20Plate.webp'],price:'$55,000', holes:['6H','7H','8H'],                                                  lr:true,  screw:'3.5' },
+      { name:'Distal Clavicle',   imgs:['3.5%20Distal%20Clavicle%20Plate.webp'],  price:'$55,000', holes:['4H','5H','6H','7H'],                                             lr:true,  screw:'2.4/3.5' },
     ]
   },
   upper: {
     code: 'OS0211B',
     items: [
-      { name:'LPHP',    imgs:['3.5%20Proximal%20Humeral%20Plate.png'],        price:'$70,000', holes:['3H','5H','8H'],          lr:false, screw:'3.5' },
-      { name:'Olecranon',imgs:['3.5%20Olecranon%20Plate2.png'],               price:'$70,000', holes:['2H','4H','6H'],          lr:true,  screw:'3.5' },
-      { name:'LDHP 外', imgs:['3.5%20Lateral%20Distal%20Humeral%20Plate.png'],price:'$70,000', holes:['5H','7H','9H'],          lr:true,  screw:'2.4/3.5' },
-      { name:'LDHP 內', imgs:['3.5%20Medial%20Humeral%20Plate.png'],          price:'$70,000', holes:['3H','5H','7H'],          lr:true,  screw:'2.4/3.5' },
+      { name:'LPHP',    imgs:['3.5%20Proximal%20Humeral%20Plate.webp'],        price:'$70,000', holes:['3H','5H','8H'],          lr:false, screw:'3.5' },
+      { name:'Olecranon',imgs:['3.5%20Olecranon%20Plate2.webp'],               price:'$70,000', holes:['2H','4H','6H'],          lr:true,  screw:'3.5' },
+      { name:'LDHP 外', imgs:['3.5%20Lateral%20Distal%20Humeral%20Plate.webp'],price:'$70,000', holes:['5H','7H','9H'],          lr:true,  screw:'2.4/3.5' },
+      { name:'LDHP 內', imgs:['3.5%20Medial%20Humeral%20Plate.webp'],          price:'$70,000', holes:['3H','5H','7H'],          lr:true,  screw:'2.4/3.5' },
     ]
   },
   long: {
     code: 'OS0211C',
     items: [
-      { name:'3.5 Recon',      imgs:['3.5%20Reconstruction%20Plate.png'],         price:'$55,000', holes:['5H','6H','7H','8H','10H','12H','16H','18H','20H'], lr:false, screw:'3.5' },
-      { name:'3.5 1/3 Tubular',imgs:['3.5%20One-thierd%20Tubular%20Plate.png'],   price:'$55,000', holes:['6H','8H','10H'],                                   lr:false, screw:'3.5' },
-      { name:'5.0 Broad',      imgs:['5.0%20Straight%20Broad.png'],               price:'$55,000', holes:['6H','8H','10H','12H'],                             lr:false, screw:'5.0' },
-      { name:'3.5 直板',       imgs:['3.5%20Straignt%20Plate.png'],               price:'$55,000', holes:['5H','6H','7H','8H','10H','12H'],                   lr:false, screw:'3.5' },
-      { name:'5.0 Narrow',     imgs:['5.0%20Straight%20Narrow%20Plate.png'],      price:'$55,000', holes:['6H','8H','10H','12H'],                             lr:false, screw:'5.0' },
+      { name:'3.5 Recon',      imgs:['3.5%20Reconstruction%20Plate.webp'],         price:'$55,000', holes:['5H','6H','7H','8H','10H','12H','16H','18H','20H'], lr:false, screw:'3.5' },
+      { name:'3.5 1/3 Tubular',imgs:['3.5%20One-thierd%20Tubular%20Plate.webp'],   price:'$55,000', holes:['6H','8H','10H'],                                   lr:false, screw:'3.5' },
+      { name:'5.0 Broad',      imgs:['5.0%20Straight%20Broad.webp'],               price:'$55,000', holes:['6H','8H','10H','12H'],                             lr:false, screw:'5.0' },
+      { name:'3.5 直板',       imgs:['3.5%20Straignt%20Plate.webp'],               price:'$55,000', holes:['5H','6H','7H','8H','10H','12H'],                   lr:false, screw:'3.5' },
+      { name:'5.0 Narrow',     imgs:['5.0%20Straight%20Narrow%20Plate.webp'],      price:'$55,000', holes:['6H','8H','10H','12H'],                             lr:false, screw:'5.0' },
     ]
   },
   small: {
     code: 'OS0211D',
     items: [
-      { name:'1.5 直板',        imgs:['1.5%20Plate.png'],                                                     price:'$55,000', holes:['5H','6H','7H','8H','10H','12H'], lr:false, screw:'1.5' },
-      { name:'1.5 Y / T / Z',   imgs:['1.5%20Y%20Plate.png','1.5%20T%20Plate.png','1.5%20Z%20Plate.png'],   price:'$55,000', holes:['Y','T','Z'],  note:'各版型獨立品項',  lr:false, screw:'1.5' },
-      { name:'2.0 直版',        imgs:['2.0mm%20Locking%20Plate.png'],                                        price:'$55,000', holes:['4H','5H','6H','7H','8H'],         lr:false, screw:'2.0' },
-      { name:'2.0 Y / T',       imgs:['2.0%20Y%20Plate.png','2.0%20T%20Plate.png'],                          price:'$55,000', holes:['Y','T'],      note:'各版型獨立品項',  lr:false, screw:'2.0' },
-      { name:'Volar',           imgs:['2.4%20Volar%20Plate.png'],                                             price:'$55,000', holes:['2H','3H','6H','8H'],              lr:true,  screw:'2.4' },
-      { name:'Juxta',           imgs:['2.4%20Juxta%20Plate.png'],                                             price:'$55,000', holes:['3H','5H'],                        lr:true,  screw:'2.4' },
-      { name:'Fibula',          imgs:['3.5%20Distal%20Fibula%20Plate.png'],                                   price:'$55,000', holes:['4H','6H','8H'],                   lr:true,  screw:'2.4/3.5' },
-      { name:'Radial Head/Neck',imgs:['2.4mm%20Radial%20Head%20Plate.png','2.4%20mm%20Radial%20Neck%20Plate.png'], price:'$55,000', holes:['2H','3H','4H'],            lr:true,  screw:'2.4' },
+      { name:'1.5 直板',        imgs:['1.5%20Plate.webp'],                                                     price:'$55,000', holes:['5H','6H','7H','8H','10H','12H'], lr:false, screw:'1.5' },
+      { name:'1.5 Y / T / Z',   imgs:['1.5%20Y%20Plate.webp','1.5%20T%20Plate.webp','1.5%20Z%20Plate.webp'],   price:'$55,000', holes:['Y','T','Z'],  note:'各版型獨立品項',  lr:false, screw:'1.5' },
+      { name:'2.0 直版',        imgs:['2.0mm%20Locking%20Plate.webp'],                                        price:'$55,000', holes:['4H','5H','6H','7H','8H'],         lr:false, screw:'2.0' },
+      { name:'2.0 Y / T',       imgs:['2.0%20Y%20Plate.webp','2.0%20T%20Plate.webp'],                          price:'$55,000', holes:['Y','T'],      note:'各版型獨立品項',  lr:false, screw:'2.0' },
+      { name:'Volar',           imgs:['2.4%20Volar%20Plate.webp'],                                             price:'$55,000', holes:['2H','3H','6H','8H'],              lr:true,  screw:'2.4' },
+      { name:'Juxta',           imgs:['2.4%20Juxta%20Plate.webp'],                                             price:'$55,000', holes:['3H','5H'],                        lr:true,  screw:'2.4' },
+      { name:'Fibula',          imgs:['3.5%20Distal%20Fibula%20Plate.webp'],                                   price:'$55,000', holes:['4H','6H','8H'],                   lr:true,  screw:'2.4/3.5' },
+      { name:'Radial Head/Neck',imgs:['2.4mm%20Radial%20Head%20Plate.webp','2.4%20mm%20Radial%20Neck%20Plate.webp'], price:'$55,000', holes:['2H','3H','4H'],            lr:true,  screw:'2.4' },
     ]
   },
   lower: {
     code: 'OS0211E',
     items: [
-      { name:'Distal Femur',    imgs:['5.0%20Distal%20Femoral%20Plate.png'],          price:'$70,000', holes:['5H','7H','9H','11H','13H'],  lr:true,  screw:'5.0' },
-      { name:'DHS',             imgs:['5.0mm%20Proximal%20Femoral%20Plate.png'],       price:'$70,000', holes:['2H','3H','4H','6H'],          lr:false, screw:'5.0' },
-      { name:'LPTP 外',         imgs:['5.0%20Lateral%20Proximal%20Tibial%20Plate.png'],price:'$70,000', holes:['4H','6H','8H','10H','12H'],  lr:true,  screw:'5.0' },
-      { name:'LPTP 內',         imgs:['5.0%20Medial%20Proximal%20Tibial%20Plate.png'], price:'$70,000', holes:['4H','6H','8H','10H','12H'],  lr:true,  screw:'5.0' },
-      { name:'Distal Tibia 內', imgs:['3.5%20Medial%20Distal%20Tibial%20Plate.png'],   price:'$70,000', holes:['6H','8H','10H','12H','14H'], lr:true,  screw:'3.5' },
-      { name:'Distal Tibia 前外',imgs:['3.5%20Anterolateral%20Tibial%20Plate.png'],   price:'$70,000', holes:['7H','9H','11H'],              lr:true,  screw:'3.5' },
-      { name:'Calcaneus',       imgs:['3.5%20Calcaneal%20Plate.png'],                  price:'$70,000', holes:['14H'],                        lr:true,  screw:'3.5' },
+      { name:'Distal Femur',    imgs:['5.0%20Distal%20Femoral%20Plate.webp'],          price:'$70,000', holes:['5H','7H','9H','11H','13H'],  lr:true,  screw:'5.0' },
+      { name:'DHS',             imgs:['5.0mm%20Proximal%20Femoral%20Plate.webp'],       price:'$70,000', holes:['2H','3H','4H','6H'],          lr:false, screw:'5.0' },
+      { name:'LPTP 外',         imgs:['5.0%20Lateral%20Proximal%20Tibial%20Plate.webp'],price:'$70,000', holes:['4H','6H','8H','10H','12H'],  lr:true,  screw:'5.0' },
+      { name:'LPTP 內',         imgs:['5.0%20Medial%20Proximal%20Tibial%20Plate.webp'], price:'$70,000', holes:['4H','6H','8H','10H','12H'],  lr:true,  screw:'5.0' },
+      { name:'Distal Tibia 內', imgs:['3.5%20Medial%20Distal%20Tibial%20Plate.webp'],   price:'$70,000', holes:['6H','8H','10H','12H','14H'], lr:true,  screw:'3.5' },
+      { name:'Distal Tibia 前外',imgs:['3.5%20Anterolateral%20Tibial%20Plate.webp'],   price:'$70,000', holes:['7H','9H','11H'],              lr:true,  screw:'3.5' },
+      { name:'Calcaneus',       imgs:['3.5%20Calcaneal%20Plate.webp'],                  price:'$70,000', holes:['14H'],                        lr:true,  screw:'3.5' },
     ]
   }
 };
