@@ -103,6 +103,56 @@ body{background:var(--bg);color:var(--ink);font-family:'Noto Sans TC',sans-serif
 /* mixed-content notice */
 .http-notice{background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:8px 12px;font-size:12px;margin-bottom:10px;display:none}
 
+/* VA NP 衛教 */
+.va-intro{background:var(--accent);color:#fff;border-radius:var(--radius);padding:18px 18px 16px;margin-bottom:14px;position:relative;overflow:hidden}
+.va-intro::after{content:'';position:absolute;right:-30px;top:-30px;width:120px;height:120px;border-radius:50%;background:rgba(154,114,0,.18)}
+.va-intro-eyebrow{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.12em;color:var(--gold-border);text-transform:uppercase;margin-bottom:6px}
+.va-intro h1{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:.02em;line-height:1.15;margin-bottom:6px}
+.va-intro p{font-size:11.5px;color:rgba(255,255,255,.72);max-width:320px}
+
+.va-seclabel{display:flex;align-items:center;gap:10px;margin:16px 0 8px}
+.va-seclabel .line{flex:1;height:1px;background:var(--border)}
+.va-seclabel span{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.12em;color:var(--ink3);text-transform:uppercase;white-space:nowrap}
+
+.va-pcard{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;margin-bottom:12px}
+.va-pcard-top{padding:14px 16px 12px;color:#fff}
+.va-pcard-top.radius{background:var(--accent)}
+.va-pcard-top.clavicle{background:#5c3d1a}
+.va-pcard-tag{font-family:'DM Mono',monospace;font-size:9.5px;letter-spacing:.1em;opacity:.75;text-transform:uppercase;margin-bottom:4px}
+.va-pcard-top h2{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:.01em;margin-bottom:2px}
+.va-pcard-top .zh-name{font-size:12.5px;font-weight:700;opacity:.92}
+.va-pcard-body{padding:14px 16px 16px}
+
+.va-field-block{margin-bottom:12px}
+.va-field-block:last-child{margin-bottom:0}
+.va-field-label{font-size:11px;font-weight:700;color:var(--ink3);letter-spacing:.03em;margin-bottom:5px}
+.va-field-text{font-size:12.5px;color:var(--ink2)}
+
+.va-compare{width:100%;border-collapse:collapse;font-size:11.5px;margin-top:2px}
+.va-compare th{font-size:10px;font-weight:700;color:var(--ink3);text-align:left;padding:6px 6px 6px 0;border-bottom:1px solid var(--border);letter-spacing:.02em}
+.va-compare th.hl{color:var(--gold)}
+.va-compare td{padding:8px 6px 8px 0;border-bottom:1px solid #f0eee9;vertical-align:top;color:var(--ink2)}
+.va-compare td.hl{color:var(--ink);font-weight:500}
+
+.va-pay-box{margin-top:12px;background:var(--gold-bg);border:1px solid var(--gold-border);border-radius:8px;padding:10px 14px}
+.va-pay-box .label{font-size:11px;color:var(--gold);font-weight:700;margin-bottom:2px}
+.va-pay-box .price{font-family:'DM Mono',monospace;font-size:18px;font-weight:700;color:var(--gold)}
+.va-pay-box .note{font-size:10px;color:var(--gold);opacity:.75;margin-top:2px}
+
+.va-code-row{margin-top:10px;display:flex;align-items:center;justify-content:space-between;background:#eef2f7;border-radius:8px;padding:9px 12px}
+.va-code-row .ctext{font-family:'DM Mono',monospace;font-size:13px;color:var(--accent);font-weight:500}
+.va-code-row .clabel{font-size:9.5px;color:var(--ink3);margin-bottom:2px}
+
+.va-np-card{background:var(--green-bg);border:1px solid #bfe0cf;border-radius:var(--radius);padding:14px 16px;margin-bottom:16px}
+.va-np-head{display:flex;align-items:center;gap:8px;margin-bottom:9px}
+.va-np-badge{background:var(--green);color:#fff;font-family:'DM Mono',monospace;font-size:9.5px;font-weight:700;letter-spacing:.08em;padding:3px 8px;border-radius:20px}
+.va-np-head h3{font-size:13px;font-weight:700;color:var(--green)}
+.va-np-line{font-size:12px;color:#234a35;margin-bottom:8px;padding-left:15px;position:relative}
+.va-np-line:last-child{margin-bottom:0}
+.va-np-line::before{content:'';position:absolute;left:0;top:6px;width:5px;height:5px;border-radius:50%;background:var(--green)}
+
+.va-edit-note{margin:0 0 16px;border-left:3px solid #b83232;padding:10px 12px;font-size:11px;color:#b83232;background:#fdf1f1;border-radius:0 6px 6px 0}
+
 /* TOAST */
 .toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(12px);background:#181818;color:#fff;font-size:13px;padding:8px 20px;border-radius:22px;opacity:0;transition:all .25s;z-index:500;white-space:nowrap;pointer-events:none}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
@@ -153,6 +203,7 @@ body{background:var(--bg);color:var(--ink);font-family:'Noto Sans TC',sans-serif
   <div class="tab" data-cat="lower">下肢</div>
   <div class="tab" data-cat="screw">骨釘</div>
   <div class="tab" data-cat="compression">埋頭釘</div>
+  <div class="tab" data-cat="va">VA資料</div>
 </div>
 
 <div class="sec on" id="cat-clavicle"></div>
@@ -234,6 +285,158 @@ body{background:var(--bg);color:var(--ink);font-family:'Noto Sans TC',sans-serif
     <div class="chip-grid">
       <span class="chip" onclick="copyChip(this,'T04750-065')">65mm</span><span class="chip" onclick="copyChip(this,'T04750-070')">70mm</span><span class="chip" onclick="copyChip(this,'T04750-075')">75mm</span><span class="chip" onclick="copyChip(this,'T04750-080')">80mm</span><span class="chip" onclick="copyChip(this,'T04750-085')">85mm</span><span class="chip" onclick="copyChip(this,'T04750-090')">90mm</span><span class="chip" onclick="copyChip(this,'T04750-095')">95mm</span><span class="chip" onclick="copyChip(this,'T04750-100')">100mm</span><span class="chip" onclick="copyChip(this,'T04750-105')">105mm</span><span class="chip" onclick="copyChip(this,'T04750-110')">110mm</span>
     </div>
+  </div>
+</div>
+
+<!-- VA NP 衛教 (靜態) -->
+<div class="sec" id="cat-va">
+  <div class="va-intro">
+    <div class="va-intro-eyebrow">Tandry · NP溝通專用</div>
+    <h1>VA可變角骨板<br>衛教溝通手冊</h1>
+    <p>提供給專職NP作為病人自費溝通參考，聚焦 Radius 與 Distal Clavicle 兩大刀種。</p>
+  </div>
+
+  <div class="va-seclabel"><span>01　橈骨骨折</span><div class="line"></div></div>
+
+  <div class="va-pcard">
+    <div class="va-pcard-top radius">
+      <div class="va-pcard-tag">Distal Radius Fracture</div>
+      <h2>Radius VA骨板</h2>
+      <div class="zh-name">遠端橈骨可變角鎖定骨板</div>
+    </div>
+    <div class="va-pcard-body">
+      <div class="va-field-block">
+        <div class="va-field-label">適用情境</div>
+        <div class="va-field-text">遠端橈骨骨折，尤其骨折角度不穩定、粉碎性骨折，或骨質疏鬆患者骨質較差時。</div>
+      </div>
+
+      <div class="va-field-block">
+        <table class="va-compare">
+          <tr>
+            <th>比較項目</th>
+            <th class="hl">VA可變角骨板</th>
+            <th>傳統鎖定骨板</th>
+          </tr>
+          <tr>
+            <td>骨釘鎖入角度</td>
+            <td class="hl">±15° 範圍內自由調整</td>
+            <td>固定角度孔位</td>
+          </tr>
+          <tr>
+            <td>骨質疏鬆固定力</td>
+            <td class="hl">可依骨質分布優化角度</td>
+            <td>角度受限，較難優化</td>
+          </tr>
+          <tr>
+            <td>複雜骨折適應性</td>
+            <td class="hl">較高，個別化固定</td>
+            <td>需骨折線接近標準孔位</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="va-pay-box">
+        <div class="label">病人自費差額</div>
+        <div class="price">NT$ ▢▢,▢▢▢</div>
+        <div class="note">※ 請填入實際自費差額</div>
+      </div>
+
+      <div class="va-code-row">
+        <div>
+          <div class="clabel">院內碼</div>
+          <div class="ctext">OS-VA-RAD-01</div>
+        </div>
+        <button class="copy-btn" onclick="copyBanner(this,'OS-VA-RAD-01')">
+          <svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>複製
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="va-np-card">
+    <div class="va-np-head">
+      <span class="va-np-badge">臨床重點摘要</span>
+      <h3>供NP衛教溝通參考</h3>
+    </div>
+    <div class="va-np-line">骨折角度不穩定或呈粉碎性時，可變角設計允許鎖釘依骨折線方向調整，非固定角度骨板所能達成。</div>
+    <div class="va-np-line">骨質疏鬆患者之骨釘把持力較弱，角度可調整有助於選擇骨質條件較佳處鎖定，降低鬆脫風險。</div>
+    <div class="va-np-line">此設計之臨床目的在於降低固定失敗、需二次手術介入之機率，為差額之主要考量依據。</div>
+  </div>
+
+  <div class="va-seclabel"><span>02　遠端鎖骨骨折</span><div class="line"></div></div>
+
+  <div class="va-pcard">
+    <div class="va-pcard-top clavicle">
+      <div class="va-pcard-tag">Distal Clavicle Fracture</div>
+      <h2>2.4 mini VA骨板</h2>
+      <div class="zh-name">遠端鎖骨可變角迷你骨板</div>
+    </div>
+    <div class="va-pcard-body">
+      <div class="va-field-block">
+        <div class="va-field-label">適用情境</div>
+        <div class="va-field-text">遠端鎖骨骨折（Neer分類不穩定型為主），鎖骨外側解剖形狀變異度高，需個別化角度固定。</div>
+      </div>
+
+      <div class="va-field-block">
+        <div class="va-field-label">獨家資格說明</div>
+        <div class="va-field-text">林世惟醫師為院內少數具此術式使用資格之醫師，屬技術門檻較高之品項，競品廠牌不易取代。</div>
+      </div>
+
+      <div class="va-field-block">
+        <table class="va-compare">
+          <tr>
+            <th>比較項目</th>
+            <th class="hl">2.4 mini VA骨板</th>
+            <th>傳統鎖骨骨板</th>
+          </tr>
+          <tr>
+            <td>解剖貼合度</td>
+            <td class="hl">依角度個別化調整</td>
+            <td>固定角度，貼合度受限</td>
+          </tr>
+          <tr>
+            <td>不癒合風險</td>
+            <td class="hl">較低（固定更穩定）</td>
+            <td>形狀不合時風險提高</td>
+          </tr>
+          <tr>
+            <td>骨釘尺寸</td>
+            <td class="hl">2.4mm 迷你系列，軟組織刺激小</td>
+            <td>視骨板系列而定</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="va-pay-box">
+        <div class="label">病人自費差額</div>
+        <div class="price">NT$ ▢▢,▢▢▢</div>
+        <div class="note">※ 請填入實際自費差額</div>
+      </div>
+
+      <div class="va-code-row">
+        <div>
+          <div class="clabel">院內碼</div>
+          <div class="ctext">OS-VA-CLA-01</div>
+        </div>
+        <button class="copy-btn" onclick="copyBanner(this,'OS-VA-CLA-01')">
+          <svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>複製
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="va-np-card">
+    <div class="va-np-head">
+      <span class="va-np-badge">臨床重點摘要</span>
+      <h3>供NP衛教溝通參考</h3>
+    </div>
+    <div class="va-np-line">遠端鎖骨解剖形狀個體差異度高，迷你可變角骨板可依實際角度調整鎖釘方向，提升與骨面之貼合度。</div>
+    <div class="va-np-line">貼合度不足時，此部位骨折不癒合之風險相對提高，為此類品項臨床選用之主要依據。</div>
+    <div class="va-np-line">該術式屬技術門檻較高之選項，院內目前具操作資格之醫師相對較少。</div>
+  </div>
+
+  <div class="va-edit-note">
+    ⚠️ 本頁「自費差額」與「院內碼」為示意內容，請替換為各院實際數字後再提供給NP使用。
   </div>
 </div>
 
