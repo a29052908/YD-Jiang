@@ -136,6 +136,44 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', s
 .doc-row-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
 .doc-row-chip { font-size: 10px; font-family: 'JetBrains Mono', monospace; color: var(--muted); background: var(--bg); border-radius: 4px; padding: 2px 6px; }
 
+/* ── KPI cards (方向1) ── */
+.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 14px; }
+.kpi-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 12px 10px; box-shadow: var(--shadow); text-align: center; }
+.kpi-label { font-size: 10px; font-weight: 700; color: var(--muted); letter-spacing: 0.5px; margin-bottom: 6px; }
+.kpi-value { font-size: 22px; font-weight: 700; font-family: 'JetBrains Mono', monospace; color: var(--text); line-height: 1; }
+.kpi-unit { font-size: 11px; font-weight: 500; color: var(--muted); margin-left: 2px; }
+.kpi-delta { display: inline-block; margin-top: 6px; font-size: 11px; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+.kpi-delta.up   { color: var(--green); }
+.kpi-delta.down { color: var(--accent2); }
+.kpi-delta.flat { color: var(--dim); }
+
+/* ── 醫師變動預警 (方向4) ── */
+.alert-group { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 12px; box-shadow: var(--shadow); overflow: hidden; }
+.alert-group.track { border-color: #f3c6ca; }
+.alert-group-head { padding: 11px 14px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--border); }
+.alert-group.track .alert-group-head { background: #fff5f5; }
+.alert-group.solid .alert-group-head { background: #f2faf5; }
+.alert-group-title { font-size: 13px; font-weight: 700; }
+.alert-group.track .alert-group-title { color: var(--accent2); }
+.alert-group.solid .alert-group-title { color: var(--green); }
+.alert-group-count { margin-left: auto; font-size: 11px; font-weight: 700; font-family: 'JetBrains Mono', monospace; color: var(--muted); }
+.alert-group-sub { font-size: 10px; color: var(--muted); font-family: 'JetBrains Mono', monospace; padding: 0 14px 8px; margin-top: -2px; }
+.alert-row { padding: 10px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+.alert-row:last-child { border-bottom: none; }
+.alert-row-main { flex: 1; min-width: 0; }
+.alert-doc { font-size: 14px; font-weight: 700; color: var(--text); }
+.alert-hosp { font-size: 11px; color: var(--muted); margin-left: 6px; }
+.alert-row-cmp { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; flex-shrink: 0; }
+.alert-nums { font-size: 11px; font-family: 'JetBrains Mono', monospace; color: var(--muted); white-space: nowrap; }
+.alert-nums strong { color: var(--text); font-weight: 700; }
+.alert-badge { font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 20px; white-space: nowrap; font-family: 'JetBrains Mono', monospace; }
+.badge-gone { background: var(--accent2); color: white; }
+.badge-down { background: var(--orange-light); color: var(--orange); }
+.badge-new  { background: var(--blue-light); color: var(--blue); }
+.badge-up   { background: var(--green-light); color: var(--green); }
+.badge-flat { background: var(--bg); color: var(--muted); }
+.alert-empty { padding: 16px 14px; font-size: 12px; color: var(--muted); text-align: center; }
+
 /* ── state ── */
 .state-box { text-align: center; padding: 60px 20px; color: var(--muted); }
 .state-box .icon { font-size: 36px; margin-bottom: 12px; }
@@ -148,6 +186,8 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', s
 
 @media (max-width: 480px) {
   .hero-value { font-size: 28px; }
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  .kpi-value { font-size: 20px; }
 }
 </style>
 </head>
@@ -216,6 +256,9 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', s
   <div class="stats-section" id="statsSection">
     <div class="state-box"><div class="spinner"></div><p>資料載入中...</p></div>
   </div>
+
+  <!-- 醫師業績變動預警 -->
+  <div id="alertSection" style="display:none;"></div>
 
   <!-- 醫院列表（含展開醫師） -->
   <div id="hospSection" style="display:none;">
@@ -555,7 +598,26 @@ async function loadData() {
 function renderAll() {
   const rows = filterRows(allRows);
   renderStats(rows);
+  renderAlerts(rows);
   renderHospitals(rows);
+}
+
+function countDoctors(agg) {
+  return Object.values(agg.byHospital).reduce((s,h) => s + Object.keys(h.byDoctor).length, 0);
+}
+
+function kpiDeltaTag(cur, prev, unit) {
+  const d = cur - prev;
+  if (d > 0) return `<span class="kpi-delta up">▲ ${d}${unit}</span>`;
+  if (d < 0) return `<span class="kpi-delta down">▼ ${-d}${unit}</span>`;
+  return `<span class="kpi-delta flat">— 持平</span>`;
+}
+function kpiDeltaPctTag(cur, prev) {
+  const pct = changePct(cur, prev);
+  if (pct === null) return `<span class="kpi-delta up">▲ 新增</span>`;
+  if (pct > 0) return `<span class="kpi-delta up">▲ ${pct}%</span>`;
+  if (pct < 0) return `<span class="kpi-delta down">▼ ${-pct}%</span>`;
+  return `<span class="kpi-delta flat">— 持平</span>`;
 }
 
 function fmtAmt(n) {
@@ -625,7 +687,33 @@ function renderStats(rows) {
   ];
   const unitMax = Math.max(...unitCats.map(c => Math.max(main.units[c.key], pp.units[c.key])), 1);
 
+  const mainDocs = countDoctors(main);
+  const ppDocs   = countDoctors(pp);
+
   document.getElementById('statsSection').innerHTML = `
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-label">業績總額</div>
+        <div class="kpi-value" style="font-size:17px;">${fmtAmt(mainAmt) || '$0'}</div>
+        ${kpiDeltaPctTag(mainAmt, ppAmt)}
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">骨板</div>
+        <div class="kpi-value">${main.units['骨板']}<span class="kpi-unit">台</span></div>
+        ${kpiDeltaTag(main.units['骨板'], pp.units['骨板'], '台')}
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">埋頭釘</div>
+        <div class="kpi-value">${main.units['埋頭釘']}<span class="kpi-unit">台</span></div>
+        ${kpiDeltaTag(main.units['埋頭釘'], pp.units['埋頭釘'], '台')}
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">活躍醫師</div>
+        <div class="kpi-value">${mainDocs}<span class="kpi-unit">位</span></div>
+        ${kpiDeltaTag(mainDocs, ppDocs, '位')}
+      </div>
+    </div>
+
     <div class="hero-card">
       <div class="hero-top">
         <div>
@@ -670,6 +758,101 @@ function renderStats(rows) {
           </div>`;
         }).join('')}
       </div>
+    </div>`;
+}
+
+// ── 醫師業績變動預警 (方向4) ──
+function buildDoctorDeltas(rows) {
+  const curr = aggregate(rowsInRange(rows, rangeData.primary));
+  const prev = aggregate(rowsInRange(rows, rangeData.primaryPrev));
+  const map = {};
+  const collect = (agg, which) => {
+    Object.entries(agg.byHospital).forEach(([hosp, hd]) => {
+      Object.entries(hd.byDoctor).forEach(([doc, dd]) => {
+        const key = hosp + '|||' + doc;
+        if (!map[key]) map[key] = { hosp, doc };
+        map[key][which] = { units: dd.units['骨板'] + dd.units['埋頭釘'], amt: totalAmount(dd) };
+      });
+    });
+  };
+  collect(curr, 'curr');
+  collect(prev, 'prev');
+
+  return Object.values(map).map(d => {
+    const c = d.curr || { units: 0, amt: 0 };
+    const p = d.prev || { units: 0, amt: 0 };
+    const dUnits = c.units - p.units;
+    const dAmt   = c.amt - p.amt;
+    let bucket;
+    if (p.amt > 0 && c.amt === 0)      bucket = 'gone';   // 消失
+    else if (dAmt < 0)                 bucket = 'down';   // 下滑
+    else if (p.amt === 0 && c.amt > 0) bucket = 'new';    // 新客
+    else if (dAmt > 0)                 bucket = 'up';      // 成長
+    else                               bucket = 'flat';    // 持平
+    return { hosp: d.hosp, doc: d.doc, c, p, dUnits, dAmt, bucket };
+  });
+}
+
+function alertRowHTML(d) {
+  const badge = {
+    gone: '<span class="alert-badge badge-gone">消失</span>',
+    down: `<span class="alert-badge badge-down">${d.dUnits < 0 ? d.dUnits + '台' : '下滑'}</span>`,
+    new:  '<span class="alert-badge badge-new">新客</span>',
+    up:   `<span class="alert-badge badge-up">${d.dUnits > 0 ? '+' + d.dUnits + '台' : '成長'}</span>`,
+    flat: '<span class="alert-badge badge-flat">持平</span>',
+  }[d.bucket];
+  const unitPart = (d.c.units || d.p.units)
+    ? `<strong>${d.p.units}→${d.c.units}</strong> 台　` : '';
+  return `<div class="alert-row">
+    <div class="alert-row-main">
+      <span class="alert-doc">${d.doc}</span><span class="alert-hosp">${d.hosp}</span>
+    </div>
+    <div class="alert-row-cmp">
+      <span class="alert-nums">${unitPart}${fmtAmt(d.p.amt)} → ${fmtAmt(d.c.amt)}</span>
+      ${badge}
+    </div>
+  </div>`;
+}
+
+function renderAlerts(rows) {
+  const sec = document.getElementById('alertSection');
+  const deltas = buildDoctorDeltas(rows);
+
+  const track = deltas.filter(d => d.bucket === 'gone' || d.bucket === 'down')
+                      .sort((a, b) => a.dAmt - b.dAmt);          // 掉最多排最前
+  const solid = deltas.filter(d => d.bucket === 'new' || d.bucket === 'up' || d.bucket === 'flat')
+                      .sort((a, b) => b.c.amt - a.c.amt);        // 業績高排最前
+
+  if (!deltas.length) { sec.style.display = 'none'; return; }
+  sec.style.display = '';
+
+  const fmtR = ([s, e]) => `${s.getMonth()+1}/${s.getDate()}~${e.getMonth()+1}/${e.getDate()}`;
+  const prevLabel = { week:'上週', month:'上月', quarter:'上季' }[currentView] || '上期';
+  const rangeSub  = `本期 ${fmtR(rangeData.primary)} vs ${prevLabel} ${fmtR(rangeData.primaryPrev)}`;
+
+  const trackBody = track.length
+    ? track.map(alertRowHTML).join('')
+    : '<div class="alert-empty">✅ 本期沒有量能下滑的醫師，維持得很好</div>';
+  const solidBody = solid.length
+    ? solid.map(alertRowHTML).join('')
+    : '<div class="alert-empty">本期尚無成長或穩定的醫師</div>';
+
+  sec.innerHTML = `
+    <div class="alert-group track">
+      <div class="alert-group-head">
+        <span class="alert-group-title">🔴 要補追蹤</span>
+        <span class="alert-group-count">${track.length} 位</span>
+      </div>
+      <div class="alert-group-sub">${rangeSub}　·　量能下滑或消失，需儘快回追</div>
+      ${trackBody}
+    </div>
+    <div class="alert-group solid">
+      <div class="alert-group-head">
+        <span class="alert-group-title">🟢 要鞏固</span>
+        <span class="alert-group-count">${solid.length} 位</span>
+      </div>
+      <div class="alert-group-sub">成長或穩定，維護關係守住基本盤</div>
+      ${solidBody}
     </div>`;
 }
 
