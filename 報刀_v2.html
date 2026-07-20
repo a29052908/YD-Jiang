@@ -2186,6 +2186,60 @@ function showSuccessOverlay(serial){
   setTimeout(()=>{if(document.body.contains(overlay))document.body.removeChild(overlay);},4000);
 }
 
+// ── 圖檔儲存（跨平台，含 iOS）────────────────
+function isIOSDevice(){
+  return /iP(hone|ad|od)/.test(navigator.userAgent) ||
+         (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1);
+}
+
+async function saveGeneratedImage(canvas, dataUrl, filename){
+  let blob=null;
+  try{ blob=await new Promise(r=>canvas.toBlob(r,'image/jpeg',0.92)); }catch(e){}
+
+  // iOS Safari 不支援 <a download>，改用分享或長按儲存
+  if(isIOSDevice()){
+    if(blob && navigator.canShare){
+      try{
+        const file=new File([blob],filename,{type:'image/jpeg'});
+        if(navigator.canShare({files:[file]})){
+          await navigator.share({files:[file]});
+          return;
+        }
+      }catch(e){ if(e && e.name==='AbortError') return; /* 使用者取消分享，視為完成 */ }
+    }
+    // 保底：顯示圖片，提示長按儲存到相簿
+    showImageSaveModal(dataUrl, filename);
+    return;
+  }
+
+  // 桌機 / Android：blob URL 直接下載（比 dataURL 穩定）
+  const url=blob?URL.createObjectURL(blob):dataUrl;
+  const a=document.createElement('a');
+  a.href=url; a.download=filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  if(blob) setTimeout(()=>URL.revokeObjectURL(url),60000);
+}
+
+function showImageSaveModal(src, filename){
+  let ov=document.getElementById('imgSaveModal');
+  if(!ov){
+    ov=document.createElement('div');
+    ov.id='imgSaveModal';
+    ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:14px;overflow:auto;';
+    ov.innerHTML=`
+      <div style="color:#fff;text-align:center;padding:8px 0 12px;font-size:15px;line-height:1.6;">
+        📷 長按下方圖片 →「加入照片」／「儲存影像」<br>
+        <span style="font-size:12px;opacity:0.65;">iPhone 無法自動下載，請手動儲存到相簿</span>
+      </div>
+      <img id="imgSaveModalImg" style="max-width:100%;border-radius:8px;box-shadow:0 4px 24px rgba(0,0,0,0.5);" alt="報刀單">
+      <button onclick="document.getElementById('imgSaveModal').style.display='none'" style="margin:16px 0 8px;padding:12px 32px;border:none;border-radius:24px;background:#fff;color:#1a1a2e;font-size:15px;font-weight:700;cursor:pointer;">完成</button>
+    `;
+    document.body.appendChild(ov);
+  }
+  document.getElementById('imgSaveModalImg').src=src;
+  ov.style.display='flex';
+}
+
 function renderSaveImgToggle(){
   const tog=document.getElementById('saveImgToggle');
   const knob=document.getElementById('saveImgKnob');
@@ -2300,9 +2354,7 @@ async function confirmSubmit(){
     const jpgDataUrl=canvas.toDataURL('image/jpeg',0.92);
     const base64=jpgDataUrl.split(',')[1];
     const filename=`${serialNo}_${selectedHospital}_${patient}_${patientId}.jpg`;
-    const a=document.createElement('a');
-    a.href=jpgDataUrl; a.download=filename;
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    await saveGeneratedImage(canvas, jpgDataUrl, filename);
     const DRIVE_WEBHOOK='https://ydj.zeabur.app/webhook/baodao-image';
     try{
       const ctrl2=new AbortController();
