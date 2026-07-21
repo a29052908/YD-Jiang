@@ -2196,19 +2196,9 @@ async function saveGeneratedImage(canvas, dataUrl, filename){
   let blob=null;
   try{ blob=await new Promise(r=>canvas.toBlob(r,'image/jpeg',0.92)); }catch(e){}
 
-  // iOS Safari 不支援 <a download>，改用分享或長按儲存
+  // iOS Safari 不支援 <a download>，顯示圖片 + 分享按鈕（點按鈕才觸發，手勢最穩定）
   if(isIOSDevice()){
-    if(blob && navigator.canShare){
-      try{
-        const file=new File([blob],filename,{type:'image/jpeg'});
-        if(navigator.canShare({files:[file]})){
-          await navigator.share({files:[file]});
-          return;
-        }
-      }catch(e){ if(e && e.name==='AbortError') return; /* 使用者取消分享，視為完成 */ }
-    }
-    // 保底：顯示圖片，提示長按儲存到相簿
-    showImageSaveModal(dataUrl, filename);
+    showImageSaveModal(dataUrl, filename, blob);
     return;
   }
 
@@ -2220,7 +2210,7 @@ async function saveGeneratedImage(canvas, dataUrl, filename){
   if(blob) setTimeout(()=>URL.revokeObjectURL(url),60000);
 }
 
-function showImageSaveModal(src, filename){
+function showImageSaveModal(src, filename, blob){
   let ov=document.getElementById('imgSaveModal');
   if(!ov){
     ov=document.createElement('div');
@@ -2228,15 +2218,37 @@ function showImageSaveModal(src, filename){
     ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:14px;overflow:auto;';
     ov.innerHTML=`
       <div style="color:#fff;text-align:center;padding:8px 0 12px;font-size:15px;line-height:1.6;">
-        📷 長按下方圖片 →「加入照片」／「儲存影像」<br>
-        <span style="font-size:12px;opacity:0.65;">iPhone 無法自動下載，請手動儲存到相簿</span>
+        📷 報刀單圖檔<br>
+        <span style="font-size:12px;opacity:0.65;">點「分享 / 儲存」存到相簿</span>
       </div>
       <img id="imgSaveModalImg" style="max-width:100%;border-radius:8px;box-shadow:0 4px 24px rgba(0,0,0,0.5);" alt="報刀單">
-      <button onclick="document.getElementById('imgSaveModal').style.display='none'" style="margin:16px 0 8px;padding:12px 32px;border:none;border-radius:24px;background:#fff;color:#1a1a2e;font-size:15px;font-weight:700;cursor:pointer;">完成</button>
+      <div style="display:flex;gap:10px;margin:16px 0 8px;">
+        <button id="imgSaveShareBtn" style="padding:12px 26px;border:none;border-radius:24px;background:#4CAF50;color:#fff;font-size:15px;font-weight:700;cursor:pointer;">📤 分享 / 儲存</button>
+        <button onclick="document.getElementById('imgSaveModal').style.display='none'" style="padding:12px 26px;border:none;border-radius:24px;background:#fff;color:#1a1a2e;font-size:15px;font-weight:700;cursor:pointer;">完成</button>
+      </div>
     `;
     document.body.appendChild(ov);
   }
   document.getElementById('imgSaveModalImg').src=src;
+  // 分享按鈕：點擊即為新的使用者手勢，分享最穩定
+  const shareBtn=document.getElementById('imgSaveShareBtn');
+  shareBtn.onclick=async ()=>{
+    try{
+      if(blob && navigator.canShare){
+        const file=new File([blob],filename,{type:'image/jpeg'});
+        if(navigator.canShare({files:[file]})){
+          await navigator.share({files:[file]});
+          return;
+        }
+      }
+      // 無分享功能：退回下載連結
+      const url=blob?URL.createObjectURL(blob):src;
+      const a=document.createElement('a');
+      a.href=url; a.download=filename;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      if(blob) setTimeout(()=>URL.revokeObjectURL(url),60000);
+    }catch(e){ if(e && e.name!=='AbortError') showToast('分享失敗，請長按圖片儲存','error'); }
+  };
   ov.style.display='flex';
 }
 
