@@ -642,7 +642,7 @@ let currentSales = (() => {
   }
   return localStorage.getItem('tandry_sales_current') || '';
 })();
-let salesList = JSON.parse(localStorage.getItem('tandry_sales_list') || '["Ivan","Juan"]');
+let salesList = JSON.parse(localStorage.getItem('tandry_sales_list') || '["Ivan","Dino","Henry","Darren","Vincent","Kaley","Mandy","Eddie","Bruce","Richie","Eason","Andrew"]');
 let currentWarehouse = localStorage.getItem('tandry_warehouse_current') || '';
 let salesWarehouseMap = JSON.parse(localStorage.getItem('tandry_sales_warehouse_map') || '{}');
 let supportMode = false, selectedZone = '';
@@ -1850,7 +1850,7 @@ function updateCode() {
   const input = document.getElementById('innerCodeInput');
   if (input) {
     input.value = innerCode || '';
-    input.placeholder = (sel.buwei && !innerCode) ? '未找到對應院內碼' : '選擇醫院與部位後自動帶入';
+    input.placeholder = (sel.buwei && !innerCode) ? '無院內碼（可手動輸入）' : '選擇醫院與部位後自動帶入';
   }
 }
 
