@@ -1384,7 +1384,7 @@ const SCREW_PN = {
   '7.5':{65:'T04750-065',70:'T04750-070',75:'T04750-075',80:'T04750-080',85:'T04750-085',90:'T04750-090',95:'T04750-095',100:'T04750-100',105:'T04750-105',110:'T04750-110'},
 };
 
-const BUWEI_LIST = ['鎖骨','上肢','長骨','小骨','下肢','埋頭釘','骨釘','人工骨','VA小骨','VA上肢','VA骨釘'];
+const BUWEI_LIST = ['鎖骨','上肢','長骨','小骨','下肢','埋頭釘','骨釘','人工骨','VA'];
 // 無左右的版型1
 const NO_RL = {
   '上肢':['LPHP'],
@@ -1405,7 +1405,7 @@ let productItems = [];
 
 function renderBuwei() {
   document.getElementById('buweiGrid').innerHTML = BUWEI_LIST.map(b =>
-    `<button class="buwei-btn ${b===sel.buwei?'selected':''}" onclick="selectBuwei('${b}')">${b}</button>`
+    `<button class="buwei-btn ${(b==='VA'?String(sel.buwei||'').startsWith('VA'):b===sel.buwei)?'selected':''}" onclick="selectBuwei('${b}')">${b}</button>`
   ).join('');
 }
 
@@ -1425,7 +1425,18 @@ function renderLevels() {
 
   if (b === '埋頭釘') { renderScrewLevels(lc); return; }
   if (b === '人工骨') { renderSimpleLevels(lc); return; }
-  if (b === '骨釘' || b === 'VA骨釘' || b === 'VA上肢') { renderNA(lc); return; }
+  if (b === '骨釘') { renderNA(lc); return; }
+  // VA：分層。'VA'=尚未選子部位（只顯示 picker）；VA小骨=有型號樹；其餘 VA 子部位=無型號直接加入
+  if (b === 'VA') {
+    lc.innerHTML = vaPickerHtml();
+    ['qtyDivider','qtyArea','addBtn'].forEach(id=>document.getElementById(id).style.display='none');
+    return;
+  }
+  if (b.startsWith('VA') && b !== 'VA小骨') {
+    lc.innerHTML = vaPickerHtml() + `<div style="color:var(--muted);font-size:13px;padding:8px 0;">此部位無型號，可直接加入</div>`;
+    showQtyAndAdd();
+    return;
+  }
 
   // 一般骨板：V1
   const v1opts = [...new Set(DB.filter(r=>r.部位===b).map(r=>r.v1))];
@@ -1535,8 +1546,28 @@ function renderLevels() {
     html += renderDHSPanel();
   }
 
-  lc.innerHTML = html;
+  lc.innerHTML = (b === 'VA小骨' ? vaPickerHtml() : '') + html;
   showQtyAndAdd();
+}
+
+// ─── VA 分層 picker（醫院感知）──────────────────────────────────
+function vaSubtypes() {
+  if (!selectedHospital) return [];
+  return [...new Set(innerCodeDb
+    .filter(x => x['院內碼_醫院']===selectedHospital && String(x['部位_院內碼']).startsWith('VA'))
+    .map(x => x['部位_院內碼']))];
+}
+function vaPickerHtml() {
+  const subs = vaSubtypes();
+  if (!subs.length) return `<div style="color:var(--muted);font-size:13px;padding:4px 0;">此醫院無 VA 品項</div>`;
+  const btns = subs.map(s =>
+    `<button class="sel-btn ${s===sel.buwei?'selected':''}" onclick="setVaSub('${s}')">${s.replace(/^VA/,'')}</button>`
+  ).join('');
+  return levelBlock(1, 'VA 部位', btns, Math.min(subs.length,4));
+}
+function setVaSub(sub) {
+  sel = {buwei:sub, v1:'', v2:'', v3:'', 品號:'', innerCodeKey:''};
+  renderBuwei(); renderLevels(); updateCode();
 }
 
 function levelBlock(num, label, content, gridCols) {
@@ -1682,7 +1713,9 @@ function showQtyAndAdd() {
   let done = false;
   if (b==='埋頭釘') done = !!(sel.v1 && sel.v3);
   else if (b==='人工骨') done = !!sel.v1;
-  else if (b==='骨釘'||b==='VA骨釘'||b==='VA上肢') done = true;
+  else if (b==='VA') done = false;                          // 尚未選 VA 子部位
+  else if (b==='骨釘') done = true;
+  else if (b.startsWith('VA') && b!=='VA小骨') done = true;  // 無型號 VA 子部位
   else {
     const needsV2 = DB.some(r=>r.部位===b&&r.v1===sel.v1&&r.v2);
     const needsV3 = sel.v1 && !NO_V3.includes(sel.v2) &&
@@ -1768,7 +1801,7 @@ function renderItemList() {
 // ── 覆寫 renderBuwei 和 renderItemList ───────────────────────
 function renderBuwei() {
   document.getElementById('buweiGrid').innerHTML = BUWEI_LIST.map(b =>
-    `<button class="buwei-btn ${b===sel.buwei?'selected':''}" onclick="selectBuwei('${b}')">${b}</button>`
+    `<button class="buwei-btn ${(b==='VA'?String(sel.buwei||'').startsWith('VA'):b===sel.buwei)?'selected':''}" onclick="selectBuwei('${b}')">${b}</button>`
   ).join('');
 }
 
