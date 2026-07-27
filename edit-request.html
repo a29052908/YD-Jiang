@@ -346,13 +346,16 @@ document.addEventListener('click', () => {
   if (m) m.classList.remove('open');
 });
 
-['trackBtn','reviewBtn','pickupBtn'].forEach(id => {
-  const el = document.getElementById(id);
-  if (el) el.style.display = 'flex';
-});
-if ((USER||{}).role === 'admin') {
-  const p = document.getElementById('perfBtn');
-  if (p) p.style.display = 'flex';
+// 選單可視範圍：sales 隱藏變更申請/審核/抓貨管理；業績儀表板全部可見（範圍在頁內依角色限制）
+{
+  const _role = (window.TANDRY_USER||{}).role || 'sales';
+  const _isStaff = _role !== 'sales';
+  const _show = (id,on)=>{ const el=document.getElementById(id); if(el) el.style.display = on?'flex':'none'; };
+  _show('trackBtn', true);
+  _show('perfBtn', true);
+  _show('editRequestBtn', _isStaff);
+  _show('reviewBtn', _isStaff);
+  _show('pickupBtn', _isStaff);
 }
 
 const WEBHOOK_SUBMIT = 'https://ydj.zeabur.app/webhook/submit-edit';

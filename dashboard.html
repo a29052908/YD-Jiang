@@ -221,7 +221,7 @@ tr.dup-row:hover td { background: #ffe0e2 !important; }
   <!-- 視圖切換 -->
   <div class="view-toggle">
     <button class="view-toggle-btn active" id="viewListBtn" onclick="setView('list')">📋 報刀清單</button>
-    <button class="view-toggle-btn" id="viewStatsBtn" onclick="setView('stats')">📊 業績統計</button>
+    <button class="view-toggle-btn" id="viewStatsBtn" onclick="setView('stats')" style="display:none;">📊 業績統計</button>
   </div>
 
   <!-- ── 清單視圖 ── -->
@@ -359,13 +359,16 @@ const USER = window.TANDRY_USER || {};
 const IS_SALES = USER.role === 'sales';
 const IS_ADMIN = USER.role === 'admin' || USER.role === 'manager';
 
-['trackBtn','editRequestBtn','reviewBtn','pickupBtn'].forEach(id => {
-  const el = document.getElementById(id);
-  if (el) el.style.display = 'flex';
-});
-if (USER.role === 'admin') {
-  const p = document.getElementById('perfBtn');
-  if (p) p.style.display = 'flex';
+// 選單可視範圍：sales 隱藏變更申請/審核/抓貨管理；業績儀表板全部可見（範圍在頁內依角色限制）
+{
+  const _role = (USER||{}).role || 'sales';
+  const _isStaff = _role !== 'sales';
+  const _show = (id,on)=>{ const el=document.getElementById(id); if(el) el.style.display = on?'flex':'none'; };
+  _show('trackBtn', true);
+  _show('perfBtn', true);
+  _show('editRequestBtn', _isStaff);
+  _show('reviewBtn', _isStaff);
+  _show('pickupBtn', _isStaff);
 }
 
 function toggleMenu(e) {

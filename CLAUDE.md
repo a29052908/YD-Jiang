@@ -82,10 +82,15 @@
 - 重點：替換 componentInput textarea → display div、更新 updateComponentFromScrews、showPreview
 
 ## 漢堡選單（已實作）
-所有頁面（報刀_v2、track、edit-request、review）右上角統一有 ☰ 選單
-- admin/manager 多看：追蹤、審核、抓貨管理
-- sales 只看基本連結
+所有頁面（報刀_v2、track、edit-request、review、dashboard）右上角統一有 ☰ 選單
+- 統一邏輯：`_role !== 'sales'` 才顯示 變更申請/審核/抓貨管理（sales 隱藏；變更申請/審核尚未完成測試、抓貨管理僅內勤）
+- 追蹤、業績儀表板：全部角色可見
+- 業績儀表板（performance.html）範圍由頁內控制：sales 無業務切換、只看本人（`負責業務===displayName`）；admin/manager 可切換/看整體
+- pickup.html 無漢堡選單
 - 各頁面省略自己那個連結
+
+## 總表 dashboard
+- 業績統計視圖（viewStatsBtn/statsView）已隱藏（`display:none`）—「先移除」，日後要恢復把 style 拿掉即可
 
 ## 開發原則
 - 找到目標函數後直接修改，不要整個檔案重寫
