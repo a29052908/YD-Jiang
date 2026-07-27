@@ -1662,7 +1662,7 @@ function renderScrewLevels(lc) {
 }
 
 function setScrewDia(d) { sel.v1=d; sel.v3=''; sel.品號=''; renderLevels(); updateCode(); }
-function setScrewPay(t) { screwPayType=t; renderLevels(); }
+function setScrewPay(t) { screwPayType=t; renderLevels(); updateCode(); }
 function setScrewLen(l) {
   sel.v3 = l;
   sel.品號 = l ? (SCREW_PN[sel.v1]?.[l] || '') : '';
