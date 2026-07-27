@@ -2418,19 +2418,8 @@ function isIOSDevice(){
 async function saveGeneratedImage(canvas, dataUrl, filename){
   let blob=null;
   try{ blob=await new Promise(r=>canvas.toBlob(r,'image/jpeg',0.92)); }catch(e){}
-
-  // iOS Safari 不支援 <a download>，顯示圖片 + 分享按鈕（點按鈕才觸發，手勢最穩定）
-  if(isIOSDevice()){
-    showImageSaveModal(dataUrl, filename, blob);
-    return;
-  }
-
-  // 桌機 / Android：blob URL 直接下載（比 dataURL 穩定）
-  const url=blob?URL.createObjectURL(blob):dataUrl;
-  const a=document.createElement('a');
-  a.href=url; a.download=filename;
-  document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  if(blob) setTimeout(()=>URL.revokeObjectURL(url),60000);
+  // 所有平台一律先顯示預覽，由使用者點按鈕才下載／分享（不靜默下載）
+  showImageSaveModal(dataUrl, filename, blob);
 }
 
 function showImageSaveModal(src, filename, blob){
@@ -2442,35 +2431,38 @@ function showImageSaveModal(src, filename, blob){
     ov.innerHTML=`
       <div style="color:#fff;text-align:center;padding:8px 0 12px;font-size:15px;line-height:1.6;">
         📷 報刀單圖檔<br>
-        <span style="font-size:12px;opacity:0.65;">點「分享 / 儲存」存到相簿</span>
+        <span id="imgSaveHint" style="font-size:12px;opacity:0.65;">點下方按鈕儲存</span>
       </div>
       <img id="imgSaveModalImg" style="max-width:100%;border-radius:8px;box-shadow:0 4px 24px rgba(0,0,0,0.5);" alt="報刀單">
       <div style="display:flex;gap:10px;margin:16px 0 8px;">
-        <button id="imgSaveShareBtn" style="padding:12px 26px;border:none;border-radius:24px;background:#4CAF50;color:#fff;font-size:15px;font-weight:700;cursor:pointer;">📤 分享 / 儲存</button>
+        <button id="imgSaveShareBtn" style="padding:12px 26px;border:none;border-radius:24px;background:#4CAF50;color:#fff;font-size:15px;font-weight:700;cursor:pointer;">⬇️ 下載圖片</button>
         <button onclick="document.getElementById('imgSaveModal').style.display='none'" style="padding:12px 26px;border:none;border-radius:24px;background:#fff;color:#1a1a2e;font-size:15px;font-weight:700;cursor:pointer;">完成</button>
       </div>
     `;
     document.body.appendChild(ov);
   }
   document.getElementById('imgSaveModalImg').src=src;
-  // 分享按鈕：點擊即為新的使用者手勢，分享最穩定
+  // 判斷是否支援檔案分享（手機多有、桌機多無）→ 決定按鈕文字與行為
+  let canShareFiles=false;
+  try{ if(blob && navigator.canShare){ canShareFiles=navigator.canShare({files:[new File([blob],filename,{type:'image/jpeg'})]}); } }catch(e){ canShareFiles=false; }
+  const hint=document.getElementById('imgSaveHint');
+  if(hint) hint.textContent = canShareFiles ? '點「分享 / 儲存」存到相簿' : '點「下載圖片」存檔';
   const shareBtn=document.getElementById('imgSaveShareBtn');
+  shareBtn.textContent = canShareFiles ? '📤 分享 / 儲存' : '⬇️ 下載圖片';
+  // 點擊即為新的使用者手勢，分享／下載最穩定
   shareBtn.onclick=async ()=>{
     try{
-      if(blob && navigator.canShare){
-        const file=new File([blob],filename,{type:'image/jpeg'});
-        if(navigator.canShare({files:[file]})){
-          await navigator.share({files:[file]});
-          return;
-        }
+      if(canShareFiles){
+        await navigator.share({files:[new File([blob],filename,{type:'image/jpeg'})]});
+        return;
       }
-      // 無分享功能：退回下載連結
+      // 桌機／無分享功能：blob 下載連結
       const url=blob?URL.createObjectURL(blob):src;
       const a=document.createElement('a');
       a.href=url; a.download=filename;
       document.body.appendChild(a); a.click(); document.body.removeChild(a);
       if(blob) setTimeout(()=>URL.revokeObjectURL(url),60000);
-    }catch(e){ if(e && e.name!=='AbortError') showToast('分享失敗，請長按圖片儲存','error'); }
+    }catch(e){ if(e && e.name!=='AbortError') showToast('儲存失敗，請長按／右鍵圖片另存','error'); }
   };
   ov.style.display='flex';
 }
@@ -2601,7 +2593,7 @@ async function confirmSubmit(){
       });
       clearTimeout(t2);
     }catch(e){console.error('Drive上傳失敗',e);}
-  }catch(e){console.error('截圖失敗',e);}
+  }catch(e){console.error('截圖失敗',e); showToast('圖片產生失敗（報刀資料已送出）','error');}
   }
   closePreview();
   showSuccessOverlay(serialNo);
