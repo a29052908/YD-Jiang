@@ -462,10 +462,16 @@ function isInCharge(field, name) {
   return splitSales(field).some(s => s.toLowerCase() === target);
 }
 
+// 完整業務名冊（即使本期無資料也可切換檢視）；優先讀 報刀_v2 存的 salesList，否則用預設名單
+const SALES_ROSTER = (() => {
+  try { const s = JSON.parse(localStorage.getItem('tandry_sales_list')); if (Array.isArray(s) && s.length) return s; } catch(e){}
+  return ['Ivan','Dino','Henry','Vincent','Kaley','Mandy','Eddie','Bruce','Andrew','Richie','Eason','Darren','Derek'];
+})();
+
 function populateSalesSwitch() {
   const sel = document.getElementById('salesSwitch');
-  // 共管院所拆開，下拉出現各別業務（Henry、Darren），而非「Henry/Darren」
-  const names = [...new Set(allRows.flatMap(r => splitSales(r['負責業務'])))].sort();
+  // 完整名冊 ∪ 資料中出現過的負責業務（含歷史名如 Tan）；共管拆開、去重、排序
+  const names = [...new Set([...SALES_ROSTER, ...allRows.flatMap(r => splitSales(r['負責業務']))])].sort();
   sel.innerHTML = '<option value="">整體公司</option>' + names.map(n => `<option value="${n}"${n===selectedSales?' selected':''}>${n}</option>`).join('');
 }
 
