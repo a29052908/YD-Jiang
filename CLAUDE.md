@@ -55,7 +55,7 @@
   - `dashboard.html` `buildPivot()` support 判定＝「報刀者不在 `負責業務` 名單內」才算支援刀，避免共管刀被誤判 support。
 
 ## 報刀_v2 部位特殊邏輯（report刀頁）
-- **VA 分層（醫院感知）**：BUWEI_LIST 只放單一 `VA`；選 VA 後由 `vaPickerHtml()` 依 `selectedHospital` 從 innerCodeDb 撈出該院所有 `部位_院內碼` 開頭為 `VA` 的子部位。`VA小骨` 有完整型號樹，其餘（VA上肢/骨釘/鎖骨/腓骨/下肢/3.5·5.0直板…）無型號直接加入。`setVaSub()` 把 sel.buwei 設為完整子部位名（如 `VA腓骨`），送出/下游維持原格式。
+- **VA 分層（醫院感知）**：BUWEI_LIST 只放單一 `VA`；選 VA 後由 `vaPickerHtml()` 依 `selectedHospital` 從 innerCodeDb 撈出該院所有 `部位_院內碼` 開頭為 `VA` 的子部位。**是否有型號樹改為資料驅動**：`vaHasModel(b)=DB.some(r=>r.部位===b)`，DB 內有該部位資料就走一般骨板路徑顯示型號樹，否則「無型號直接加入」。目前有型號樹：`VA小骨`、`VA3.5直板`(直板/Recon)、`VA鎖骨`(Hook/Distal/Superior Clavicle)、`VA上肢`(LPHP)、`VA腓骨`(Distal Fibula)；仍無型號：VA5.0直板/VA下肢/VA骨釘/VA遠端腓骨。無左右的 VA 部位（VA3.5直板/VA上肢）需列入 `NO_RL` 才會顯示 V3 洞數。`setVaSub()` 把 sel.buwei 設為完整子部位名（如 `VA腓骨`），送出/下游維持原格式。
 - **聖保祿/土庚小骨**：姊妹院，部位_院內碼用同格式細分型號，`lookupInnerCode` 特例以 specLabel 直接比對。
 - **埋頭釘**：支援 `埋頭釘(自費)`/`埋頭釘(健保)` 變體（松山）及 `埋頭釘{直徑}` 變體（中壢長榮）。
 - **負責業務**：支援 `/` 分隔多業務共管（如 `Henry/Darren` 兩人皆可見）。
@@ -64,7 +64,8 @@
 ## 流水號規則
 格式：{業務代碼}{年後2碼}{月2碼}{日2碼}{序號2碼}
 例：IV26050801
-業務代碼：IV=Ivan, DI=Dino, HE=Henry, VI=Vincent, KA=Kaley, MA=Mandy, ED=Eddie, BR=Bruce
+業務代碼：IV=Ivan, DI=Dino, HE=Henry, VI=Vincent, KA=Kaley, MA=Mandy, ED=Eddie, BR=Bruce, AN=Andrew, RI=Richie, EA=Eason, DA=Darren, DE=Derek
+（email/角色/最新流水號存於 n8n + Google Sheets 登入帳號分頁，不在前端；前端僅 `報刀_v2.html` salesList 名單。角色：Ivan/Eddie/Bruce/Eason=admin，其餘 sales）
 
 ## 正字記數系統
 ### 報刀_v2.html（已完成）
