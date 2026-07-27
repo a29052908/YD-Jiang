@@ -201,31 +201,33 @@ body {
 
 <div class="login-wrap">
   <div class="login-card">
-    <div class="login-title">帳號登入</div>
+    <div class="login-title">登入</div>
 
     <div class="error-msg" id="errorMsg">帳號或密碼錯誤，請重試</div>
 
-    <div class="field">
-      <label>帳號</label>
-      <input type="text" id="usernameInput" placeholder="請輸入帳號"
-        autocomplete="username" autocapitalize="none"
-        onkeydown="if(event.key==='Enter')document.getElementById('passwordInput').focus()">
-    </div>
-    <div class="field">
-      <label>密碼</label>
-      <input type="password" id="passwordInput" placeholder="請輸入密碼"
-        autocomplete="current-password"
-        onkeydown="if(event.key==='Enter')doLogin()">
-    </div>
+    <!-- 帳密登入（暫時隱藏，僅用 Google 登入；要恢復把下面 display:none 拿掉即可） -->
+    <div id="pwLoginSection" style="display:none;">
+      <div class="field">
+        <label>帳號</label>
+        <input type="text" id="usernameInput" placeholder="請輸入帳號"
+          autocomplete="username" autocapitalize="none"
+          onkeydown="if(event.key==='Enter')document.getElementById('passwordInput').focus()">
+      </div>
+      <div class="field">
+        <label>密碼</label>
+        <input type="password" id="passwordInput" placeholder="請輸入密碼"
+          autocomplete="current-password"
+          onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
 
-    <button class="login-btn" id="loginBtn" onclick="doLogin()">
-      <div class="spinner"></div>
-      <span class="btn-text">登入</span>
-    </button>
+      <button class="login-btn" id="loginBtn" onclick="doLogin()">
+        <div class="spinner"></div>
+        <span class="btn-text">登入</span>
+      </button>
+    </div>
 
     <!-- Google 登入（設定 GOOGLE_CLIENT_ID 後自動顯示） -->
     <div id="googleSection" style="display:none;">
-      <div class="login-divider">或</div>
       <div class="google-wrap" id="googleBtnWrap"></div>
     </div>
   </div>
