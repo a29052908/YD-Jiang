@@ -451,9 +451,21 @@ function onSalesSwitchChange() {
   renderAll();
 }
 
+// 負責業務可能是共管「Henry/Darren」，拆成獨立業務名單
+function splitSales(field) {
+  return (field || '').split('/').map(s => s.trim()).filter(Boolean);
+}
+// 判斷某業務是否為該筆的負責業務之一（共管時兩人皆算）
+function isInCharge(field, name) {
+  if (!name) return false;
+  const target = name.toLowerCase();
+  return splitSales(field).some(s => s.toLowerCase() === target);
+}
+
 function populateSalesSwitch() {
   const sel = document.getElementById('salesSwitch');
-  const names = [...new Set(allRows.map(r => r['負責業務']).filter(Boolean))].sort();
+  // 共管院所拆開，下拉出現各別業務（Henry、Darren），而非「Henry/Darren」
+  const names = [...new Set(allRows.flatMap(r => splitSales(r['負責業務'])))].sort();
   sel.innerHTML = '<option value="">整體公司</option>' + names.map(n => `<option value="${n}"${n===selectedSales?' selected':''}>${n}</option>`).join('');
 }
 
@@ -461,11 +473,13 @@ function populateSalesSwitch() {
 // Aggregation
 // ──────────────────────────────────────────
 function filterRows(rows) {
+  // 業績歸屬用「負責業務」，共管（Henry/Darren）時兩人個人視角皆算一筆；
+  // 整體視角（無 selectedSales）不過濾，每台仍只計一次 → 自動去重。
   if (!IS_ADMIN && USERNAME) {
-    rows = rows.filter(r => (r['負責業務']||'').toLowerCase() === USERNAME.toLowerCase());
+    rows = rows.filter(r => isInCharge(r['負責業務'], USERNAME));
   }
   if (IS_ADMIN && selectedSales) {
-    rows = rows.filter(r => r['負責業務'] === selectedSales);
+    rows = rows.filter(r => isInCharge(r['負責業務'], selectedSales));
   }
   return rows;
 }

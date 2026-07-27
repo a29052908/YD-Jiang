@@ -753,8 +753,11 @@ function buildPivot(data, salesFilter) {
     const rowRespSales = row['負責業務'] || rowSales;
     if (salesFilter && rowSales !== salesFilter) continue;
 
-    // 判斷整筆是否為 support（操刀者 ≠ 負責業務）
-    const rowIsSupport = rowRespSales && rowSales && rowSales !== rowRespSales;
+    // 判斷整筆是否為 support：報刀者不在負責業務名單內才算支援；
+    // 共管院所（負責業務 = "Henry/Darren"）由其中一人報刀 → 屬正常跟刀，非支援。
+    const respList = rowRespSales.split('/').map(s => s.trim().toLowerCase()).filter(Boolean);
+    const rowIsSupport = respList.length > 0 && rowSales
+      && !respList.includes(rowSales.toLowerCase());
 
     for (const item of (row['品項'] || [])) {
       const zone     = item['大區'] || row['大區'] || '未分區';
