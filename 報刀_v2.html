@@ -644,7 +644,7 @@ let currentSales = (() => {
   }
   return localStorage.getItem('tandry_sales_current') || '';
 })();
-let salesList = JSON.parse(localStorage.getItem('tandry_sales_list') || '["Ivan","Dino","Henry","Darren","Vincent","Kaley","Mandy","Eddie","Bruce","Richie","Eason","Andrew"]');
+let salesList = JSON.parse(localStorage.getItem('tandry_sales_list') || '["Ivan","Dino","Henry","Darren","Vincent","Kaley","Mandy","Eddie","Bruce","Richie","Eason","Andrew","Derek"]');
 let currentWarehouse = localStorage.getItem('tandry_warehouse_current') || '';
 let salesWarehouseMap = JSON.parse(localStorage.getItem('tandry_sales_warehouse_map') || '{}');
 let supportMode = false, selectedZone = '';
@@ -1366,6 +1366,72 @@ const DB = [
   {部位:'VA小骨',v1:'2.4 H板',v2:'2X2',v3:'',品號:'472901K-V00'},
   {部位:'VA小骨',v1:'2.4 H板',v2:'3X2',v3:'',品號:'473001K-V00'},
   {部位:'VA小骨',v1:'2.4 H板',v2:'4X2',v3:'',品號:'473101K-V00'},
+  // ── VA3.5直板（v1=直板/Recon，無左右，v3=洞數）──
+  {部位:'VA3.5直板',v1:'直板',v2:'',v3:'5H',品號:'460105K-T00'},
+  {部位:'VA3.5直板',v1:'直板',v2:'',v3:'6H',品號:'460106K-T00'},
+  {部位:'VA3.5直板',v1:'直板',v2:'',v3:'7H',品號:'460107K-T00'},
+  {部位:'VA3.5直板',v1:'直板',v2:'',v3:'8H',品號:'460108K-T00'},
+  {部位:'VA3.5直板',v1:'直板',v2:'',v3:'10H',品號:'460110K-T00'},
+  {部位:'VA3.5直板',v1:'直板',v2:'',v3:'12H',品號:'460112K-T00'},
+  {部位:'VA3.5直板',v1:'Recon',v2:'',v3:'5H',品號:'460305K-T00'},
+  {部位:'VA3.5直板',v1:'Recon',v2:'',v3:'6H',品號:'460306K-T00'},
+  {部位:'VA3.5直板',v1:'Recon',v2:'',v3:'7H',品號:'460307K-T00'},
+  {部位:'VA3.5直板',v1:'Recon',v2:'',v3:'8H',品號:'460308K-T00'},
+  {部位:'VA3.5直板',v1:'Recon',v2:'',v3:'10H',品號:'460310K-T00'},
+  {部位:'VA3.5直板',v1:'Recon',v2:'',v3:'12H',品號:'460312K-T00'},
+  {部位:'VA3.5直板',v1:'Recon',v2:'',v3:'16H',品號:'460316K-T00'},
+  {部位:'VA3.5直板',v1:'Recon',v2:'',v3:'18H',品號:'460318K-T00'},
+  {部位:'VA3.5直板',v1:'Recon',v2:'',v3:'20H',品號:'460320K-T00'},
+  // ── VA鎖骨（v1=Hook/Distal Clavicle/Superior Clavicle，v2=R't/L't，v3=洞數[+長度]）──
+  {部位:'VA鎖骨',v1:'Hook',v2:"R't",v3:'2H 9mm',品號:'460402K-V00'},
+  {部位:'VA鎖骨',v1:'Hook',v2:"L't",v3:'2H 9mm',品號:'460402L-V00'},
+  {部位:'VA鎖骨',v1:'Hook',v2:"R't",v3:'4H 9mm',品號:'460404K-V00'},
+  {部位:'VA鎖骨',v1:'Hook',v2:"L't",v3:'4H 9mm',品號:'460404L-V00'},
+  {部位:'VA鎖骨',v1:'Hook',v2:"R't",v3:'6H 9mm',品號:'460406K-V00'},
+  {部位:'VA鎖骨',v1:'Hook',v2:"L't",v3:'6H 9mm',品號:'460406L-V00'},
+  {部位:'VA鎖骨',v1:'Hook',v2:"R't",v3:'2H 12mm',品號:'460402M-V00'},
+  {部位:'VA鎖骨',v1:'Hook',v2:"L't",v3:'2H 12mm',品號:'460402N-V00'},
+  {部位:'VA鎖骨',v1:'Hook',v2:"R't",v3:'4H 12mm',品號:'460404M-V00'},
+  {部位:'VA鎖骨',v1:'Hook',v2:"L't",v3:'4H 12mm',品號:'460404N-V00'},
+  {部位:'VA鎖骨',v1:'Hook',v2:"R't",v3:'6H 12mm',品號:'460406M-V00'},
+  {部位:'VA鎖骨',v1:'Hook',v2:"L't",v3:'6H 12mm',品號:'460406N-V00'},
+  {部位:'VA鎖骨',v1:'Hook',v2:"R't",v3:'2H 15mm',品號:'460402O-V00'},
+  {部位:'VA鎖骨',v1:'Hook',v2:"L't",v3:'2H 15mm',品號:'460402P-V00'},
+  {部位:'VA鎖骨',v1:'Hook',v2:"R't",v3:'4H 15mm',品號:'460404O-V00'},
+  {部位:'VA鎖骨',v1:'Hook',v2:"L't",v3:'4H 15mm',品號:'460404P-V00'},
+  {部位:'VA鎖骨',v1:'Hook',v2:"R't",v3:'6H 15mm',品號:'460406O-V00'},
+  {部位:'VA鎖骨',v1:'Hook',v2:"L't",v3:'6H 15mm',品號:'460406P-V00'},
+  {部位:'VA鎖骨',v1:'Distal Clavicle',v2:"R't",v3:'10H',品號:'460504K-V00'},
+  {部位:'VA鎖骨',v1:'Distal Clavicle',v2:"L't",v3:'10H',品號:'460504L-V00'},
+  {部位:'VA鎖骨',v1:'Distal Clavicle',v2:"R't",v3:'11H',品號:'460505K-V00'},
+  {部位:'VA鎖骨',v1:'Distal Clavicle',v2:"L't",v3:'11H',品號:'460505L-V00'},
+  {部位:'VA鎖骨',v1:'Distal Clavicle',v2:"R't",v3:'12H',品號:'460506K-V00'},
+  {部位:'VA鎖骨',v1:'Distal Clavicle',v2:"L't",v3:'12H',品號:'460506L-V00'},
+  {部位:'VA鎖骨',v1:'Distal Clavicle',v2:"R't",v3:'13H',品號:'460507K-V00'},
+  {部位:'VA鎖骨',v1:'Distal Clavicle',v2:"L't",v3:'13H',品號:'460507L-V00'},
+  {部位:'VA鎖骨',v1:'Distal Clavicle',v2:"R't",v3:'14H',品號:'460508K-V00'},
+  {部位:'VA鎖骨',v1:'Distal Clavicle',v2:"L't",v3:'14H',品號:'460508L-V00'},
+  {部位:'VA鎖骨',v1:'Superior Clavicle',v2:"R't",v3:'6H',品號:'460606K-V00'},
+  {部位:'VA鎖骨',v1:'Superior Clavicle',v2:"L't",v3:'6H',品號:'460606L-V00'},
+  {部位:'VA鎖骨',v1:'Superior Clavicle',v2:"R't",v3:'7H',品號:'460607K-V00'},
+  {部位:'VA鎖骨',v1:'Superior Clavicle',v2:"L't",v3:'7H',品號:'460607L-V00'},
+  {部位:'VA鎖骨',v1:'Superior Clavicle',v2:"R't",v3:'8H',品號:'460608K-V00'},
+  {部位:'VA鎖骨',v1:'Superior Clavicle',v2:"L't",v3:'8H',品號:'460608L-V00'},
+  // ── VA上肢（v1=LPHP，無左右，v3=洞數）──
+  {部位:'VA上肢',v1:'LPHP',v2:'',v3:'3H',品號:'460703M-V00'},
+  {部位:'VA上肢',v1:'LPHP',v2:'',v3:'5H',品號:'460705M-V00'},
+  {部位:'VA上肢',v1:'LPHP',v2:'',v3:'6H',品號:'460706M-V00'},
+  {部位:'VA上肢',v1:'LPHP',v2:'',v3:'8H',品號:'460708M-V00'},
+  {部位:'VA上肢',v1:'LPHP',v2:'',v3:'10H',品號:'460710M-V00'},
+  // ── VA腓骨（v1=Distal Fibula，v2=R't/L't，v3=洞數）──
+  {部位:'VA腓骨',v1:'Distal Fibula',v2:"R't",v3:'3H',品號:'461303K-V00'},
+  {部位:'VA腓骨',v1:'Distal Fibula',v2:"L't",v3:'3H',品號:'461303L-V00'},
+  {部位:'VA腓骨',v1:'Distal Fibula',v2:"R't",v3:'4H',品號:'461304K-V00'},
+  {部位:'VA腓骨',v1:'Distal Fibula',v2:"L't",v3:'4H',品號:'461304L-V00'},
+  {部位:'VA腓骨',v1:'Distal Fibula',v2:"R't",v3:'6H',品號:'461306K-V00'},
+  {部位:'VA腓骨',v1:'Distal Fibula',v2:"L't",v3:'6H',品號:'461306L-V00'},
+  {部位:'VA腓骨',v1:'Distal Fibula',v2:"R't",v3:'8H',品號:'461308K-V00'},
+  {部位:'VA腓骨',v1:'Distal Fibula',v2:"L't",v3:'8H',品號:'461308L-V00'},
 ];
 
 // 埋頭釘長度資料
@@ -1392,7 +1458,11 @@ const NO_RL = {
   '上肢':['LPHP'],
   '下肢':['DHS'],
   '小骨':['Radial Head'], // Radial Head neck無左右（v2=''），但head有
+  'VA3.5直板':['直板','Recon'], // VA直板無左右，v1直接到洞數
+  'VA上肢':['LPHP'],
 };
+// VA 子部位是否有型號樹（DB 內有該部位資料即有）
+const vaHasModel = b => b.startsWith('VA') && DB.some(r=>r.部位===b);
 // Y/T/Z型無第三層
 const NO_V3 = ['Y','T','Z','Y型','T型','Z型'];
 
@@ -1428,13 +1498,13 @@ function renderLevels() {
   if (b === '埋頭釘') { renderScrewLevels(lc); return; }
   if (b === '人工骨') { renderSimpleLevels(lc); return; }
   if (b === '骨釘') { renderNA(lc); return; }
-  // VA：分層。'VA'=尚未選子部位（只顯示 picker）；VA小骨=有型號樹；其餘 VA 子部位=無型號直接加入
+  // VA：分層。'VA'=尚未選子部位（只顯示 picker）；DB 內有型號樹的 VA 子部位走一般路徑；其餘=無型號直接加入
   if (b === 'VA') {
     lc.innerHTML = vaPickerHtml();
     ['qtyDivider','qtyArea','addBtn'].forEach(id=>document.getElementById(id).style.display='none');
     return;
   }
-  if (b.startsWith('VA') && b !== 'VA小骨') {
+  if (b.startsWith('VA') && !vaHasModel(b)) {
     lc.innerHTML = vaPickerHtml() + `<div style="color:var(--muted);font-size:13px;padding:8px 0;">此部位無型號，可直接加入</div>`;
     showQtyAndAdd();
     return;
@@ -1548,7 +1618,7 @@ function renderLevels() {
     html += renderDHSPanel();
   }
 
-  lc.innerHTML = (b === 'VA小骨' ? vaPickerHtml() : '') + html;
+  lc.innerHTML = (b.startsWith('VA') ? vaPickerHtml() : '') + html;
   showQtyAndAdd();
 }
 
@@ -1717,7 +1787,7 @@ function showQtyAndAdd() {
   else if (b==='人工骨') done = !!sel.v1;
   else if (b==='VA') done = false;                          // 尚未選 VA 子部位
   else if (b==='骨釘') done = true;
-  else if (b.startsWith('VA') && b!=='VA小骨') done = true;  // 無型號 VA 子部位
+  else if (b.startsWith('VA') && !vaHasModel(b)) done = true;  // 無型號 VA 子部位
   else {
     const needsV2 = DB.some(r=>r.部位===b&&r.v1===sel.v1&&r.v2);
     const needsV3 = sel.v1 && !NO_V3.includes(sel.v2) &&
