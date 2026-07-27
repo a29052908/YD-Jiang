@@ -46,6 +46,14 @@
 - manager：主管，看全部
 - admin：內勤/管理員，看全部（目前 Ivan 是 admin）
 
+## 業績歸屬規則（共管院所）
+共管院所的 `負責業務` 以 `/` 分隔多人（如 `Henry/Darren`）。`業務`＝實際報刀者（單一），`負責業務`＝院所歸屬（可多人）。前提：同一台刀不會兩人各自重複報。
+- **業績數 → 依 `負責業務`，兩人共算**：個人／切換視角以 `/` 拆分比對，共管刀 Henry、Darren 各算一筆；整體視角不過濾、每台只計一次（自動去重＝1 台）。故 Σ個人 > 整體 屬預期。
+- **跟刀費 → 依 `業務`（報刀者），只算一人**：總表主表本來就顯示 `業務`。
+- 實作：
+  - `performance.html` `splitSales()`/`isInCharge()` → `filterRows()`、`populateSalesSwitch()`（下拉拆成各別業務，不出現「Henry/Darren」）。
+  - `dashboard.html` `buildPivot()` support 判定＝「報刀者不在 `負責業務` 名單內」才算支援刀，避免共管刀被誤判 support。
+
 ## 報刀_v2 部位特殊邏輯（report刀頁）
 - **VA 分層（醫院感知）**：BUWEI_LIST 只放單一 `VA`；選 VA 後由 `vaPickerHtml()` 依 `selectedHospital` 從 innerCodeDb 撈出該院所有 `部位_院內碼` 開頭為 `VA` 的子部位。`VA小骨` 有完整型號樹，其餘（VA上肢/骨釘/鎖骨/腓骨/下肢/3.5·5.0直板…）無型號直接加入。`setVaSub()` 把 sel.buwei 設為完整子部位名（如 `VA腓骨`），送出/下游維持原格式。
 - **聖保祿/土庚小骨**：姊妹院，部位_院內碼用同格式細分型號，`lookupInnerCode` 特例以 specLabel 直接比對。
