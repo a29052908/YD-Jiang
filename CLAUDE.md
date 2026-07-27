@@ -5,6 +5,9 @@
 - 後端：n8n，部署在 https://ydj.zeabur.app
 - 資料：Google Sheets（ID: 1z0UJIwXpV1yUTqbbovoH9pcqQNDLMxLIMNwI9h4B7D4）
 
+## 維護 SOP
+- 新增人員／離職交接／院所・品號異動 → 見 `docs/SOP.md`（含資料落點對照、逐項檢查清單、資料健檢）
+
 ## Project Skill
 - `.claude/skills/verifier-baodao/` — Playwright headless 驗證腳本
   - 含 auth 注入、selector 速查、完整報刀流程驅動方式
