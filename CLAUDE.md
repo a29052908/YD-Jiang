@@ -23,6 +23,7 @@
 - review.html：審核變更
 - pickup.html：抓貨管理（admin/manager）
 - zheng-demo.html：正字記數參數調整 Demo（開發用）
+- 收據辨識.html：獨立小工具，服務室內設計朋友的「免用統一發票收據」辨識建檔，與報刀系統無關（品牌文字已中性化）。串接獨立 n8n webhook（不共用報刀單辨識頁面的 webhook/localStorage），localStorage key 為 `receipt_webhook_url`／`receipt_history`。表格欄位：日期／買受人／地址／品名／數量／單價／總價／合計金額／備註；備註以「⚠️」開頭時該列會醒目標示，提醒人工複核。上傳 file field 名稱為 `receipt`。
 
 ## n8n Webhook
 - /webhook/manual-baodao：報刀送出
