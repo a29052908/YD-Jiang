@@ -2682,7 +2682,7 @@ const vaC = genLengths([{from:10,to:30,step:2}]);
 const va35L = [...std35, 75, 80, 85, 90].sort((a,b)=>a-b);
 // VA 釘盤（2.4VA / 3.5VA）：L 顯示為 QL、色用 VA-L 紫；文字直徑取數字底
 const isVa = d => d==='VA' || d==='3.5VA';
-const diaBase = d => d==='VA' ? '2.4' : (d==='3.5VA' ? '3.5' : d);
+const diaBase = (d,t) => (d==='5.0' && t==='C') ? '4.5' : (d==='VA' ? '2.4' : (d==='3.5VA' ? '3.5' : d));
 
 const screwBoardDefs = {
   '1.5':{types:[{type:'L',color:'#4CAF50',dark:'#2E7D32'},{type:'C',color:'#FF9800',dark:'#E65100'}],lengths:std15},
@@ -2785,7 +2785,7 @@ function updateComponentFromScrews(){
       const entries=[];
       for(const len of lengths){const cnt=screwState[`${id}_${type}_${len}`]||0;if(cnt>0)entries.push(`${len}x${toZheng(cnt)}`);}
       if(entries.length>0){
-      const prefix=`${diaBase(dia)}${isVa(dia)?'':' '}${(isVa(dia)&&type==='L')?'QL':type}: `;
+      const prefix=`${diaBase(dia,type)}${isVa(dia)?'':' '}${(isVa(dia)&&type==='L')?'QL':type}: `;
       const indent=' '.repeat(prefix.length);
       const rows=[];
       for(let i=0;i<entries.length;i+=6){rows.push(entries.slice(i,i+6).join('・'));}
@@ -2842,7 +2842,7 @@ function buildScrewText(){
       const entries=[];
       for(const len of lengths){const cnt=screwState[`${id}_${type}_${len}`]||0;if(cnt>0)entries.push(`${len}x${toZheng(cnt)}`);}
       if(entries.length>0){
-        const prefix=`${diaBase(dia)}${isVa(dia)?'':' '}${(isVa(dia)&&type==='L')?'QL':type}: `;
+        const prefix=`${diaBase(dia,type)}${isVa(dia)?'':' '}${(isVa(dia)&&type==='L')?'QL':type}: `;
         const indent=' '.repeat(prefix.length);
         const rows=[];
         for(let i=0;i<entries.length;i+=6){rows.push(entries.slice(i,i+6).join('・'));}
@@ -2864,7 +2864,7 @@ function buildDamageScrewText(){
       const entries=[];
       for(const len of lengths){const cnt=damageScrewState[`${id}_${type}_${len}`]||0;if(cnt>0)entries.push(`${len}x${toZheng(cnt)}`);}
       if(entries.length>0){
-        const prefix=`${diaBase(dia)}${isVa(dia)?'':' '}${(isVa(dia)&&type==='L')?'QL':type}: `;
+        const prefix=`${diaBase(dia,type)}${isVa(dia)?'':' '}${(isVa(dia)&&type==='L')?'QL':type}: `;
         const indent=' '.repeat(prefix.length);
         const rows=[];
         for(let i=0;i<entries.length;i+=6){rows.push(entries.slice(i,i+6).join('・'));}
@@ -2898,7 +2898,7 @@ function _buildZhengHTML(boards, state){
         }
       }
       if(entries.length>0){
-        const label=`<span style="font-weight:700;color:${tc};font-family:'Inconsolata',monospace;">${diaBase(dia)}${isVa(dia)?'':' '}${(isVa(dia)&&type==='L')?'QL':type}:</span>`;
+        const label=`<span style="font-weight:700;color:${tc};font-family:'Inconsolata',monospace;">${diaBase(dia,type)}${isVa(dia)?'':' '}${(isVa(dia)&&type==='L')?'QL':type}:</span>`;
         const sep=`<span style="font-size:13px;color:#bbb;margin:0 4px;">/</span>`;
         const tagged=entries.map((e,i)=>i<entries.length-1?e+sep:e).join('');
         diaLines.push(`<div style="display:block;line-height:2.2;">${label} ${tagged}</div>`);
