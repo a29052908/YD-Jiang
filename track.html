@@ -256,7 +256,7 @@ async function loadTracks() {
     const res = await fetch(WEBHOOK_GET, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token: localStorage.getItem('tandry_token'), role: USER.role, username: USER.username })
+      body: JSON.stringify({ token: localStorage.getItem('tandry_token'), role: USER.role, username: USER.username, displayName: USER.displayName })
     });
     const data = await res.json();
     if (data.success) {
