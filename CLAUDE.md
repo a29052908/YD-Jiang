@@ -32,7 +32,8 @@
 - /webhook/get-cases：撈總表資料
 - /webhook/submit-track：送出追蹤
 - /webhook/get-tracks：撈追蹤清單
-- /webhook/resolve-track：追蹤結案
+- /webhook/resolve-track：追蹤結案（主管/admin）
+- /webhook/respond-track：業務對追蹤任務送出說明（寫入 業務說明/回覆者/回覆時間）
 - /webhook/submit-edit：送出變更申請
 - /webhook/get-edit-requests：撈變更申請
 - /webhook/review-edit：審核變更
