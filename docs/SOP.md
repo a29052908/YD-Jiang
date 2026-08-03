@@ -13,6 +13,7 @@
 | **最新流水號** | Google Sheets 登入帳號分頁（業務代碼＋最新流水號）| 直接編輯試算表 |
 | **業務下拉名單**（報刀頁選報刀者）| `報刀_v2.html` `salesList` | 前端改碼 → PR |
 | **業績儀表板業務名冊** | `performance.html` `SALES_ROSTER` | 前端改碼 → PR |
+| **追蹤指派對象下拉** | `track.html` 指派區 `#assignTo` 的 `<option>` | 前端改碼 → PR |
 | **院所院內碼／部位／大區／負責業務** | `報刀_v2.html` `innerCodeDb` | 前端改碼 → PR |
 | **品號型號樹**（VA、洞數…）| `報刀_v2.html` `DB` | 前端改碼 → PR |
 | **報刀/追蹤/變更等實際資料** | Google Sheets（ID 見 CLAUDE.md）| 直接編輯試算表 |
@@ -29,8 +30,9 @@
 - [ ] 4. Google Sheets 登入帳號分頁加一列（業務代碼＋最新流水號，初始流水號可留空）
 - [ ] 5. `報刀_v2.html` `salesList` 加名字（報刀頁選得到自己）
 - [ ] 6. `performance.html` `SALES_ROSTER` 加名字（業績儀表板切換得到）
-- [ ] 7. `CLAUDE.md` 業務代碼對照＋角色更新
-- [ ] 8.（若負責院所）到 `innerCodeDb` 把該院所 `負責業務` 設成他
+- [ ] 7. `track.html` `#assignTo` 加 `<option>` 名字（追蹤才指派得到他；顯示名要與帳號一致，n8n 篩選比對 displayName/username）
+- [ ] 8. `CLAUDE.md` 業務代碼對照＋角色更新
+- [ ] 9.（若負責院所）到 `innerCodeDb` 把該院所 `負責業務` 設成他
 - [ ] ✅ 驗證：本人 Google 登入成功 → 報一筆看流水號正確 → 業績儀表板下拉找得到他
 
 ### B. 人員離職 / 交接
