@@ -322,7 +322,9 @@ function calcSummary(rows) {
   for (const row of rows) {
     const items = row['品項'] || [];
     for (const item of items) {
-      const buwei = item['部位'] || '';
+      const rawBuwei = item['部位'] || '';
+      // VA 分層後部位是完整子名（VA小骨/VA腓骨…），統一歸到「VA」類
+      const buwei = rawBuwei.startsWith('VA') ? 'VA' : rawBuwei;
       const qty = parseInt(item['數量']) || 1;
       if (counts[buwei] !== undefined) counts[buwei] += qty;
       if (PLATE_TYPES.includes(buwei)) plateCases.add(row['流水號'] || (row['醫院'] + row['日期'] + row['病人']));
