@@ -59,6 +59,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', s
 .track-btn { padding: 7px 14px; border-radius: 8px; border: none; font-size: 12px; font-weight: 600; cursor: pointer; font-family: 'Noto Sans TC', sans-serif; }
 .btn-resolve { background: var(--green-light); color: var(--green); }
 .btn-assign { background: var(--yellow-light); color: var(--yellow); }
+.btn-respond { background: var(--blue-light); color: var(--blue); }
 
 /* badge */
 .badge { padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; white-space: nowrap; }
@@ -124,6 +125,18 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', s
   </div>
 </div>
 
+<!-- 任務說明 Modal（業務） -->
+<div class="modal-overlay" id="respondModal">
+  <div class="modal-sheet">
+    <div class="modal-title">💬 任務說明</div>
+    <textarea class="modal-textarea" id="respondNote" rows="4" placeholder="對這個追蹤任務的說明／處理情況..."></textarea>
+    <div class="modal-btns">
+      <button class="modal-btn modal-cancel" onclick="closeRespondModal()">取消</button>
+      <button class="modal-btn modal-confirm" onclick="confirmRespond()">送出說明</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <div class="content">
@@ -135,11 +148,15 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', s
       <select class="assign-select" id="assignTo">
         <option value="">指派給業務...</option>
         <option>Ivan</option>
-        <option>Dino</option>
         <option>Henry</option>
         <option>Vincent</option>
         <option>Kaley</option>
         <option>Mandy</option>
+        <option>Andrew</option>
+        <option>Richie</option>
+        <option>Eason</option>
+        <option>Darren</option>
+        <option>Derek</option>
         <option>Eddie</option>
         <option>Bruce</option>
       </select>
@@ -221,7 +238,9 @@ document.addEventListener('click', () => {
 const WEBHOOK_SUBMIT = 'https://ydj.zeabur.app/webhook/submit-track';
 const WEBHOOK_GET    = 'https://ydj.zeabur.app/webhook/get-tracks';
 const WEBHOOK_RESOLVE= 'https://ydj.zeabur.app/webhook/resolve-track';
+const WEBHOOK_RESPOND= 'https://ydj.zeabur.app/webhook/respond-track';
 const USER = window.TANDRY_USER || {};
+const IS_SALES = (USER.role || 'sales') === 'sales';
 
 let allTracks = [];
 let currentFilter = '全部';
@@ -299,6 +318,7 @@ function renderList() {
       <div class="track-info">${typeIcon} ${t['追蹤類型'] || ''}</div>
       <div class="track-note">${t['追蹤備註'] || '-'}</div>
       ${t['指派對象'] ? `<div class="track-note" style="background:var(--yellow-light);">👤 指派對象：${t['指派對象']}</div>` : ''}
+      ${t['業務說明'] ? `<div class="track-note" style="background:var(--blue-light);">💬 業務說明：${t['業務說明']}${t['回覆者'] ? `（${t['回覆者']}）` : ''}</div>` : ''}
       ${isDone && t['結案備註'] ? `<div class="track-note" style="background:var(--green-light);">✅ 結案備註：${t['結案備註']}</div>` : ''}
       <div class="track-meta">
         ${t['建立者'] || ''} · ${t['建立時間'] || ''}
@@ -306,7 +326,9 @@ function renderList() {
       </div>
       ${!isDone ? `
       <div class="track-actions">
-        <button class="track-btn btn-resolve" onclick="openResolveModal('${t['流水號']}')">✅ 結案</button>
+        ${IS_SALES
+          ? `<button class="track-btn btn-respond" onclick="openRespondModal('${t['流水號']}')">💬 任務說明</button>`
+          : `<button class="track-btn btn-resolve" onclick="openResolveModal('${t['流水號']}')">✅ 結案</button>`}
       </div>` : ''}
     </div>`;
   }).join('');
@@ -340,6 +362,43 @@ async function confirmResolve() {
       await loadTracks();
     } else {
       showToast('❌ 結案失敗');
+    }
+  } catch(e) {
+    showToast('❌ 無法連線');
+  }
+}
+
+// ── 任務說明（業務）────────────────────────────
+let respondTarget = '';
+function openRespondModal(serial) {
+  respondTarget = serial;
+  document.getElementById('respondNote').value = '';
+  document.getElementById('respondModal').classList.add('show');
+}
+function closeRespondModal() {
+  document.getElementById('respondModal').classList.remove('show');
+  respondTarget = '';
+}
+async function confirmRespond() {
+  const note = document.getElementById('respondNote').value.trim();
+  if (!respondTarget) return;
+  if (!note) { showToast('❌ 請填寫說明'); return; }
+  try {
+    const res = await fetch(WEBHOOK_RESPOND, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        流水號: respondTarget, 業務說明: note,
+        回覆者: USER.displayName || USER.username, role: USER.role
+      })
+    });
+    const data = await res.json();
+    if (data.success) {
+      closeRespondModal();
+      showToast('✅ 已送出說明');
+      await loadTracks();
+    } else {
+      showToast('❌ 送出失敗');
     }
   } catch(e) {
     showToast('❌ 無法連線');
