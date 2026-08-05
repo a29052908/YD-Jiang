@@ -389,11 +389,13 @@ function getPrimaryRange() {
   return (fns[currentView] || getWeekRange)(anchorDate);
 }
 
+const WEEKDAYS = ['日','一','二','三','四','五','六'];
 function formatPeriodLabel([start, end]) {
   const fmt = d => `${d.getMonth()+1}/${d.getDate()}`;
+  const fmtWd = d => `${d.getMonth()+1}/${d.getDate()}(${WEEKDAYS[d.getDay()]})`;
   const yr  = d => d.getFullYear();
   if (currentView === 'week') {
-    return `${yr(start)} 第 ${getWeekNo(start)} 週  ${fmt(start)} ~ ${fmt(end)}`;
+    return `${yr(start)} 第 ${getWeekNo(start)} 週  ${fmtWd(start)} ~ ${fmtWd(end)}`;
   }
   if (currentView === 'month') {
     return `${yr(start)} 年 ${start.getMonth()+1} 月`;
