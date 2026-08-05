@@ -330,6 +330,7 @@ document.addEventListener('click', () => {
     <div class="sales-list" id="warehouseList">
       <div class="sales-option" id="wh-桃庫" onclick="selectWarehouse('桃庫')">🏭 桃庫</div>
       <div class="sales-option" id="wh-北庫" onclick="selectWarehouse('北庫')">🏭 北庫</div>
+      <div class="sales-option" id="wh-宜庫" onclick="selectWarehouse('宜庫')">🏭 宜庫</div>
     </div>
   </div>
 </div>
@@ -2037,7 +2038,7 @@ function renderSalesBadge(){
 function renderSalesList(){document.getElementById('salesList').innerHTML=salesList.map(s=>{const wh=salesWarehouseMap[s]?` · ${salesWarehouseMap[s]}`:'';return`<div class="sales-option ${s===currentSales?'selected':''}" onclick="selectSales('${s}')">${s}${wh}</div>`;}).join('');}
 function selectSales(name){currentSales=name;localStorage.setItem('tandry_sales_current',name);if(salesWarehouseMap[name]){currentWarehouse=salesWarehouseMap[name];localStorage.setItem('tandry_warehouse_current',currentWarehouse);}renderSalesBadge();renderSalesList();renderWarehouseList();updateSummary();}
 function addSales(){const val=document.getElementById('newSalesInput').value.trim();if(!val)return;if(!salesList.includes(val)){salesList.push(val);localStorage.setItem('tandry_sales_list',JSON.stringify(salesList));}selectSales(val);document.getElementById('newSalesInput').value='';renderSalesList();}
-function renderWarehouseList(){['桃庫','北庫'].forEach(wh=>{const el=document.getElementById(`wh-${wh}`);if(el)el.className=`sales-option ${currentWarehouse===wh?'selected':''}`;});}
+function renderWarehouseList(){['桃庫','北庫','宜庫'].forEach(wh=>{const el=document.getElementById(`wh-${wh}`);if(el)el.className=`sales-option ${currentWarehouse===wh?'selected':''}`;});}
 function selectWarehouse(wh){currentWarehouse=wh;localStorage.setItem('tandry_warehouse_current',wh);if(currentSales){salesWarehouseMap[currentSales]=wh;localStorage.setItem('tandry_sales_warehouse_map',JSON.stringify(salesWarehouseMap));}renderWarehouseList();renderSalesBadge();renderSalesList();updateSummary();}
 function openSalesModal(){document.getElementById('salesModal').classList.add('show');}
 function closeSalesModal(){document.getElementById('salesModal').classList.remove('show');}
@@ -2331,7 +2332,7 @@ function showPreview(){
   const td=document.getElementById('toolDisplay');
   if(td){const h=buildDamageScrewHTML();td.innerHTML=h||'';}
 
-  const ZONE_DEFAULT_WAREHOUSE = { '桃竹苗': '桃庫', '北區': '北庫' };
+  const ZONE_DEFAULT_WAREHOUSE = { '桃竹苗': '桃庫', '北區': '北庫', '宜蘭區': '宜庫' };
   const zone = productItems[0]?.大區 || '';
   const defaultWarehouse = ZONE_DEFAULT_WAREHOUSE[zone];
   if (!_bypassWarehouseCheck && defaultWarehouse && currentWarehouse !== defaultWarehouse) {
