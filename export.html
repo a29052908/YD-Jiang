@@ -254,14 +254,14 @@ function buildExcel(rows, year, month, salesName) {
 
   wsData.push([`${rocYear}年  ${month}月  業務跟刀量統計表  業務：${salesName}`]);
   wsData.push(['每月1號 請mail給 annie27962677@gmail.com, patti50884012@gmail.com']);
-  wsData.push(['日期','部位','醫院','醫師','品號','數量','病人','院內碼','','','類別','總數']);
+  wsData.push(['日期','部位','醫院','醫師','品號','數量','病人','院內碼','support','','類別','總數']);
 
   const itemRows = [];
   for (const row of rows) {
     const dateStr = formatDate(row['日期']);
     const items = row['品項'] || [];
     if (items.length === 0) {
-      itemRows.push({ dateStr, buwei:'', hospital:row['醫院']||'', doctor:row['醫師']||'', pn:'', qty:'', patient:row['病人']||'', ic:'' });
+      itemRows.push({ dateStr, buwei:'', hospital:row['醫院']||'', doctor:row['醫師']||'', pn:'', qty:'', patient:row['病人']||'', ic:'', support:'' });
     } else {
       for (const item of items) {
         const ic = item['院內碼'] || '';
@@ -274,7 +274,8 @@ function buildExcel(rows, year, month, salesName) {
           pn: item['品號'] || '',
           qty: item['數量'] || 1,
           patient: row['病人'] || '',
-          ic: icStr
+          ic: icStr,
+          support: item['support'] ? '是' : ''
         });
       }
     }
@@ -286,7 +287,7 @@ function buildExcel(rows, year, month, salesName) {
     const item = itemRows[i];
     const sk = summaryKeys[i];
     const row = item
-      ? [item.dateStr, item.buwei, item.hospital, item.doctor, item.pn, item.qty, item.patient, item.ic, '', '']
+      ? [item.dateStr, item.buwei, item.hospital, item.doctor, item.pn, item.qty, item.patient, item.ic, item.support, '']
       : ['','','','','','','','','',''];
     row.push(sk || '', sk ? summary[sk] : '');
     wsData.push(row);
@@ -298,7 +299,7 @@ function buildExcel(rows, year, month, salesName) {
     { s:{r:1,c:0}, e:{r:1,c:11} },
   ];
   ws['!cols'] = [
-    {wch:8},{wch:8},{wch:10},{wch:8},{wch:16},{wch:5},{wch:8},{wch:14},{wch:2},{wch:2},{wch:8},{wch:6}
+    {wch:8},{wch:8},{wch:10},{wch:8},{wch:16},{wch:5},{wch:8},{wch:14},{wch:8},{wch:2},{wch:8},{wch:6}
   ];
 
   XLSX.utils.book_append_sheet(wb, ws, `${month}月`);
@@ -318,6 +319,7 @@ function calcSummary(rows) {
   const counts = {};
   ALL_TYPES.forEach(t => counts[t] = 0);
   const plateCases = new Set();
+  let supportQty = 0; // 贊助（support）：跟部位無關，獨立累計，與跨區支援無關
 
   for (const row of rows) {
     const items = row['品項'] || [];
@@ -328,6 +330,7 @@ function calcSummary(rows) {
       const qty = parseInt(item['數量']) || 1;
       if (counts[buwei] !== undefined) counts[buwei] += qty;
       if (PLATE_TYPES.includes(buwei)) plateCases.add(row['流水號'] || (row['醫院'] + row['日期'] + row['病人']));
+      if (item['support']) supportQty += qty;
     }
   }
 
@@ -338,11 +341,12 @@ function calcSummary(rows) {
   PLATE_TYPES.forEach(t => { result[t] = counts[t]; });
   result['骨釘'] = counts['骨釘'];
   result['人工骨'] = counts['人工骨'];
+  result['support'] = supportQty;
   return result;
 }
 
 function showPreview(rows) {
-  const HEADERS = ['日期','部位','醫院','醫師','品號','數量','病人','院內碼'];
+  const HEADERS = ['日期','部位','醫院','醫師','品號','數量','病人','院內碼','support'];
   const table = document.getElementById('previewTable');
   let html = '<tr>' + HEADERS.map(h => `<th>${h}</th>`).join('') + '</tr>';
   let count = 0;
@@ -360,6 +364,7 @@ function showPreview(rows) {
         <td style="text-align:center;">${item['數量']||1}</td>
         <td>${row['病人']||''}</td>
         <td style="font-family:'JetBrains Mono',monospace;font-size:11px;">${ic}</td>
+        <td style="text-align:center;">${item['support'] ? '是' : ''}</td>
       </tr>`;
       count++;
     }

@@ -77,6 +77,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', s
 .item-qty { background: var(--green-light); color: var(--green); padding: 3px 9px; border-radius: 6px; font-size: 13px; font-weight: 700; font-family: 'JetBrains Mono', monospace; white-space: nowrap; }
 .item-dhs { background: #fff0e0; color: #b05000; padding: 3px 9px; border-radius: 6px; font-size: 12px; font-family: 'JetBrains Mono', monospace; white-space: nowrap; }
 .item-negotiate { background: #fee2e2; color: var(--accent2); padding: 3px 9px; border-radius: 6px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+.item-sponsor { background: var(--blue-light); color: var(--blue); padding: 3px 9px; border-radius: 6px; font-size: 12px; font-weight: 600; white-space: nowrap; }
 .item-remove { width: 26px; height: 26px; border-radius: 50%; border: none; background: #ffe0e3; color: var(--accent2); font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-left: auto; transition: all 0.15s; }
 .item-remove:hover { background: var(--accent2); color: white; }
 /* 患者 */
@@ -95,6 +96,8 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', s
 .inner-code-input-main::placeholder { color: var(--dim); font-size: 14px; font-weight: 400; font-family: 'Noto Sans TC', sans-serif; }
 .negotiate-btn { padding: 8px 16px; border-radius: 20px; border: 1.5px solid var(--muted); background: white; color: var(--muted); font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'Noto Sans TC', sans-serif; transition: all 0.2s; white-space: nowrap; flex-shrink: 0; }
 .negotiate-btn.active { border-color: var(--accent2); background: var(--accent2); color: white; }
+.sponsor-btn { padding: 8px 16px; border-radius: 20px; border: 1.5px solid var(--muted); background: white; color: var(--muted); font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'Noto Sans TC', sans-serif; transition: all 0.2s; white-space: nowrap; flex-shrink: 0; }
+.sponsor-btn.active { border-color: var(--blue); background: var(--blue); color: white; }
 /* submit */
 .submit-area { padding: 12px 16px; background: var(--card); border-top: 1px solid var(--border); margin-top: 12px; }
 .submit-btn { width: 100%; max-width: 600px; margin: 0 auto; display: flex; padding: 16px; background: var(--accent); color: white; border: none; border-radius: 14px; font-size: 17px; font-weight: 700; cursor: pointer; font-family: 'Noto Sans TC', sans-serif; align-items: center; justify-content: center; gap: 10px; transition: all 0.2s; letter-spacing: 0.5px; }
@@ -454,7 +457,10 @@ document.addEventListener('click', () => {
   <div class="card">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
       <div class="card-label" style="margin-bottom:0;">🔖 院內碼</div>
-      <button class="negotiate-btn" id="negotiateBtn" onclick="toggleNegotiate()">另洽</button>
+      <div style="display:flex;gap:8px;">
+        <button class="sponsor-btn" id="sponsorBtn" onclick="toggleSponsor()">support</button>
+        <button class="negotiate-btn" id="negotiateBtn" onclick="toggleNegotiate()">另洽</button>
+      </div>
     </div>
     <input class="inner-code-input-main" id="innerCodeInput" type="text" placeholder="選擇醫院與部位後自動帶入" oninput="innerCode=this.value">
   </div>
@@ -655,6 +661,9 @@ let currentWarehouse = localStorage.getItem('tandry_warehouse_current') || '';
 let salesWarehouseMap = JSON.parse(localStorage.getItem('tandry_sales_warehouse_map') || '{}');
 let supportMode = false, selectedZone = '';
 let negotiateMode = false;
+// 贊助（畫面顯示 support）：跟既有的跨區支援 supportMode/toggleSupportMode/supportBtn 是完全不同概念，
+// 內部識別字刻意用 sponsor 系列避免撞名，資料欄位用 support 配合內勤用語。
+let sponsorMode = false;
 let _bypassWarehouseCheck = false;
 let saveImageEnabled = localStorage.getItem('tandry_save_image') !== 'false';
 
@@ -1445,7 +1454,7 @@ const SCREW_PN = {
 };
 
 const BUWEI_LIST = ['鎖骨','上肢','長骨','小骨','下肢','埋頭釘','骨釘','人工骨','VA'];
-// 不記價：醫生只打釘子、沒上骨板時的快速加入，不比對任何院內碼
+// 不記價：情況不固定（可能只打釘沒上骨板，也可能相反），不預設文字註記，不比對任何院內碼
 const NO_PRICE_BUWEI = '不記價';
 // 無左右的版型1
 const NO_RL = {
@@ -1493,7 +1502,7 @@ function renderLevels() {
   if (b === '人工骨') { renderSimpleLevels(lc); return; }
   if (b === '骨釘') { renderNA(lc); return; }
   if (b === NO_PRICE_BUWEI) {
-    lc.innerHTML = `<div style="color:var(--muted);font-size:13px;padding:4px 0;">僅打釘、未上骨板，直接選數量加入，不比對院內碼</div>`;
+    lc.innerHTML = `<div style="color:var(--muted);font-size:13px;padding:4px 0;">直接選數量加入，不比對院內碼</div>`;
     showQtyAndAdd();
     return;
   }
@@ -1875,7 +1884,7 @@ function renderBuwei() {
   document.getElementById('buweiGrid').innerHTML = BUWEI_LIST.map(b =>
     `<button class="buwei-btn ${(b==='VA'?String(sel.buwei||'').startsWith('VA'):b===sel.buwei)?'selected':''}" onclick="selectBuwei('${b}')">${b}</button>`
   ).join('') +
-  `<button class="buwei-btn buwei-btn-nocare ${sel.buwei===NO_PRICE_BUWEI?'selected':''}" onclick="selectBuwei('${NO_PRICE_BUWEI}')">🚫 不記價（僅打釘，未上骨板）</button>`;
+  `<button class="buwei-btn buwei-btn-nocare ${sel.buwei===NO_PRICE_BUWEI?'selected':''}" onclick="selectBuwei('${NO_PRICE_BUWEI}')">🚫 不記價</button>`;
 }
 
 function renderItemList() {
@@ -1893,6 +1902,7 @@ function renderItemList() {
         <span class="item-qty" style="flex-shrink:0;">×${item.qty}</span>
         ${item.dhsNote ? `<span class="item-dhs" style="flex-shrink:0;">🔩 ${item.dhsNote}</span>` : ''}
         ${item.另洽 ? `<span class="item-negotiate" style="flex-shrink:0;">另洽</span>` : ''}
+        ${item.support ? `<span class="item-sponsor" style="flex-shrink:0;">support</span>` : ''}
         <button class="item-remove" onclick="removeItem(${i})" style="flex-shrink:0;margin-left:auto;">×</button>
       </div>
       ${(item.品號 || item.innerCode) ? `<div style="display:flex;align-items:center;gap:8px;width:100%;padding-top:4px;flex-wrap:wrap;">
@@ -1970,11 +1980,18 @@ function toggleNegotiate() {
   btn.textContent = negotiateMode ? '✓ 另洽' : '另洽';
 }
 
+// ── 贊助（support，跟跨區支援 supportMode 無關）──────────────────
+function toggleSponsor() {
+  sponsorMode = !sponsorMode;
+  const btn = document.getElementById('sponsorBtn');
+  btn.className = 'sponsor-btn' + (sponsorMode ? ' active' : '');
+  btn.textContent = sponsorMode ? '✓ support' : 'support';
+}
+
 // ── 覆寫 addProduct 整合院內碼/另洽/payNote ──────────────────
 window.addProduct = function() {
   const specParts = [sel.v1, sel.v2, sel.v3].filter(Boolean);
   let specLabel = specParts.join(' ');
-  if (sel.buwei === NO_PRICE_BUWEI) specLabel = '僅打釘，未上骨板';
   // 埋頭釘：加 mm 單位描述，例如 '2.8 24' → '2.8mm 24mm'
   if (sel.buwei === '埋頭釘' && sel.v1 && sel.v3) {
     specLabel = `Ø${sel.v1} ${sel.v3}mm`;
@@ -2004,12 +2021,14 @@ window.addProduct = function() {
   const payNote = sel.buwei==='埋頭釘' ? screwPayType : '';
   const finalCode = document.getElementById('innerCodeInput')?.value.trim() || innerCode;
   const negotiate = negotiateMode;
+  const sponsor = sponsorMode;
   const icRow = innerCodeDb.find(x => x['院內碼_醫院']===selectedHospital && x['院內碼']===finalCode);
   productItems.push({
     buwei: sel.buwei, spec: specLabel, 品號: sel.品號,
     qty, dhsNote, payNote,
     innerCode: finalCode,
     另洽: negotiate,
+    support: sponsor,
     負責業務: icRow?.負責業務 || currentSales,
     大區: icRow?.大區 || '',
   });
@@ -2017,6 +2036,9 @@ window.addProduct = function() {
   sel={buwei:'',v1:'',v2:'',v3:'',品號:'',innerCodeKey:''};
   qty=1; dhsLagLen=''; dhsLagQty=1; dhsCompQty=0; screwPayType='健保';
   negotiateMode=false;
+  sponsorMode=false;
+  const spb=document.getElementById('sponsorBtn');
+  if(spb){spb.className='sponsor-btn';spb.textContent='support';}
   const nb=document.getElementById('negotiateBtn');
   if(nb){nb.className='negotiate-btn';nb.textContent='另洽';}
   renderBuwei();
@@ -2136,6 +2158,7 @@ function submitForm(){
         品號:item.品號||'',
         數量:item.qty,病人:patient,病歷號:patientId,
         院內碼:codeOut,費用類型:item.payNote||'',另洽:item.另洽?'是':'',
+        support:item.support?'是':'',
         DHS組件:item.dhsNote||''};
       // 非第一筆帶入已取得的流水號，讓 n8n 直接使用不重新產生
       if(!isFirst && phase2.流水號) data.流水號=phase2.流水號;
@@ -2203,13 +2226,13 @@ function showDebug() {
     buwei: sel.buwei, spec: [sel.v1,sel.v2,sel.v3].filter(Boolean).join(' '),
     品號: sel.品號, qty, payNote: sel.buwei==='埋頭釘'?screwPayType:'',
     innerCode: document.getElementById('innerCodeInput')?.value.trim()||innerCode,
-    另洽: negotiateMode,
+    另洽: negotiateMode, support: sponsorMode,
   }] : [...productItems];
   const preview = items.map((item,i) => ({
     [`品項${i+1}`]: {
       部位: item.buwei, 規格: item.spec, 品號: item.品號||'',
       費用類型: item.payNote||'', 院內碼: item.另洽?item.innerCode+'（另洽）':item.innerCode,
-      另洽: item.另洽?'是':'', DHS: item.dhsNote||'', 數量: item.qty,
+      另洽: item.另洽?'是':'', support: item.support?'是':'', DHS: item.dhsNote||'', 數量: item.qty,
       負責業務: item.負責業務||currentSales, 大區: item.大區||'',
     }
   }));
@@ -2385,7 +2408,8 @@ function showPreview(){
       const dhs=item.dhsNote||item.DHS||'';
       const pay=item.payNote||'';
       const payTag=pay?` [${pay}]`:'';
-      implantLines.push(`${buwei}${spec?' '+spec:''}${pn?' ('+pn+')':''}${payTag}${qty>1?' ×'+qty:''}${dhs?' | '+dhs:''}`.trim());
+      const supportTag=item.support?' [support]':'';
+      implantLines.push(`${buwei}${spec?' '+spec:''}${pn?' ('+pn+')':''}${payTag}${supportTag}${qty>1?' ×'+qty:''}${dhs?' | '+dhs:''}`.trim());
       if(ic){const mapKey=`${ic}${neg}`;if(!icMap[mapKey])icMap[mapKey]={ic,neg,qty:0};icMap[mapKey].qty+=qty;}
     });
     innerCodeLines=Object.values(icMap).map(({ic,neg,qty})=>`${ic}${neg}${qty>1?' ×'+qty:''}`);
@@ -2601,7 +2625,7 @@ async function confirmSubmit(){
       部位:item.buwei||'', 規格:item.spec||'', 品號:item.品號||'',
       數量:item.qty||1, 病人:patient, 病歷號:patientId,
       院內碼:codeOut, 費用類型:item.payNote||'',
-      另洽:item.另洽?'是':'', DHS組件:item.dhsNote||'',
+      另洽:item.另洽?'是':'', support:item.support?'是':'', DHS組件:item.dhsNote||'',
       組件:isFirst?document.getElementById('componentInput')?.value||'':'',
       報損:isFirst?[buildDamageScrewText(),buildQuickDamageText(),document.getElementById('toolInput')?.value||''].filter(Boolean).join('\n'):'',
       備註:isFirst?document.getElementById('remarkInput')?.value||'':'',
