@@ -1445,8 +1445,8 @@ const SCREW_PN = {
 };
 
 const BUWEI_LIST = ['鎖骨','上肢','長骨','小骨','下肢','埋頭釘','骨釘','人工骨','VA'];
-// 不計較：醫生只打釘子、沒上骨板時的快速加入，不比對任何院內碼
-const NO_CARE_BUWEI = '不計較';
+// 不記價：醫生只打釘子、沒上骨板時的快速加入，不比對任何院內碼
+const NO_PRICE_BUWEI = '不記價';
 // 無左右的版型1
 const NO_RL = {
   '上肢':['LPHP'],
@@ -1492,7 +1492,7 @@ function renderLevels() {
   if (b === '埋頭釘') { renderScrewLevels(lc); return; }
   if (b === '人工骨') { renderSimpleLevels(lc); return; }
   if (b === '骨釘') { renderNA(lc); return; }
-  if (b === NO_CARE_BUWEI) {
+  if (b === NO_PRICE_BUWEI) {
     lc.innerHTML = `<div style="color:var(--muted);font-size:13px;padding:4px 0;">僅打釘、未上骨板，直接選數量加入，不比對院內碼</div>`;
     showQtyAndAdd();
     return;
@@ -1786,7 +1786,7 @@ function showQtyAndAdd() {
   else if (b==='人工骨') done = !!sel.v1;
   else if (b==='VA') done = false;                          // 尚未選 VA 子部位
   else if (b==='骨釘') done = true;
-  else if (b===NO_CARE_BUWEI) done = true;
+  else if (b===NO_PRICE_BUWEI) done = true;
   else if (b.startsWith('VA') && !vaHasModel(b)) done = true;  // 無型號 VA 子部位
   else {
     const needsV2 = DB.some(r=>r.部位===b&&r.v1===sel.v1&&r.v2);
@@ -1875,7 +1875,7 @@ function renderBuwei() {
   document.getElementById('buweiGrid').innerHTML = BUWEI_LIST.map(b =>
     `<button class="buwei-btn ${(b==='VA'?String(sel.buwei||'').startsWith('VA'):b===sel.buwei)?'selected':''}" onclick="selectBuwei('${b}')">${b}</button>`
   ).join('') +
-  `<button class="buwei-btn buwei-btn-nocare ${sel.buwei===NO_CARE_BUWEI?'selected':''}" onclick="selectBuwei('${NO_CARE_BUWEI}')">🚫 不計較（僅打釘，未上骨板）</button>`;
+  `<button class="buwei-btn buwei-btn-nocare ${sel.buwei===NO_PRICE_BUWEI?'selected':''}" onclick="selectBuwei('${NO_PRICE_BUWEI}')">🚫 不記價（僅打釘，未上骨板）</button>`;
 }
 
 function renderItemList() {
@@ -1906,7 +1906,7 @@ function renderItemList() {
 // ── 院內碼查找 ────────────────────────────────────────────────
 function lookupInnerCode(hospital, buwei, specLabel) {
   if (!hospital || !buwei) return '';
-  if (buwei === NO_CARE_BUWEI) return ''; // 不計較：明確不比對任何院內碼
+  if (buwei === NO_PRICE_BUWEI) return ''; // 不記價：明確不比對任何院內碼
   if (buwei === '埋頭釘') {
     const dia = sel.v1 || '';
     // 松山等：埋頭釘分自費/健保
@@ -1957,7 +1957,7 @@ function updateCode() {
   const input = document.getElementById('innerCodeInput');
   if (input) {
     input.value = innerCode || '';
-    input.placeholder = sel.buwei === NO_CARE_BUWEI ? '不計較：不比對院內碼'
+    input.placeholder = sel.buwei === NO_PRICE_BUWEI ? '不記價：不比對院內碼'
       : (sel.buwei && !innerCode) ? '無院內碼（可手動輸入）' : '選擇醫院與部位後自動帶入';
   }
 }
@@ -1974,7 +1974,7 @@ function toggleNegotiate() {
 window.addProduct = function() {
   const specParts = [sel.v1, sel.v2, sel.v3].filter(Boolean);
   let specLabel = specParts.join(' ');
-  if (sel.buwei === NO_CARE_BUWEI) specLabel = '僅打釘，未上骨板';
+  if (sel.buwei === NO_PRICE_BUWEI) specLabel = '僅打釘，未上骨板';
   // 埋頭釘：加 mm 單位描述，例如 '2.8 24' → '2.8mm 24mm'
   if (sel.buwei === '埋頭釘' && sel.v1 && sel.v3) {
     specLabel = `Ø${sel.v1} ${sel.v3}mm`;
