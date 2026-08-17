@@ -526,7 +526,8 @@ function aggregate(rows) {
     if (!cat) return;
     const unitCat = unitCategorize(buwei, cat);
     const qty = parseInt(r['數量'], 10) || 1;
-    const amt = parseFloat(r['金額'])   || 0;
+    // support（贊助）：無償贊助的品項業績算0，但台數仍正常計入
+    const amt = r['support'] === '是' ? 0 : (parseFloat(r['金額']) || 0);
 
     if (UNIT_COUNT_CATS.includes(unitCat)) res.units[unitCat] += qty;
     if (AMOUNT_CATS.includes(cat))         res.amount[cat]    += amt;

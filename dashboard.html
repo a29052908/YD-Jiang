@@ -338,6 +338,7 @@ function openPreview(index) {
       qty: item['數量'] || 1,
       innerCode: item['院內碼'] || '',
       另洽: item['另洽'] === '是',
+      support: item['support'] === '是',
       payNote: item['費用類型'] || '',
       dhsNote: item['DHS組件'] || '',
     })),
@@ -545,9 +546,18 @@ function renderSummary() {
     if (!count) return '';
     return `<div class="stat-chip" style="background:${cat.bg};border-color:${cat.color}33;color:${cat.color};">${cat.label} <strong>${count}</strong> 件</div>`;
   }).filter(Boolean).join('');
-  if (!chips) { bar.style.display = 'none'; return; }
+  // support（贊助）：跟部位無關，獨立統計無償贊助的品項件數；與既有跨區支援(support判定)無關
+  const supportCount = filteredData.reduce((sum, row) =>
+    sum + (row['品項'] || []).filter(item => item['support'] === '是')
+                             .reduce((s, item) => s + (parseInt(item['數量']) || 1), 0)
+  , 0);
+  const supportChip = supportCount
+    ? `<div class="stat-chip" style="background:#e8ecff;border-color:#3a5bd933;color:#3a5bd9;">support <strong>${supportCount}</strong> 件</div>`
+    : '';
+  const allChips = chips + supportChip;
+  if (!allChips) { bar.style.display = 'none'; return; }
   bar.style.display = 'flex';
-  bar.innerHTML = `<div style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:1px;font-family:'JetBrains Mono',monospace;align-self:center;">台數彙整</div>${chips}`;
+  bar.innerHTML = `<div style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:1px;font-family:'JetBrains Mono',monospace;align-self:center;">台數彙整</div>${allChips}`;
 }
 
 // ── 表頭 ──────────────────────────────────────
@@ -649,6 +659,7 @@ function openDrawer(index) {
               ${item['數量'] ? `<span class="tag tag-qty">×${item['數量']}</span>` : ''}
               ${item['院內碼'] ? `<span class="tag tag-code">${item['院內碼']}${item['另洽'] === '是' ? '（另洽）' : ''}</span>` : ''}
               ${item['費用類型'] ? `<span class="tag" style="background:#f0f0f0;color:var(--muted);">${item['費用類型']}</span>` : ''}
+              ${item['support'] === '是' ? `<span class="tag" style="background:#f3e8ff;color:#7b2d8b;">support</span>` : ''}
               ${item['DHS組件'] ? `<span class="tag" style="background:#fff0e0;color:#b05000;">${item['DHS組件']}</span>` : ''}
             </div>
           </div>
