@@ -36,42 +36,49 @@
 員工代碼, 單據日期, 客戶代碼, 訂購人(客戶名稱), 收件人, 地址編號, 送貨地址, 收件人電話, 數量, 商品名稱, 存貨代碼, 進價, 訂單備註, 公定進價
 ```
 
-## 需要在 n8n（https://ydj.zeabur.app）建立的 workflow
+## 需要在 n8n（https://ydj.zeabur.app）匯入的 workflow
 
-目前系統**前端已完成**，以下兩個 webhook 尚未建立，需要另外設定：
+兩支 workflow 已經寫好、可直接匯入 n8n，不用從零拉節點：
 
-### 1. `/webhook/pharma-ocr-order` — 拍照辨識
+- [`n8n-workflow-ocr.json`](n8n-workflow-ocr.json) → `/webhook/pharma-ocr-order`
+- [`n8n-workflow-submit-order.json`](n8n-workflow-submit-order.json) → `/webhook/pharma-submit-order`
 
-- **輸入**：`multipart/form-data`，欄位名稱 `images`（可能多張）
-- **建議 workflow**：Webhook（POST）→ 對每張圖片跑 AI 視覺辨識節點（Claude / GPT-4V 皆可）→ 用下方 prompt 抽取結構化資料 → 合併多張結果 → Respond to Webhook
+**匯入步驟**：n8n 左上角 Workflows → Import from File，兩個檔案各匯入一次。匯入後兩支都還是「未啟用」狀態，且都有需要你手動接上的地方：
 
-**AI 節點 prompt 建議：**
-```
-這是一張藥局端開出的採購單截圖，請幫我抽取以下資訊並回傳純 JSON（不要任何說明文字）：
-{
-  "poNumber": "採購單編號（若有）",
-  "items": [
-    { "name": "商品名稱（含條碼可一併保留）", "qty": 數量（整數，用「進貨數量」欄位） }
-  ]
-}
-只需要商品名稱與進貨數量，其他欄位忽略。
-```
+### 1. 拍照辨識（`n8n-workflow-ocr.json`）
 
-- **輸出（回應給前端）**：
+流程：Webhook 收圖 → Code 節點把每張圖轉 base64 → HTTP Request 呼叫 Claude 視覺 API 辨識 → Code 節點合併多張結果 → 回傳給前端。
+
+匯入後要做：
+1. 打開「Claude 視覺辨識」這個 HTTP Request 節點，Credential 選「Header Auth」，新增一組：Header Name = `x-api-key`，Value = 你的 Anthropic API key（[console.anthropic.com](https://console.anthropic.com) 申請）
+2. 存檔、右上角切到 Active
+3. 前端設定裡的「拍照辨識 Webhook URL」填 `https://ydj.zeabur.app/webhook/pharma-ocr-order`
+
+裡面的「拆出每張圖片並轉base64」Code 節點用的是 `$helpers.getBinaryDataBuffer(itemIndex, propertyName)`，如果你的 n8n 版本執行時報錯，改成 `this.helpers.getBinaryDataBuffer(...)` 試試（這支 API 不同版本寫法有差）。
+
+- **回傳格式**：
 ```json
 {
   "poNumber": "W202608160392",
   "items": [
-    { "name": "4718287340707 小悠活兒童多醣體咀嚼錠", "qty": 2 },
-    { "name": "4718287341353 小悠活 兒童葉黃素咀嚼錠", "qty": 2 }
+    { "name": "4718287340707 小悠活兒童多醣體咀嚼錠", "qty": 2 }
   ]
 }
 ```
 前端拿到 `items` 後，會用商品名稱模糊比對本機已匯入的商品清單，選不到的會讓使用者手動下拉選擇。
 
-### 2. `/webhook/pharma-submit-order` — 送出訂單
+### 2. 送出訂單（`n8n-workflow-submit-order.json`）
 
-- **輸入**：`application/json`
+流程：Webhook 收訂單 JSON → Split Out 拆成一列一列 → 寫入 Google Sheets → 回傳成功筆數。
+
+匯入後要做：
+1. 打開「寫入 Google Sheets」節點，Credential 選你的 Google 帳號（沒有的話新增一組 Google Sheets OAuth2）
+2. `Document ID` 欄位目前是 `REPLACE_WITH_YOUR_GOOGLE_SHEET_ID`，換成要寫入的 Google Sheet ID（建議另外開一份新的表，不要跟 CLAUDE.md 裡報刀系統那份共用）
+3. `Sheet Name` 欄位目前是「訂單」，去那份 Google Sheet 建一個叫「訂單」的分頁，欄位順序照下面 14 欄
+4. 存檔、切到 Active
+5. 前端設定裡的「送出訂單 Webhook URL」填 `https://ydj.zeabur.app/webhook/pharma-submit-order`
+
+- **前端送過來的格式**：
 ```json
 {
   "rows": [
@@ -94,7 +101,6 @@
   ]
 }
 ```
-- **建議 workflow**：Webhook（POST）→ Split Out `rows` → Append row to Google Sheets（分頁比照「報刀單格式」的做法，欄位順序就用上面 14 欄）→ Respond to Webhook `{"success": true, "count": N}`
 
 ### （選配，之後可做）自動同步商品/客戶清單
 若不想每次改資料都手動貼，可以另外做 `GET /webhook/pharma-get-products`、`GET /webhook/pharma-get-customers` 讀 Google Sheets 回傳 JSON，前端改成開頁時自動打這兩支 API 覆蓋本機資料，取代目前「貼上匯入」的方式。目前先用貼上匯入版本，先讓工具能動起來。
