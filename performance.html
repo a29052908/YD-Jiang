@@ -316,13 +316,19 @@ const WEBHOOK = 'https://ydj.zeabur.app/webhook/get-performance';
 
 const CATEGORY_MAP = {
   '鎖骨':'骨板','上肢':'骨板','長骨':'骨板','小骨':'骨板','下肢':'骨板',
-  'VA小骨':'骨板','VA上肢':'骨板',
   '埋頭釘':'埋頭釘',
   '骨釘':'骨釘','VA骨釘':'骨釘',
   '人工骨':'人工骨'
 };
 const UNIT_COUNT_CATS  = ['骨板','埋頭釘'];
 const AMOUNT_CATS      = ['骨板','骨釘','埋頭釘','人工骨'];
+// VA 子部位是資料驅動的（依醫院 innerCodeDb 增減，如 VA鎖骨/VA3.5直板/VA腓骨…），
+// 不逐一列舉，一律歸「骨板」；VA骨釘已在 CATEGORY_MAP 精確比對到「骨釘」，不會走到這裡。
+function categorize(buwei) {
+  if (CATEGORY_MAP[buwei]) return CATEGORY_MAP[buwei];
+  if (buwei.startsWith('VA')) return '骨板';
+  return undefined;
+}
 
 // ──────────────────────────────────────────
 // State
@@ -508,7 +514,7 @@ function aggregate(rows) {
   const res = empty();
 
   rows.forEach(r => {
-    const cat = CATEGORY_MAP[r['部位']];
+    const cat = categorize(r['部位'] || '');
     if (!cat) return;
     const qty = parseInt(r['數量'], 10) || 1;
     const amt = parseFloat(r['金額'])   || 0;
