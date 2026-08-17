@@ -320,14 +320,19 @@ const CATEGORY_MAP = {
   '骨釘':'骨釘','VA骨釘':'骨釘',
   '人工骨':'人工骨'
 };
-const UNIT_COUNT_CATS  = ['骨板','埋頭釘'];
+const UNIT_COUNT_CATS  = ['骨板','VA','埋頭釘'];
 const AMOUNT_CATS      = ['骨板','骨釘','埋頭釘','人工骨'];
 // VA 子部位是資料驅動的（依醫院 innerCodeDb 增減，如 VA鎖骨/VA3.5直板/VA腓骨…），
-// 不逐一列舉，一律歸「骨板」；VA骨釘已在 CATEGORY_MAP 精確比對到「骨釘」，不會走到這裡。
+// 不逐一列舉；VA骨釘已在 CATEGORY_MAP 精確比對到「骨釘」，不會走到這裡。
+// 金額（業績/佣金）：VA 仍併入「骨板」計算，跟總表一樣目前只有台數彙整分開顯示。
+// 台數：另外歸類為「VA」，與一般骨板分開統計。
 function categorize(buwei) {
   if (CATEGORY_MAP[buwei]) return CATEGORY_MAP[buwei];
   if (buwei.startsWith('VA')) return '骨板';
   return undefined;
+}
+function unitCategorize(buwei, cat) {
+  return (cat === '骨板' && buwei.startsWith('VA')) ? 'VA' : cat;
 }
 
 // ──────────────────────────────────────────
@@ -505,34 +510,38 @@ function rowsInRange(rows, [start, end]) {
   });
 }
 
+// 統一從 UNIT_COUNT_CATS/AMOUNT_CATS 產生空桶，避免三處各自硬寫欄位造成漏加新類別
+function emptyBucket() {
+  const units = {};  UNIT_COUNT_CATS.forEach(c => units[c]  = 0);
+  const amount = {}; AMOUNT_CATS.forEach(c => amount[c] = 0);
+  return { units, amount };
+}
+
 function aggregate(rows) {
-  const empty = () => ({
-    units:  { 骨板:0, 埋頭釘:0 },
-    amount: { 骨板:0, 骨釘:0, 埋頭釘:0, 人工骨:0 },
-    byHospital: {}
-  });
-  const res = empty();
+  const res = { ...emptyBucket(), byHospital: {} };
 
   rows.forEach(r => {
-    const cat = categorize(r['部位'] || '');
+    const buwei = r['部位'] || '';
+    const cat = categorize(buwei);
     if (!cat) return;
+    const unitCat = unitCategorize(buwei, cat);
     const qty = parseInt(r['數量'], 10) || 1;
     const amt = parseFloat(r['金額'])   || 0;
 
-    if (UNIT_COUNT_CATS.includes(cat))  res.units[cat]  += qty;
-    if (AMOUNT_CATS.includes(cat))      res.amount[cat] += amt;
+    if (UNIT_COUNT_CATS.includes(unitCat)) res.units[unitCat] += qty;
+    if (AMOUNT_CATS.includes(cat))         res.amount[cat]    += amt;
 
     const h = r['醫院'] || '未指定';
-    if (!res.byHospital[h]) res.byHospital[h] = { units:{骨板:0,埋頭釘:0}, amount:{骨板:0,骨釘:0,埋頭釘:0,人工骨:0}, byDoctor:{} };
+    if (!res.byHospital[h]) res.byHospital[h] = { ...emptyBucket(), byDoctor: {} };
     const hb = res.byHospital[h];
-    if (UNIT_COUNT_CATS.includes(cat))  hb.units[cat]  += qty;
-    if (AMOUNT_CATS.includes(cat))      hb.amount[cat] += amt;
+    if (UNIT_COUNT_CATS.includes(unitCat)) hb.units[unitCat] += qty;
+    if (AMOUNT_CATS.includes(cat))         hb.amount[cat]    += amt;
 
     const doc = r['醫師'] || '未指定';
-    if (!hb.byDoctor[doc]) hb.byDoctor[doc] = { units:{骨板:0,埋頭釘:0}, amount:{骨板:0,骨釘:0,埋頭釘:0,人工骨:0} };
+    if (!hb.byDoctor[doc]) hb.byDoctor[doc] = emptyBucket();
     const db = hb.byDoctor[doc];
-    if (UNIT_COUNT_CATS.includes(cat))  db.units[cat]  += qty;
-    if (AMOUNT_CATS.includes(cat))      db.amount[cat] += amt;
+    if (UNIT_COUNT_CATS.includes(unitCat)) db.units[unitCat] += qty;
+    if (AMOUNT_CATS.includes(cat))         db.amount[cat]    += amt;
   });
 
   return res;
@@ -711,7 +720,7 @@ function renderStats(rows) {
   const amtMax = Math.max(...amtCats.map(c => Math.max(main.amount[c.key], pp.amount[c.key])), 1);
 
   const unitCats = [
-    { key:'骨板', label:'骨板' }, { key:'埋頭釘', label:'埋頭釘' },
+    { key:'骨板', label:'骨板' }, { key:'VA', label:'VA骨板' }, { key:'埋頭釘', label:'埋頭釘' },
   ];
   const unitMax = Math.max(...unitCats.map(c => Math.max(main.units[c.key], pp.units[c.key])), 1);
 
@@ -729,6 +738,11 @@ function renderStats(rows) {
         <div class="kpi-label">骨板</div>
         <div class="kpi-value">${main.units['骨板']}<span class="kpi-unit">台</span></div>
         ${kpiDeltaTag(main.units['骨板'], pp.units['骨板'], '台')}
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">VA骨板</div>
+        <div class="kpi-value">${main.units['VA']}<span class="kpi-unit">台</span></div>
+        ${kpiDeltaTag(main.units['VA'], pp.units['VA'], '台')}
       </div>
       <div class="kpi-card">
         <div class="kpi-label">埋頭釘</div>
@@ -799,7 +813,7 @@ function buildDoctorDeltas(rows) {
       Object.entries(hd.byDoctor).forEach(([doc, dd]) => {
         const key = hosp + '|||' + doc;
         if (!map[key]) map[key] = { hosp, doc };
-        map[key][which] = { units: dd.units['骨板'] + dd.units['埋頭釘'], amt: totalAmount(dd) };
+        map[key][which] = { units: dd.units['骨板'] + dd.units['VA'] + dd.units['埋頭釘'], amt: totalAmount(dd) };
       });
     });
   };
@@ -909,6 +923,7 @@ function renderHospitals(rows) {
     const w   = Math.max(6, amt / topAmt * 100);
     const unitChips = [
       data.units['骨板']   ? `骨板 ${data.units['骨板']}台` : '',
+      data.units['VA']     ? `VA骨板 ${data.units['VA']}台` : '',
       data.units['埋頭釘'] ? `埋頭釘 ${data.units['埋頭釘']}台` : '',
     ].filter(Boolean).join(' · ');
 
@@ -930,6 +945,7 @@ function renderHospitals(rows) {
       const dTxt = dPct===null?'—':dPct>0?`+${dPct}%`:`${dPct}%`;
       const chips = [
         dd.units['骨板']   ? `骨板${dd.units['骨板']}台` : '',
+        dd.units['VA']     ? `VA骨板${dd.units['VA']}台` : '',
         dd.units['埋頭釘'] ? `埋頭釘${dd.units['埋頭釘']}台` : '',
       ].filter(Boolean);
       return `<div class="doc-row">
