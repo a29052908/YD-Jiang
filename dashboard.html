@@ -530,14 +530,16 @@ function renderStats() {
 function renderSummary() {
   const bar = document.getElementById('summaryBar');
   if (!filteredData.length) { bar.style.display = 'none'; return; }
+  // 骨板＝精確比對非VA部位；VA骨板/埋頭釘沿用文字包含比對（VA子部位一律以 VA 開頭，不會誤判）
+  const PLATE_BUWEI = ['鎖骨','上肢','長骨','小骨','下肢'];
   const cats = [
-    {label:'骨板', keys:['鎖骨','上肢','長骨','小骨','下肢'], color:'#3a5bd9', bg:'#e8ecff'},
-    {label:'VA骨板', keys:['VA'], color:'#7b2d8b', bg:'#f3e8ff'},
-    {label:'埋頭釘', keys:['埋頭釘'], color:'#e65c00', bg:'#fff3e0'},
+    {label:'骨板', match: b => PLATE_BUWEI.includes(b), color:'#3a5bd9', bg:'#e8ecff'},
+    {label:'VA骨板', match: b => b.includes('VA'), color:'#7b2d8b', bg:'#f3e8ff'},
+    {label:'埋頭釘', match: b => b.includes('埋頭釘'), color:'#e65c00', bg:'#fff3e0'},
   ];
   const chips = cats.map(cat => {
     const count = filteredData.reduce((sum, row) =>
-      sum + (row['品項'] || []).filter(item => cat.keys.some(k => (item['部位'] || '').includes(k)))
+      sum + (row['品項'] || []).filter(item => cat.match(item['部位'] || ''))
                                .reduce((s, item) => s + (parseInt(item['數量']) || 1), 0)
     , 0);
     if (!count) return '';
