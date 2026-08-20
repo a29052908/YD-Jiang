@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>醫師習慣</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f5f4f0; --card: #ffffff; --border: #e0ddd6;
+  --accent: #1a1a2e; --red: #e63946;
+  --green: #2d6a4f; --green-light: #d8f3dc;
+  --blue: #3a5bd9; --blue-light: #e8ecff;
+  --text: #1a1a2e; --muted: #888680;
+  --radius: 12px; --shadow: 0 2px 12px rgba(0,0,0,0.08);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', sans-serif; min-height: 100vh; padding-bottom: 40px; }
+
+.topbar { background: var(--accent); color: white; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+.topbar-left { display: flex; align-items: center; gap: 10px; }
+.logo { background: var(--red); border-radius: 6px; padding: 5px 7px; font-weight: 700; font-size: 10px; }
+.topbar h1 { font-size: 16px; font-weight: 600; }
+.nav-btn { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 6px 12px; border-radius: 8px; font-size: 12px; cursor: pointer; font-family: 'Noto Sans TC', sans-serif; text-decoration: none; white-space: nowrap; }
+
+.content { padding: 16px; max-width: 480px; margin: 0 auto; }
+
+.tabs { display: flex; background: var(--card); border-radius: var(--radius); padding: 4px; margin-bottom: 14px; border: 1px solid var(--border); }
+.tab-btn { flex: 1; padding: 9px; border: none; background: none; font-size: 13px; font-weight: 500; cursor: pointer; border-radius: 9px; font-family: 'Noto Sans TC', sans-serif; color: var(--muted); transition: all 0.2s; }
+.tab-btn.active { background: var(--accent); color: white; font-weight: 600; }
+
+.card { background: var(--card); border-radius: var(--radius); border: 1px solid var(--border); padding: 16px; margin-bottom: 12px; box-shadow: var(--shadow); }
+.card-title { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; font-family: 'JetBrains Mono', monospace; margin-bottom: 12px; }
+
+.field { margin-bottom: 14px; }
+.field label { display: block; font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-family: 'JetBrains Mono', monospace; margin-bottom: 6px; }
+.field input, .field select, .field textarea {
+  width: 100%; padding: 11px 13px; border: 1.5px solid var(--border);
+  border-radius: 9px; font-size: 14px; font-family: 'Noto Sans TC', sans-serif;
+  outline: none; background: var(--bg); color: var(--text); transition: border-color 0.2s;
+}
+.field input:focus, .field select:focus, .field textarea:focus { border-color: var(--blue); background: white; }
+.field textarea { resize: none; line-height: 1.6; }
+
+/* 多選標籤 */
+.tag-picker { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.tag-option { padding: 6px 12px; border-radius: 20px; border: 1.5px solid var(--border); font-size: 12px; font-weight: 500; cursor: pointer; background: white; transition: all 0.15s; font-family: 'Noto Sans TC', sans-serif; }
+.tag-option.selected { background: var(--blue); border-color: var(--blue); color: white; }
+.tag-custom-row { display: flex; gap: 6px; }
+.tag-custom-row input { flex: 1; }
+.tag-add-btn { padding: 0 16px; background: var(--accent); color: white; border: none; border-radius: 9px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'Noto Sans TC', sans-serif; }
+.selected-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.selected-tag { background: var(--blue-light); color: var(--blue); padding: 5px 10px; border-radius: 16px; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
+.selected-tag .remove { cursor: pointer; font-weight: 800; opacity: 0.6; }
+.selected-tag .remove:hover { opacity: 1; }
+
+.submit-btn { width: 100%; padding: 14px; background: var(--accent); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; font-family: 'Noto Sans TC', sans-serif; margin-top: 4px; transition: all 0.2s; }
+.submit-btn:hover { background: #2d2d4e; }
+.submit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* 查詢結果卡片 */
+.result-card { background: var(--card); border-radius: var(--radius); border: 1px solid var(--border); padding: 18px; box-shadow: var(--shadow); }
+.result-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+.result-doctor { font-size: 18px; font-weight: 700; }
+.result-hospital { font-size: 12px; color: var(--muted); }
+.result-part { display: inline-block; background: var(--blue-light); color: var(--blue); font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 20px; margin-bottom: 12px; }
+.result-row { margin-bottom: 12px; }
+.result-label { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-family: 'JetBrains Mono', monospace; margin-bottom: 4px; }
+.result-value { font-size: 14px; line-height: 1.6; }
+.result-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.result-tag { background: var(--bg); padding: 4px 10px; border-radius: 14px; font-size: 12px; font-weight: 500; }
+.result-meta { font-size: 11px; color: var(--muted); font-family: 'JetBrains Mono', monospace; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); }
+
+.empty { text-align: center; padding: 48px 20px; color: var(--muted); }
+.empty .icon { font-size: 36px; margin-bottom: 10px; }
+
+.toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--accent); color: white; padding: 11px 20px; border-radius: 24px; font-size: 13px; font-weight: 500; opacity: 0; transition: all 0.3s; z-index: 999; white-space: nowrap; pointer-events: none; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="logo">Tandry</div>
+    <h1>醫師習慣</h1>
+  </div>
+  <div style="display:flex;gap:8px;">
+    <a href="dashboard.html" class="nav-btn">📋 總表</a>
+    <button onclick="tandryLogout()" class="nav-btn">登出</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="content">
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('view')">🔍 查詢</button>
+    <button class="tab-btn" onclick="switchTab('edit')">✏️ 編輯</button>
+  </div>
+
+  <!-- 查詢 -->
+  <div id="viewTab">
+    <div class="card">
+      <div class="field">
+        <label>大區</label>
+        <select id="viewZone" onchange="onViewZoneChange()">
+          <option value="">選擇大區...</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>醫院</label>
+        <select id="viewHospital" onchange="onViewHospitalChange()">
+          <option value="">先選大區...</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>醫師</label>
+        <select id="viewDoctor" onchange="onViewDoctorChange()">
+          <option value="">先選醫院...</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>部位</label>
+        <select id="viewPart" onchange="loadHabitDetail()">
+          <option value="">選擇部位...</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="viewResult"></div>
+  </div>
+
+  <!-- 編輯 -->
+  <div id="editTab" style="display:none;">
+    <div class="card">
+      <div class="card-title">基本資訊</div>
+      <div class="field">
+        <label>大區</label>
+        <select id="editZone" onchange="onEditZoneChange()">
+          <option value="">選擇大區...</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>醫院</label>
+        <select id="editHospital" onchange="onEditHospitalChange()">
+          <option value="">先選大區...</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>醫師</label>
+        <input type="text" id="editDoctor" list="doctorList" placeholder="下拉選擇或輸入新醫師">
+        <datalist id="doctorList"></datalist>
+      </div>
+      <div class="field">
+        <label>部位</label>
+        <input type="text" id="editPart" list="partList" placeholder="下拉選擇或輸入部位（如 distal radius）">
+        <datalist id="partList"></datalist>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">慣用器械（可複選）</div>
+      <div class="tag-picker" id="toolPicker"></div>
+      <div class="tag-custom-row">
+        <input type="text" id="toolCustomInput" placeholder="自訂新增...">
+        <button class="tag-add-btn" onclick="addCustomTag('tool')">＋</button>
+      </div>
+      <div class="selected-tags" id="toolSelected"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">復位工具（可複選）</div>
+      <div class="tag-picker" id="reductionPicker"></div>
+      <div class="tag-custom-row">
+        <input type="text" id="reductionCustomInput" placeholder="自訂新增...">
+        <button class="tag-add-btn" onclick="addCustomTag('reduction')">＋</button>
+      </div>
+      <div class="selected-tags" id="reductionSelected"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">釘子鎖入 / Torque</div>
+      <div class="field">
+        <label>釘子鎖入</label>
+        <select id="editLocking">
+          <option value="">選擇或於下方自訂...</option>
+          <option value="全手動">全手動</option>
+          <option value="全電動">全電動</option>
+          <option value="超過20電動">超過20電動</option>
+        </select>
+        <input type="text" id="editLockingCustom" placeholder="或自行輸入..." style="margin-top:8px;">
+      </div>
+      <div class="field">
+        <label>Torque</label>
+        <select id="editTorque">
+          <option value="">選擇或於下方自訂...</option>
+          <option value="最後">最後</option>
+          <option value="不用">不用</option>
+          <option value="locking時">locking時</option>
+          <option value="裝電動">裝電動</option>
+        </select>
+        <input type="text" id="editTorqueCustom" placeholder="或自行輸入..." style="margin-top:8px;">
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">補充說明</div>
+      <div class="field">
+        <textarea id="editNote" rows="3" placeholder="其他需要注意的細節..."></textarea>
+      </div>
+    </div>
+
+    <button class="submit-btn" id="saveBtn" onclick="saveHabit()">💾 儲存醫師習慣</button>
+  </div>
+</div>
+
+<script>
+// Token 驗證
+(function() {
+  const token = localStorage.getItem('tandry_token');
+  const exp = parseInt(localStorage.getItem('tandry_token_exp') || '0');
+  if (!token || Date.now() >= exp) {
+    localStorage.removeItem('tandry_token');
+    localStorage.removeItem('tandry_token_exp');
+    localStorage.removeItem('tandry_user');
+    window.location.href = 'login.html';
+    return;
+  }
+  try { window.TANDRY_USER = JSON.parse(localStorage.getItem('tandry_user') || '{}'); }
+  catch(e) { window.TANDRY_USER = {}; }
+})();
+
+function tandryLogout() {
+  localStorage.removeItem('tandry_token');
+  localStorage.removeItem('tandry_token_exp');
+  localStorage.removeItem('tandry_user');
+  window.location.href = 'login.html';
+}
+
+const WEBHOOK_SAVE = 'https://ydj.zeabur.app/webhook/save-doctor-habit';
+const WEBHOOK_GET  = 'https://ydj.zeabur.app/webhook/get-doctor-habit';
+const USER = window.TANDRY_USER || {};
+
+// 大區→醫院→醫師：從 報刀_v2.html 的 innerCodeDb（大區/醫院）+ rulesDb（醫院/醫師）join 產生。
+// 「大千/新光/部桃/聯新/新竹台大/敏盛」在 rulesDb 有醫師但 innerCodeDb 找不到大區，暫不列入。
+// 「台中老人/中國醫總院」目前無醫師資料，保留空陣列，畫面顯示提示文字。
+const ZONE_HOSPITAL_DB = {
+  '桃竹苗': {
+    '804': ['李宏滿', '史瑞田', '洪生財', '鄭國中', '李龍興', '廖宗澄', '郭峻郎', '蕭智威', '曾俊翔', '林忠諺'],
+    '813': ['郭峻郎', '史蕙文', '林忠諺'],
+    '中天': ['楊崇光', '林世惟', '陳榮貴', '林重道', '陳宗偉', '彭廷揚'],
+    '中國醫(新竹)': ['葉詩翰', '曾宗煒', '陳冠融', '楊子正'],
+    '中壢長榮': ['朱正民', '齊彥斌'],
+    '仁慈': ['何慶安', '陳俊橋'],
+    '天祥': ['范國豐', '陳宗偉'],
+    '怡仁': ['廖伯峯', '李承翰'],
+    '東元': ['黃盈誠', '劉漢明', '施韋伃', '胡家榮', '張耀元'],
+    '南門': ['張曜任', '莊永清'],
+    '為恭': ['蔡建源', '陳啟盛', '洪志昌', '陳威仁', '王鍵元'],
+    '重光': ['劉昰國'],
+    '桃榮': ['劉欣彤', '陳裕中', '張文杰'],
+    '華揚': ['章建民', '黃紀倫', '鄭向恆'],
+    '楊天': ['譚傳明', '彭廷揚', '馮輝賢'],
+    '署苗': ['汪家成', '李東穎', '謝天傑', '施國正', '廖唯任'],
+    '聖保祿': ['洪偉翔', '徐金洲', '陳俊仰', '吳龠', '謝易帆'],
+    '慈祐': ['張東祥', '林俊良'],
+  },
+  '北區': {
+    '署北': ['陳建龍', '胡御風', '洪濬麒', '郭映揆', '楊士賢', '黃漢仁', '施哲仁'],
+    '新泰': ['李志星', '王文志', '郭昱廷'],
+    '署樂生': ['周禮智', '林博源'],
+    '土庚': ['陳文鈐', '鄭有宏', '徐郭堯', '林世傑', '陳建銘', '廖述辰', '常竣然', '陳俊傑', '陳瑞斌', '蕭博孟', '羅濟安', '楊文一'],
+    '署基': ['陳永學', '張世烈', '李文琳', '郭珠發', '游典錡', '湛纖'],
+    '北醫': ['吳孟晃', '蔡松航', '林睿誠', '黃聰仁', '王柏堯', '李境祐', '吳昇翰', '蘇穎峰', '柯廷憲', '陳科達', '呂憲宗', '吳家麟', '李建和', '謝銘勳', '陳志華'],
+    '松山': ['簡嘉良', '林需比', '陳昱任', '蔡佳宏', '廖啟揚', '彭鼎原'],
+    '金山台大': ['謝瑞洋'],
+    '宏仁': ['張明超', '田徳敏', '石漢興', '黃振邦'],
+    '永耕': ['廖翊廷', '郭國平', '陳奕霖', '戴仲文'],
+    '輔大': ['張書豪', '葉炳君', '徐得愷', '洪嘉鴻', '江毅彥', '陳勇璋', '李宗霖', '羅文鴻', '王俊量'],
+    '三重': ['蔡錦鋒', '李忠謙', '王政為', '李為昇', '張駿弘', '熊天翔', '何承翰'],
+    '中國醫台北': ['吳行正', '劉國揚', '楊志勇', '楊傑思'],
+  },
+  '台中區': {
+    '台中老人': [],
+    '中國醫總院': [],
+  },
+  '宜蘭區': {
+    '博愛': ['韓步禹', '陳劍龍', '王秋猛', '宋卓俍', '鄭彥文', '鍾和肯', '張之嚴'],
+    '聖母': ['雷雲華', '蔡忠慶', '石瑄', '郜漢中', '王明瑞'],
+  },
+};
+
+const COMMON_PARTS = [
+  'clavicle', 'proximal humerus', 'humeral shaft', 'distal humerus',
+  'olecranon', 'radial head', 'both bone forearm', 'distal radius',
+  'scaphoid', 'metacarpal', 'phalanx',
+  'proximal femur', 'femoral shaft', 'distal femur',
+  'proximal tibia', 'tibial shaft', 'distal tibia', 'pilon',
+  'lateral malleolus', 'medial malleolus', 'calcaneus', 'metatarsal',
+  'pelvis', 'acetabulum'
+];
+
+const TOOL_OPTIONS = ['Mosquito', 'Kocher', 'Weber clamp', '骨膜剝離器', '骨鉤', '刮匙', '咬骨鉗', '持骨鉗'];
+const REDUCTION_OPTIONS = ['螃蟹爪', '霍夫曼', '骨撐開器', 'K-wire', 'Schanz pin', '骨盆復位鉗', '尖端復位鉗'];
+
+let selectedTools = [];
+let selectedReductions = [];
+
+window.addEventListener('DOMContentLoaded', () => {
+  initZoneSelects();
+  initTagPickers();
+  initDatalists();
+});
+
+function initZoneSelects() {
+  const zones = Object.keys(ZONE_HOSPITAL_DB);
+  ['viewZone', 'editZone'].forEach(id => {
+    const sel = document.getElementById(id);
+    zones.forEach(z => {
+      const opt = document.createElement('option');
+      opt.value = z; opt.textContent = z;
+      sel.appendChild(opt);
+    });
+  });
+}
+
+function initDatalists() {
+  const partList = document.getElementById('partList');
+  COMMON_PARTS.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p;
+    partList.appendChild(opt);
+  });
+}
+
+function initTagPickers() {
+  const toolPicker = document.getElementById('toolPicker');
+  TOOL_OPTIONS.forEach(t => {
+    const el = document.createElement('div');
+    el.className = 'tag-option';
+    el.textContent = t;
+    el.onclick = () => toggleTag('tool', t, el);
+    toolPicker.appendChild(el);
+  });
+
+  const reductionPicker = document.getElementById('reductionPicker');
+  REDUCTION_OPTIONS.forEach(t => {
+    const el = document.createElement('div');
+    el.className = 'tag-option';
+    el.textContent = t;
+    el.onclick = () => toggleTag('reduction', t, el);
+    reductionPicker.appendChild(el);
+  });
+}
+
+function switchTab(tab) {
+  document.getElementById('viewTab').style.display = tab === 'view' ? 'block' : 'none';
+  document.getElementById('editTab').style.display = tab === 'edit' ? 'block' : 'none';
+  document.querySelectorAll('.tab-btn').forEach((b, i) => {
+    b.classList.toggle('active', (i === 0 && tab === 'view') || (i === 1 && tab === 'edit'));
+  });
+}
+
+function onViewZoneChange() {
+  const zone = document.getElementById('viewZone').value;
+  const hospitalSel = document.getElementById('viewHospital');
+  hospitalSel.innerHTML = '<option value="">選擇醫院...</option>';
+  document.getElementById('viewDoctor').innerHTML = '<option value="">先選醫院...</option>';
+  document.getElementById('viewPart').innerHTML = '<option value="">選擇部位...</option>';
+  document.getElementById('viewResult').innerHTML = '';
+  if (!zone) return;
+  Object.keys(ZONE_HOSPITAL_DB[zone] || {}).forEach(h => {
+    const opt = document.createElement('option');
+    opt.value = h; opt.textContent = h;
+    hospitalSel.appendChild(opt);
+  });
+}
+
+function onViewHospitalChange() {
+  const zone = document.getElementById('viewZone').value;
+  const hospital = document.getElementById('viewHospital').value;
+  const doctorSel = document.getElementById('viewDoctor');
+  doctorSel.innerHTML = '<option value="">選擇醫師...</option>';
+  document.getElementById('viewPart').innerHTML = '<option value="">選擇部位...</option>';
+  document.getElementById('viewResult').innerHTML = '';
+  if (!hospital) return;
+  const doctors = ZONE_HOSPITAL_DB[zone]?.[hospital] || [];
+  if (!doctors.length) {
+    doctorSel.innerHTML = '<option value="">尚無醫師資料</option>';
+    return;
+  }
+  doctors.forEach(d => {
+    const opt = document.createElement('option');
+    opt.value = d; opt.textContent = d;
+    doctorSel.appendChild(opt);
+  });
+}
+
+async function onViewDoctorChange() {
+  const hospital = document.getElementById('viewHospital').value;
+  const doctor = document.getElementById('viewDoctor').value;
+  const partSel = document.getElementById('viewPart');
+  partSel.innerHTML = '<option value="">選擇部位...</option>';
+  document.getElementById('viewResult').innerHTML = '';
+  if (!doctor) return;
+
+  try {
+    const res = await fetch(WEBHOOK_GET, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 院區: hospital, 醫師: doctor })
+    });
+    const data = await res.json();
+    if (data.success && data.data.length > 0) {
+      window._currentDoctorHabits = data.data;
+      data.data.forEach(r => {
+        const opt = document.createElement('option');
+        opt.value = r['部位']; opt.textContent = r['部位'];
+        partSel.appendChild(opt);
+      });
+      if (data.data.length === 1) {
+        partSel.value = data.data[0]['部位'];
+        loadHabitDetail();
+      }
+    } else {
+      document.getElementById('viewResult').innerHTML = `<div class="empty"><div class="icon">📭</div><p>此醫師尚無記錄的習慣</p></div>`;
+    }
+  } catch(e) {
+    document.getElementById('viewResult').innerHTML = `<div class="empty"><div class="icon">⚠️</div><p>無法連線</p></div>`;
+  }
+}
+
+function loadHabitDetail() {
+  const part = document.getElementById('viewPart').value;
+  const el = document.getElementById('viewResult');
+  if (!part || !window._currentDoctorHabits) { el.innerHTML = ''; return; }
+  const r = window._currentDoctorHabits.find(x => x['部位'] === part);
+  if (!r) { el.innerHTML = ''; return; }
+
+  const tools = (r['慣用器械'] || '').split('、').filter(Boolean);
+  const reductions = (r['復位工具'] || '').split('、').filter(Boolean);
+
+  el.innerHTML = `
+    <div class="result-card">
+      <div class="result-header">
+        <div>
+          <div class="result-doctor">${r['醫師']}</div>
+          <div class="result-hospital">${r['院區']}</div>
+        </div>
+      </div>
+      <div class="result-part">${r['部位']}</div>
+
+      <div class="result-row">
+        <div class="result-label">慣用器械</div>
+        <div class="result-tags">${tools.map(t => `<span class="result-tag">${t}</span>`).join('') || '<span style="color:var(--muted);font-size:13px;">未填寫</span>'}</div>
+      </div>
+      <div class="result-row">
+        <div class="result-label">復位工具</div>
+        <div class="result-tags">${reductions.map(t => `<span class="result-tag">${t}</span>`).join('') || '<span style="color:var(--muted);font-size:13px;">未填寫</span>'}</div>
+      </div>
+      <div class="result-row">
+        <div class="result-label">釘子鎖入</div>
+        <div class="result-value">${r['釘子鎖入'] || '-'}</div>
+      </div>
+      <div class="result-row">
+        <div class="result-label">Torque</div>
+        <div class="result-value">${r['torque'] || '-'}</div>
+      </div>
+      ${r['補充'] ? `
+      <div class="result-row">
+        <div class="result-label">補充說明</div>
+        <div class="result-value">${r['補充']}</div>
+      </div>` : ''}
+
+      <div class="result-meta">最後編輯：${r['最後編輯人'] || ''} · ${r['最後編輯時間'] || ''}</div>
+    </div>
+  `;
+}
+
+function onEditZoneChange() {
+  const zone = document.getElementById('editZone').value;
+  const hospitalSel = document.getElementById('editHospital');
+  hospitalSel.innerHTML = '<option value="">選擇醫院...</option>';
+  document.getElementById('doctorList').innerHTML = '';
+  if (!zone) return;
+  Object.keys(ZONE_HOSPITAL_DB[zone] || {}).forEach(h => {
+    const opt = document.createElement('option');
+    opt.value = h; opt.textContent = h;
+    hospitalSel.appendChild(opt);
+  });
+}
+
+function onEditHospitalChange() {
+  const zone = document.getElementById('editZone').value;
+  const hospital = document.getElementById('editHospital').value;
+  const doctorList = document.getElementById('doctorList');
+  const doctorInput = document.getElementById('editDoctor');
+  doctorList.innerHTML = '';
+  const doctors = ZONE_HOSPITAL_DB[zone]?.[hospital] || [];
+  doctorInput.placeholder = (hospital && !doctors.length)
+    ? '尚無醫師資料，請輸入醫師姓名'
+    : '下拉選擇或輸入新醫師';
+  doctors.forEach(d => {
+    const opt = document.createElement('option');
+    opt.value = d;
+    doctorList.appendChild(opt);
+  });
+}
+
+function toggleTag(type, value, el) {
+  const arr = type === 'tool' ? selectedTools : selectedReductions;
+  const idx = arr.indexOf(value);
+  if (idx >= 0) {
+    arr.splice(idx, 1);
+    el.classList.remove('selected');
+  } else {
+    arr.push(value);
+    el.classList.add('selected');
+  }
+  renderSelectedTags(type);
+}
+
+function addCustomTag(type) {
+  const inputId = type === 'tool' ? 'toolCustomInput' : 'reductionCustomInput';
+  const input = document.getElementById(inputId);
+  const value = input.value.trim();
+  if (!value) return;
+  const arr = type === 'tool' ? selectedTools : selectedReductions;
+  if (!arr.includes(value)) arr.push(value);
+  input.value = '';
+  renderSelectedTags(type);
+}
+
+function renderSelectedTags(type) {
+  const arr = type === 'tool' ? selectedTools : selectedReductions;
+  const containerId = type === 'tool' ? 'toolSelected' : 'reductionSelected';
+  const el = document.getElementById(containerId);
+  el.innerHTML = arr.map(v => `
+    <span class="selected-tag">${v}<span class="remove" onclick="removeTag('${type}','${v}')">×</span></span>
+  `).join('');
+}
+
+function removeTag(type, value) {
+  const arr = type === 'tool' ? selectedTools : selectedReductions;
+  const idx = arr.indexOf(value);
+  if (idx >= 0) arr.splice(idx, 1);
+  const pickerId = type === 'tool' ? 'toolPicker' : 'reductionPicker';
+  document.querySelectorAll(`#${pickerId} .tag-option`).forEach(el => {
+    if (el.textContent === value) el.classList.remove('selected');
+  });
+  renderSelectedTags(type);
+}
+
+async function saveHabit() {
+  const 院區 = document.getElementById('editHospital').value;
+  const 醫師 = document.getElementById('editDoctor').value.trim();
+  const 部位 = document.getElementById('editPart').value.trim();
+  const 釘子鎖入 = document.getElementById('editLockingCustom').value.trim() || document.getElementById('editLocking').value;
+  const torque = document.getElementById('editTorqueCustom').value.trim() || document.getElementById('editTorque').value;
+  const 補充 = document.getElementById('editNote').value.trim();
+
+  if (!院區) { showToast('❌ 請選擇醫院'); return; }
+  if (!醫師) { showToast('❌ 請填寫醫師'); return; }
+  if (!部位) { showToast('❌ 請填寫部位'); return; }
+
+  const btn = document.getElementById('saveBtn');
+  btn.disabled = true; btn.textContent = '儲存中...';
+
+  try {
+    const res = await fetch(WEBHOOK_SAVE, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        院區, 醫師, 部位,
+        慣用器械: selectedTools,
+        復位工具: selectedReductions,
+        釘子鎖入, torque, 補充,
+        編輯人: USER.displayName || USER.username
+      })
+    });
+    const data = await res.json();
+    if (data.success) {
+      showToast('✅ 已儲存');
+    } else {
+      showToast('❌ 儲存失敗：' + (data.message || ''));
+    }
+  } catch(e) {
+    showToast('❌ 無法連線');
+  } finally {
+    btn.disabled = false; btn.textContent = '💾 儲存醫師習慣';
+  }
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+</script>
+</body>
+</html>
