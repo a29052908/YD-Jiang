@@ -23,7 +23,8 @@
 - review.html：審核變更
 - pickup.html：抓貨管理（admin/manager）
 - zheng-demo.html：正字記數參數調整 Demo（開發用）
-- doctor-habits.html：醫師習慣（慣用器械/復位工具/釘子鎖入/torque/補充），全員可閱覽編輯、不需審核。查詢頁一次看一筆（手機瀏覽考量）。`ZONE_HOSPITAL_DB` 是從 報刀_v2.html 的 `innerCodeDb`（大區/醫院）+ `rulesDb`（醫院/醫師）join 產生的靜態快照，非即時同步——院所/醫師異動時需重新產生並替換。「大千/新光/部桃/聯新/新竹台大/敏盛」因 innerCodeDb 無大區對應，暫未列入；「台中老人/中國醫總院」目前無醫師資料，畫面顯示「尚無醫師資料」。漢堡選單入口尚未加入（待辦）。
+- doctor-habits.html：醫師習慣（慣用器械/復位工具/釘子鎖入/torque/補充），全員可閱覽編輯、不需審核。查詢頁一次看一筆（手機瀏覽考量）。`ZONE_HOSPITAL_DB` 是從 報刀_v2.html 的 `innerCodeDb`（大區/醫院）+ `rulesDb`（醫院/醫師）join 產生的靜態快照，非即時同步——院所/醫師異動時需重新產生並替換。「大千/新光/部桃/聯新/新竹台大/敏盛」因 innerCodeDb 無大區對應，暫未列入；「台中老人/中國醫總院」目前無醫師資料，畫面顯示「尚無醫師資料」。漢堡選單入口已加入（報刀_v2/track/edit-request/review/dashboard/performance 皆全員可見）。⚠️ n8n 踩雷紀錄：`讀取醫師習慣表`／`讀取醫師習慣表2`（Get Row(s)）查到 0 筆時，n8n 預設會直接停止整條流程（"No output data returned"），導致存檔/查詢完全沒有回應，不是憑證問題。兩個 node 都要在 Settings → **Always Output Data** 開啟，否則分頁剛重建、或第一次存檔（尚無既有資料）時會整條卡死。
+`讀取醫師習慣表`／`讀取醫師習慣表2`（Get Row(s)）查到 0 筆時，n8n 預設會直接停止整條流程（"No output data returned"），導致存檔/查詢完全沒有回應——不是憑證問題。兩個 node 都要在 **Settings → Always Output Data** 開啟，否則分頁剛重建、或第一次存檔時（尚無既有資料）會整條卡死。
 - 收據辨識.html：獨立小工具，服務室內設計朋友的「免用統一發票收據」辨識建檔，與報刀系統無關（品牌文字已中性化）。串接獨立 n8n webhook（不共用報刀單辨識頁面的 webhook/localStorage），localStorage key 為 `receipt_webhook_url`／`receipt_history`。表格欄位：日期／買受人／地址／品名／數量／單價／總價／合計金額／備註；備註以「⚠️」開頭時該列會醒目標示，提醒人工複核。上傳 file field 名稱為 `receipt`。
 
 ## n8n Webhook
@@ -48,7 +49,7 @@
 - 變更申請表（gid=414619609）：變更申請
 - 變更Log表（gid=237787039）：異動記錄
 - 追蹤表（gid=1786361494）：案件追蹤
-- 醫師習慣表（gid=919579337）：欄位為 院區/醫師/部位/慣用器械/復位工具/釘子鎖入/torque/補充/最後編輯人/最後編輯時間
+- 醫師習慣表（gid=1123380667）：欄位為 院區/醫師/部位/慣用器械/復位工具/釘子鎖入/torque/補充/最後編輯人/最後編輯時間。⚠️ 分頁曾重建過 gid（原為 919579337），n8n 的「更新既有資料」「新增資料」兩個 node 記得同步改選新分頁，否則會變成讀新表、寫舊表。
 
 ## 角色權限
 - sales：業務，只看自己的資料
@@ -102,10 +103,10 @@
 - 重點：替換 componentInput textarea → display div、更新 updateComponentFromScrews、showPreview
 
 ## 漢堡選單（已實作）
-所有頁面（報刀_v2、track、edit-request、review、dashboard）右上角統一有 ☰ 選單
+所有頁面（報刀_v2、track、edit-request、review、dashboard、performance）右上角統一有 ☰ 選單
 - 統一邏輯：`_role !== 'sales'` 才顯示 變更申請/審核/抓貨管理（sales 隱藏；變更申請/審核尚未完成測試、抓貨管理僅內勤）
-- 追蹤、業績儀表板：全部角色可見
-- 業績儀表板（performance.html）範圍由頁內控制：sales 無業務切換、只看本人（`負責業務===displayName`）；admin/manager 可切換/看整體
+- 追蹤、業績儀表板、醫師習慣：全部角色可見
+- 業績儀表板（performance.html）範圍由頁內控制：sales 無業務切換、只看本人（`負責業務===displayName`）；admin/manager 可切換/看整體。⚠️ 此頁選單邏輯跟其他頁不同，不是用 `_show()`：trackBtn/editRequestBtn/reviewBtn/pickupBtn 綁在同一組、只認 `IS_ADMIN`（沒有 manager 區分）；doctorHabitsBtn 因為全員可見，直接不加 `display:none`，不需要 JS 顯示邏輯。
 - pickup.html 無漢堡選單
 - 各頁面省略自己那個連結
 
