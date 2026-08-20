@@ -229,6 +229,10 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', s
       <div class="field">
         <textarea id="editNote" rows="3" placeholder="其他需要注意的細節..."></textarea>
       </div>
+      <div class="field">
+        <label>簽單</label>
+        <input type="text" id="editSignoff" placeholder="輸入簽單相關資訊...">
+      </div>
     </div>
 
     <button class="submit-btn" id="saveBtn" onclick="saveHabit()">💾 儲存醫師習慣</button>
@@ -512,6 +516,11 @@ function loadHabitDetail() {
         <div class="result-label">補充說明</div>
         <div class="result-value">${r['補充']}</div>
       </div>` : ''}
+      ${r['簽單'] ? `
+      <div class="result-row">
+        <div class="result-label">簽單</div>
+        <div class="result-value">${r['簽單']}</div>
+      </div>` : ''}
 
       <div class="result-meta">最後編輯：${r['最後編輯人'] || ''} · ${r['最後編輯時間'] || ''}</div>
     </div>
@@ -599,6 +608,7 @@ async function saveHabit() {
   const 釘子鎖入 = document.getElementById('editLockingCustom').value.trim() || document.getElementById('editLocking').value;
   const torque = document.getElementById('editTorqueCustom').value.trim() || document.getElementById('editTorque').value;
   const 補充 = document.getElementById('editNote').value.trim();
+  const 簽單 = document.getElementById('editSignoff').value.trim();
 
   if (!院區) { showToast('❌ 請選擇醫院'); return; }
   if (!醫師) { showToast('❌ 請填寫醫師'); return; }
@@ -615,7 +625,7 @@ async function saveHabit() {
         院區, 醫師, 部位,
         慣用器械: selectedTools,
         復位工具: selectedReductions,
-        釘子鎖入, torque, 補充,
+        釘子鎖入, torque, 補充, 簽單,
         編輯人: USER.displayName || USER.username
       })
     });
