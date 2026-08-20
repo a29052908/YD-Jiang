@@ -23,6 +23,7 @@
 - review.html：審核變更
 - pickup.html：抓貨管理（admin/manager）
 - zheng-demo.html：正字記數參數調整 Demo（開發用）
+- doctor-habits.html：醫師習慣（慣用器械/復位工具/釘子鎖入/torque/補充），全員可閱覽編輯、不需審核。查詢頁一次看一筆（手機瀏覽考量）。`ZONE_HOSPITAL_DB` 是從 報刀_v2.html 的 `innerCodeDb`（大區/醫院）+ `rulesDb`（醫院/醫師）join 產生的靜態快照，非即時同步——院所/醫師異動時需重新產生並替換。「大千/新光/部桃/聯新/新竹台大/敏盛」因 innerCodeDb 無大區對應，暫未列入；「台中老人/中國醫總院」目前無醫師資料，畫面顯示「尚無醫師資料」。漢堡選單入口尚未加入（待辦）。
 - 收據辨識.html：獨立小工具，服務室內設計朋友的「免用統一發票收據」辨識建檔，與報刀系統無關（品牌文字已中性化）。串接獨立 n8n webhook（不共用報刀單辨識頁面的 webhook/localStorage），localStorage key 為 `receipt_webhook_url`／`receipt_history`。表格欄位：日期／買受人／地址／品名／數量／單價／總價／合計金額／備註；備註以「⚠️」開頭時該列會醒目標示，提醒人工複核。上傳 file field 名稱為 `receipt`。
 
 ## n8n Webhook
@@ -39,12 +40,15 @@
 - /webhook/review-edit：審核變更
 - /webhook/get-pickup：撈抓貨清單
 - /webhook/mark-picked：標記抓貨狀態
+- /webhook/save-doctor-habit：新增/覆寫一筆醫師習慣（依院區+醫師+部位比對，存在則更新）
+- /webhook/get-doctor-habit：查詢醫師習慣（依醫院+醫師，回傳該醫師底下所有部位）
 
 ## Google Sheets 分頁
 - 報刀單格式（gid=713793623）：主資料
 - 變更申請表（gid=414619609）：變更申請
 - 變更Log表（gid=237787039）：異動記錄
 - 追蹤表（gid=1786361494）：案件追蹤
+- 醫師習慣表（gid=919579337）：欄位為 院區/醫師/部位/慣用器械/復位工具/釘子鎖入/torque/補充/最後編輯人/最後編輯時間
 
 ## 角色權限
 - sales：業務，只看自己的資料
