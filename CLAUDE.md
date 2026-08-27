@@ -76,7 +76,7 @@
 ## 流水號規則
 格式：{業務代碼}{年後2碼}{月2碼}{日2碼}{序號2碼}
 例：IV26050801
-業務代碼：IV=Ivan, DI=Dino, HE=Henry, VI=Vincent, KA=Kaley, MA=Mandy, ED=Eddie, BR=Bruce, AN=Andrew, RI=Richie, EA=Eason, DA=Darren, DE=Derek
+業務代碼：IV=Ivan, DI=Dino, HE=Henry, VI=Vincent, KA=Kaley, MA=Mandy, ED=Eddie, BR=Bruce, AN=Andrew, RI=Richie, EA=Eason, DA=Darren, DE=Derek。⚠️ Nick（新增業務，負責台中區）已加入 報刀_v2.html 的 salesList，但流水號代碼字母、email/角色需在 n8n + Google Sheets 登入帳號分頁另外設定，前端目前沒有他的代碼。
 （email/角色/最新流水號存於 n8n + Google Sheets 登入帳號分頁，不在前端；前端僅 `報刀_v2.html` salesList 名單。角色：Ivan/Eddie/Bruce/Eason=admin，其餘 sales）
 
 ## 正字記數系統
