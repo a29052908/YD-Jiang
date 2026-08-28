@@ -247,6 +247,27 @@ function doExport() {
   exportBtn.disabled = false;
 }
 
+// 重複報刀偵測：跟總表 dashboard.html 的 computeDuplicates() 同一套判斷標準
+// （日期/醫師/病人/病歷號/組件 五欄皆相同視為重複），但用「陣列索引」而非
+// 「流水號」當比對鍵——流水號目前多為空，用流水號比對會讓所有空流水號的
+// 案件互相誤判成重複，改用索引可以避免這個問題。
+function computeDuplicateCases(rows) {
+  const keyMap = {};
+  rows.forEach((row, i) => {
+    const key = [
+      row['日期'] || '',
+      row['醫師'] || '',
+      row['病人'] || '',
+      row['病歷號'] || '',
+      (row['組件'] || '').trim()
+    ].join('|||');
+    (keyMap[key] = keyMap[key] || []).push(i);
+  });
+  const dupIdx = new Set();
+  Object.values(keyMap).forEach(idxs => { if (idxs.length >= 2) idxs.forEach(i => dupIdx.add(i)); });
+  return dupIdx;
+}
+
 function buildExcel(rows, year, month, salesName) {
   const rocYear = year - 1911;
   const wb = XLSX.utils.book_new();
@@ -254,14 +275,16 @@ function buildExcel(rows, year, month, salesName) {
 
   wsData.push([`${rocYear}年  ${month}月  業務跟刀量統計表  業務：${salesName}`]);
   wsData.push(['每月1號 請mail給 annie27962677@gmail.com, patti50884012@gmail.com']);
-  wsData.push(['日期','部位','醫院','醫師','品號','數量','病人','院內碼','support','','類別','總數']);
+  wsData.push(['日期','部位','醫院','醫師','品號','數量','病人','院內碼','support','重複','類別','總數']);
 
+  const dupCaseIdx = computeDuplicateCases(rows);
   const itemRows = [];
-  for (const row of rows) {
+  rows.forEach((row, rowIdx) => {
     const dateStr = formatDate(row['日期']);
+    const dup = dupCaseIdx.has(rowIdx) ? '重複' : '';
     const items = row['品項'] || [];
     if (items.length === 0) {
-      itemRows.push({ dateStr, buwei:'', hospital:row['醫院']||'', doctor:row['醫師']||'', pn:'', qty:'', patient:row['病人']||'', ic:'', support:'' });
+      itemRows.push({ dateStr, buwei:'', hospital:row['醫院']||'', doctor:row['醫師']||'', pn:'', qty:'', patient:row['病人']||'', ic:'', support:'', dup });
     } else {
       for (const item of items) {
         const ic = item['院內碼'] || '';
@@ -275,19 +298,20 @@ function buildExcel(rows, year, month, salesName) {
           qty: item['數量'] || 1,
           patient: row['病人'] || '',
           ic: icStr,
-          support: item['support'] ? '是' : ''
+          support: item['support'] ? '是' : '',
+          dup
         });
       }
     }
-  }
+  });
 
-  const summary = calcSummary(rows);
+  const summary = calcSummary(rows, dupCaseIdx);
   const summaryKeys = Object.keys(summary);
   for (let i = 0; i < Math.max(itemRows.length, summaryKeys.length); i++) {
     const item = itemRows[i];
     const sk = summaryKeys[i];
     const row = item
-      ? [item.dateStr, item.buwei, item.hospital, item.doctor, item.pn, item.qty, item.patient, item.ic, item.support, '']
+      ? [item.dateStr, item.buwei, item.hospital, item.doctor, item.pn, item.qty, item.patient, item.ic, item.support, item.dup]
       : ['','','','','','','','','',''];
     row.push(sk || '', sk ? summary[sk] : '');
     wsData.push(row);
@@ -299,7 +323,7 @@ function buildExcel(rows, year, month, salesName) {
     { s:{r:1,c:0}, e:{r:1,c:11} },
   ];
   ws['!cols'] = [
-    {wch:8},{wch:8},{wch:10},{wch:8},{wch:16},{wch:5},{wch:8},{wch:14},{wch:8},{wch:2},{wch:8},{wch:6}
+    {wch:8},{wch:8},{wch:10},{wch:8},{wch:16},{wch:5},{wch:8},{wch:14},{wch:8},{wch:6},{wch:8},{wch:6}
   ];
 
   XLSX.utils.book_append_sheet(wb, ws, `${month}月`);
@@ -313,7 +337,7 @@ function formatDate(dateStr) {
   return `${parseInt(parts[1])}/${parseInt(parts[2])}`;
 }
 
-function calcSummary(rows) {
+function calcSummary(rows, dupCaseIdx) {
   const PLATE_TYPES = ['鎖骨','上肢','長骨','小骨','下肢','VA'];
   const ALL_TYPES = ['鎖骨','上肢','長骨','小骨','下肢','骨釘','埋頭釘','人工骨','VA'];
   const counts = {};
@@ -342,20 +366,24 @@ function calcSummary(rows) {
   result['骨釘'] = counts['骨釘'];
   result['人工骨'] = counts['人工骨'];
   result['support'] = supportQty;
+  result['重複'] = dupCaseIdx ? dupCaseIdx.size : 0;
   return result;
 }
 
 function showPreview(rows) {
-  const HEADERS = ['日期','部位','醫院','醫師','品號','數量','病人','院內碼','support'];
+  const HEADERS = ['日期','部位','醫院','醫師','品號','數量','病人','院內碼','support','重複'];
   const table = document.getElementById('previewTable');
   let html = '<tr>' + HEADERS.map(h => `<th>${h}</th>`).join('') + '</tr>';
+  const dupCaseIdx = computeDuplicateCases(rows);
   let count = 0;
-  outer: for (const row of rows) {
+  outer: for (let rowIdx = 0; rowIdx < rows.length; rowIdx++) {
+    const row = rows[rowIdx];
+    const isDup = dupCaseIdx.has(rowIdx);
     const items = row['品項'] || [];
     for (const item of items) {
       if (count >= 10) break outer;
       const ic = item['另洽'] ? (item['院內碼']||'') + '（另洽）' : (item['院內碼']||'');
-      html += `<tr>
+      html += `<tr style="${isDup ? 'background:#fdecea;' : ''}">
         <td>${formatDate(row['日期'])}</td>
         <td>${item['部位']||''}</td>
         <td>${row['醫院']||''}</td>
@@ -365,6 +393,7 @@ function showPreview(rows) {
         <td>${row['病人']||''}</td>
         <td style="font-family:'JetBrains Mono',monospace;font-size:11px;">${ic}</td>
         <td style="text-align:center;">${item['support'] ? '是' : ''}</td>
+        <td style="text-align:center;color:#c0392b;font-weight:700;">${isDup ? '重複' : ''}</td>
       </tr>`;
       count++;
     }
