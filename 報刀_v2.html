@@ -337,6 +337,8 @@ document.addEventListener('click', () => {
       <div class="sales-option" id="wh-桃庫" onclick="selectWarehouse('桃庫')">🏭 桃庫</div>
       <div class="sales-option" id="wh-北庫" onclick="selectWarehouse('北庫')">🏭 北庫</div>
       <div class="sales-option" id="wh-宜庫" onclick="selectWarehouse('宜庫')">🏭 宜庫</div>
+      <div class="sales-option" id="wh-台中庫" onclick="selectWarehouse('台中庫')">🏭 台中庫</div>
+      <div class="sales-option" id="wh-南庫" onclick="selectWarehouse('南庫')">🏭 南庫</div>
     </div>
   </div>
 </div>
@@ -980,6 +982,53 @@ const innerCodeDb = [
   {院內碼:'BK92479',院內碼_醫院:'長安醫院',部位_院內碼:'長骨',大區:'台中區',負責業務:'Nick'},
   {院內碼:'BK92482',院內碼_醫院:'長安醫院',部位_院內碼:'小骨',大區:'台中區',負責業務:'Nick'},
   {院內碼:'BK92481',院內碼_醫院:'長安醫院',部位_院內碼:'下肢',大區:'台中區',負責業務:'Nick'},
+  {院內碼:'18258893',院內碼_醫院:'中國醫北港',部位_院內碼:'鎖骨',大區:'雲嘉南區',負責業務:'Eddie'},
+  {院內碼:'18258896',院內碼_醫院:'中國醫北港',部位_院內碼:'上肢',大區:'雲嘉南區',負責業務:'Eddie'},
+  {院內碼:'18258894',院內碼_醫院:'中國醫北港',部位_院內碼:'長骨',大區:'雲嘉南區',負責業務:'Eddie'},
+  {院內碼:'18258895',院內碼_醫院:'中國醫北港',部位_院內碼:'小骨',大區:'雲嘉南區',負責業務:'Eddie'},
+  {院內碼:'18258897',院內碼_醫院:'中國醫北港',部位_院內碼:'下肢',大區:'雲嘉南區',負責業務:'Eddie'},
+  {院內碼:'18258898',院內碼_醫院:'中國醫北港',部位_院內碼:'骨釘',大區:'雲嘉南區',負責業務:'Eddie'},
+  {院內碼:'18258892',院內碼_醫院:'中國醫北港',部位_院內碼:'埋頭釘(自費)',大區:'雲嘉南區',負責業務:'Eddie'},
+  {院內碼:'18258892',院內碼_醫院:'中國醫北港',部位_院內碼:'埋頭釘(健保)',大區:'雲嘉南區',負責業務:'Eddie'},
+  {院內碼:'18259333',院內碼_醫院:'中國醫北港',部位_院內碼:'VA上肢',大區:'雲嘉南區',負責業務:'Eddie'},
+  {院內碼:'18259331',院內碼_醫院:'中國醫北港',部位_院內碼:'VA鎖骨',大區:'雲嘉南區',負責業務:'Eddie'},
+  {院內碼:'18259332',院內碼_醫院:'中國醫北港',部位_院內碼:'VA小骨',大區:'雲嘉南區',負責業務:'Eddie'},
+  {院內碼:'18259334',院內碼_醫院:'中國醫北港',部位_院內碼:'VA骨釘',大區:'雲嘉南區',負責業務:'Eddie'},
+  {院內碼:'320500',院內碼_醫院:'北港仁一',部位_院內碼:'鎖骨',大區:'雲嘉南區',負責業務:'Eddie'},
+  {院內碼:'320501',院內碼_醫院:'北港仁一',部位_院內碼:'上肢',大區:'雲嘉南區',負責業務:'Eddie'},
+  {院內碼:'320502',院內碼_醫院:'北港仁一',部位_院內碼:'長骨',大區:'雲嘉南區',負責業務:'Eddie'},
+  {院內碼:'320503',院內碼_醫院:'北港仁一',部位_院內碼:'小骨',大區:'雲嘉南區',負責業務:'Eddie'},
+  {院內碼:'320504',院內碼_醫院:'北港仁一',部位_院內碼:'下肢',大區:'雲嘉南區',負責業務:'Eddie'},
+  {院內碼:'320505',院內碼_醫院:'北港仁一',部位_院內碼:'骨釘',大區:'雲嘉南區',負責業務:'Eddie'},
+  {院內碼:'320506',院內碼_醫院:'北港仁一',部位_院內碼:'埋頭釘(自費)',大區:'雲嘉南區',負責業務:'Eddie'},
+  {院內碼:'320506',院內碼_醫院:'北港仁一',部位_院內碼:'埋頭釘(健保)',大區:'雲嘉南區',負責業務:'Eddie'},
+  {院內碼:'2608JHS1',院內碼_醫院:'部嘉義',部位_院內碼:'鎖骨',大區:'雲嘉南區',負責業務:'Eddie'},
+  {院內碼:'2608JGS1',院內碼_醫院:'部嘉義',部位_院內碼:'上肢',大區:'雲嘉南區',負責業務:'Eddie'},
+  {院內碼:'2608JJ81C',院內碼_醫院:'部嘉義',部位_院內碼:'長骨',大區:'雲嘉南區',負責業務:'Eddie'},
+  {院內碼:'2608JD81C',院內碼_醫院:'部嘉義',部位_院內碼:'小骨',大區:'雲嘉南區',負責業務:'Eddie'},
+  {院內碼:'2608JFS1',院內碼_醫院:'部嘉義',部位_院內碼:'下肢',大區:'雲嘉南區',負責業務:'Eddie'},
+  {院內碼:'2608JI81C',院內碼_醫院:'部嘉義',部位_院內碼:'骨釘',大區:'雲嘉南區',負責業務:'Eddie'},
+  {院內碼:'D112ZBTF',院內碼_醫院:'部嘉義',部位_院內碼:'埋頭釘(自費)',大區:'雲嘉南區',負責業務:'Eddie'},
+  {院內碼:'D112ZBTF',院內碼_醫院:'部嘉義',部位_院內碼:'埋頭釘(健保)',大區:'雲嘉南區',負責業務:'Eddie'},
+  {院內碼:'B92201',院內碼_醫院:'嘉義陽明',部位_院內碼:'鎖骨',大區:'雲嘉南區',負責業務:'Eddie'},
+  {院內碼:'B92202',院內碼_醫院:'嘉義陽明',部位_院內碼:'上肢',大區:'雲嘉南區',負責業務:'Eddie'},
+  {院內碼:'B92203',院內碼_醫院:'嘉義陽明',部位_院內碼:'長骨',大區:'雲嘉南區',負責業務:'Eddie'},
+  {院內碼:'B92204',院內碼_醫院:'嘉義陽明',部位_院內碼:'小骨',大區:'雲嘉南區',負責業務:'Eddie'},
+  {院內碼:'B92205',院內碼_醫院:'嘉義陽明',部位_院內碼:'下肢',大區:'雲嘉南區',負責業務:'Eddie'},
+  {院內碼:'B92206',院內碼_醫院:'嘉義陽明',部位_院內碼:'埋頭釘(自費)',大區:'雲嘉南區',負責業務:'Eddie'},
+  {院內碼:'B92206',院內碼_醫院:'嘉義陽明',部位_院內碼:'埋頭釘(健保)',大區:'雲嘉南區',負責業務:'Eddie'},
+  {院內碼:'18258893',院內碼_醫院:'中國醫安南',部位_院內碼:'鎖骨',大區:'雲嘉南區',負責業務:'Eddie'},
+  {院內碼:'18258896',院內碼_醫院:'中國醫安南',部位_院內碼:'上肢',大區:'雲嘉南區',負責業務:'Eddie'},
+  {院內碼:'18258894',院內碼_醫院:'中國醫安南',部位_院內碼:'長骨',大區:'雲嘉南區',負責業務:'Eddie'},
+  {院內碼:'18258895',院內碼_醫院:'中國醫安南',部位_院內碼:'小骨',大區:'雲嘉南區',負責業務:'Eddie'},
+  {院內碼:'18258897',院內碼_醫院:'中國醫安南',部位_院內碼:'下肢',大區:'雲嘉南區',負責業務:'Eddie'},
+  {院內碼:'18258898',院內碼_醫院:'中國醫安南',部位_院內碼:'骨釘',大區:'雲嘉南區',負責業務:'Eddie'},
+  {院內碼:'18258892',院內碼_醫院:'中國醫安南',部位_院內碼:'埋頭釘(自費)',大區:'雲嘉南區',負責業務:'Eddie'},
+  {院內碼:'18258892',院內碼_醫院:'中國醫安南',部位_院內碼:'埋頭釘(健保)',大區:'雲嘉南區',負責業務:'Eddie'},
+  {院內碼:'18259333',院內碼_醫院:'中國醫安南',部位_院內碼:'VA上肢',大區:'雲嘉南區',負責業務:'Eddie'},
+  {院內碼:'18259331',院內碼_醫院:'中國醫安南',部位_院內碼:'VA鎖骨',大區:'雲嘉南區',負責業務:'Eddie'},
+  {院內碼:'18259332',院內碼_醫院:'中國醫安南',部位_院內碼:'VA小骨',大區:'雲嘉南區',負責業務:'Eddie'},
+  {院內碼:'18259334',院內碼_醫院:'中國醫安南',部位_院內碼:'VA骨釘',大區:'雲嘉南區',負責業務:'Eddie'},
   {院內碼:'MTAND02',院內碼_醫院:'博愛',部位_院內碼:'鎖骨',大區:'宜蘭區',負責業務:'Andrew'},
   {院內碼:'MTAND03',院內碼_醫院:'博愛',部位_院內碼:'上肢',大區:'宜蘭區',負責業務:'Andrew'},
   {院內碼:'MTAND04',院內碼_醫院:'博愛',部位_院內碼:'長骨',大區:'宜蘭區',負責業務:'Andrew'},
@@ -1183,6 +1232,27 @@ const rulesDb = [
   // 長安醫院
   {醫師:'楊志鴻',醫院:'長安醫院'},{醫師:'林茂仁',醫院:'長安醫院'},{醫師:'黃梓榕',醫院:'長安醫院'},
   {醫師:'喻大久',醫院:'長安醫院'},{醫師:'曾怡菱',醫院:'長安醫院'},{醫師:'陳冠儒',醫院:'長安醫院'},
+  // 中國醫北港
+  {醫師:'馮逸卿',醫院:'中國醫北港'},{醫師:'羅元舜',醫院:'中國醫北港'},{醫師:'黃奕勳',醫院:'中國醫北港'},
+  {醫師:'林爾笛',醫院:'中國醫北港'},{醫師:'葉宸維',醫院:'中國醫北港'},{醫師:'曾準',醫院:'中國醫北港'},
+  {醫師:'謝宏侖',醫院:'中國醫北港'},
+  // 北港仁一
+  {醫師:'李俊億',醫院:'北港仁一'},{醫師:'陳孟意',醫院:'北港仁一'},{醫師:'謝宏侖',醫院:'北港仁一'},
+  // 部嘉義
+  {醫師:'林震枝',醫院:'部嘉義'},{醫師:'陳宏諺',醫院:'部嘉義'},{醫師:'謝醇樺',醫院:'部嘉義'},
+  {醫師:'陳吉龍',醫院:'部嘉義'},{醫師:'許維修',醫院:'部嘉義'},{醫師:'沈世勛',醫院:'部嘉義'},
+  {醫師:'吳政誼',醫院:'部嘉義'},{醫師:'蘇怡仁',醫院:'部嘉義'},{醫師:'楊典育',醫院:'部嘉義'},
+  {醫師:'莊柏堯',醫院:'部嘉義'},{醫師:'蔡燿鴻',醫院:'部嘉義'},{醫師:'李建穎',醫院:'部嘉義'},
+  {醫師:'余培安',醫院:'部嘉義'},
+  // 嘉義陽明
+  {醫師:'謝景祥',醫院:'嘉義陽明'},{醫師:'謝宇傑',醫院:'嘉義陽明'},{醫師:'林震枝',醫院:'嘉義陽明'},
+  {醫師:'吳書榮',醫院:'嘉義陽明'},{醫師:'陳志宏',醫院:'嘉義陽明'},{醫師:'鍾聯享',醫院:'嘉義陽明'},
+  {醫師:'李孔嘉',醫院:'嘉義陽明'},{醫師:'謝鎮州',醫院:'嘉義陽明'},{醫師:'廖灯華',醫院:'嘉義陽明'},
+  {醫師:'葉致昌',醫院:'嘉義陽明'},
+  // 中國醫安南
+  {醫師:'張伯羣',醫院:'中國醫安南'},{醫師:'方彥博',醫院:'中國醫安南'},{醫師:'林瑞模',醫院:'中國醫安南'},
+  {醫師:'許峻誠',醫院:'中國醫安南'},{醫師:'黃逸倫',醫院:'中國醫安南'},{醫師:'姜典佑',醫院:'中國醫安南'},
+  {醫師:'蕭又萌',醫院:'中國醫安南'},{醫師:'李威佑',醫院:'中國醫安南'},{醫師:'方啓榮',醫院:'中國醫安南'},
 ];
 
 window.onload = () => {
@@ -2142,7 +2212,7 @@ function renderSalesBadge(){
 function renderSalesList(){document.getElementById('salesList').innerHTML=salesList.map(s=>{const wh=salesWarehouseMap[s]?` · ${salesWarehouseMap[s]}`:'';return`<div class="sales-option ${s===currentSales?'selected':''}" onclick="selectSales('${s}')">${s}${wh}</div>`;}).join('');}
 function selectSales(name){currentSales=name;localStorage.setItem('tandry_sales_current',name);if(salesWarehouseMap[name]){currentWarehouse=salesWarehouseMap[name];localStorage.setItem('tandry_warehouse_current',currentWarehouse);}renderSalesBadge();renderSalesList();renderWarehouseList();updateSummary();}
 function addSales(){const val=document.getElementById('newSalesInput').value.trim();if(!val)return;if(!salesList.includes(val)){salesList.push(val);localStorage.setItem('tandry_sales_list',JSON.stringify(salesList));}selectSales(val);document.getElementById('newSalesInput').value='';renderSalesList();}
-function renderWarehouseList(){['桃庫','北庫','宜庫'].forEach(wh=>{const el=document.getElementById(`wh-${wh}`);if(el)el.className=`sales-option ${currentWarehouse===wh?'selected':''}`;});}
+function renderWarehouseList(){['桃庫','北庫','宜庫','台中庫','南庫'].forEach(wh=>{const el=document.getElementById(`wh-${wh}`);if(el)el.className=`sales-option ${currentWarehouse===wh?'selected':''}`;});}
 function selectWarehouse(wh){currentWarehouse=wh;localStorage.setItem('tandry_warehouse_current',wh);if(currentSales){salesWarehouseMap[currentSales]=wh;localStorage.setItem('tandry_sales_warehouse_map',JSON.stringify(salesWarehouseMap));}renderWarehouseList();renderSalesBadge();renderSalesList();updateSummary();}
 function openSalesModal(){document.getElementById('salesModal').classList.add('show');}
 function closeSalesModal(){document.getElementById('salesModal').classList.remove('show');}
@@ -2437,7 +2507,7 @@ function showPreview(){
   const td=document.getElementById('toolDisplay');
   if(td){const h=buildDamageScrewHTML();td.innerHTML=h||'';}
 
-  const ZONE_DEFAULT_WAREHOUSE = { '桃竹苗': '桃庫', '北區': '北庫', '宜蘭區': '宜庫' };
+  const ZONE_DEFAULT_WAREHOUSE = { '桃竹苗': '桃庫', '北區': '北庫', '宜蘭區': '宜庫', '台中區': '台中庫', '雲嘉南區': '南庫' };
   const zone = productItems[0]?.大區 || '';
   const defaultWarehouse = ZONE_DEFAULT_WAREHOUSE[zone];
   if (!_bypassWarehouseCheck && defaultWarehouse && currentWarehouse !== defaultWarehouse) {

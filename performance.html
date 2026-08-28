@@ -479,7 +479,7 @@ function isInCharge(field, name) {
 // 完整業務名冊（即使本期無資料也可切換檢視）；優先讀 報刀_v2 存的 salesList，否則用預設名單
 const SALES_ROSTER = (() => {
   try { const s = JSON.parse(localStorage.getItem('tandry_sales_list')); if (Array.isArray(s) && s.length) return s; } catch(e){}
-  return ['Ivan','Dino','Henry','Vincent','Kaley','Mandy','Eddie','Bruce','Andrew','Richie','Eason','Darren','Derek'];
+  return ['Ivan','Dino','Henry','Vincent','Kaley','Mandy','Eddie','Bruce','Andrew','Richie','Eason','Darren','Derek','Nick'];
 })();
 
 function populateSalesSwitch() {
