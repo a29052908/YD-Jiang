@@ -342,7 +342,7 @@ function calcSummary(rows, dupCaseIdx) {
   const ALL_TYPES = ['鎖骨','上肢','長骨','小骨','下肢','骨釘','埋頭釘','人工骨','VA'];
   const counts = {};
   ALL_TYPES.forEach(t => counts[t] = 0);
-  const plateCases = new Set();
+  let plateQty = 0; // 台數＝所有骨板類品項數量加總，不是案件數去重
   let supportQty = 0; // 贊助（support）：跟部位無關，獨立累計，與跨區支援無關
 
   for (const row of rows) {
@@ -353,13 +353,13 @@ function calcSummary(rows, dupCaseIdx) {
       const buwei = rawBuwei.startsWith('VA') ? 'VA' : rawBuwei;
       const qty = parseInt(item['數量']) || 1;
       if (counts[buwei] !== undefined) counts[buwei] += qty;
-      if (PLATE_TYPES.includes(buwei)) plateCases.add(row['流水號'] || (row['醫院'] + row['日期'] + row['病人']));
+      if (PLATE_TYPES.includes(buwei)) plateQty += qty;
       if (item['support']) supportQty += qty;
     }
   }
 
   const result = {};
-  result['台數'] = plateCases.size;
+  result['台數'] = plateQty;
   result['埋頭釘'] = counts['埋頭釘'];
   result['骨粉'] = counts['人工骨'];
   PLATE_TYPES.forEach(t => { result[t] = counts[t]; });
