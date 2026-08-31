@@ -712,9 +712,9 @@ function requestEdit(index) {
 
 async function submitVoidRequest(index) {
   const row = filteredData[index];
-  if (!confirm(`申請作廢以下報刀單？\n\n流水號：${row['流水號']}\n日期：${row['日期']}\n醫院：${row['醫院']}\n病人：${row['病人']}\n\n此申請將通知內勤審核後執行。`)) return;
+  if (!confirm(`確定作廢以下重複的報刀單？\n\n流水號：${row['流水號']}\n日期：${row['日期']}\n醫院：${row['醫院']}\n病人：${row['病人']}\n\n作廢後將立即從報表移除，無法還原（會留下作廢紀錄，內勤可在審核頁查詢）。`)) return;
   try {
-    const res = await fetch('https://ydj.zeabur.app/webhook/submit-void', {
+    const res = await fetch('https://ydj.zeabur.app/webhook/void-report-self', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -732,9 +732,10 @@ async function submitVoidRequest(index) {
     });
     const data = await res.json();
     if (data.success) {
-      showToast('✅ 作廢申請已送出，待內勤審核');
+      showToast('✅ 已作廢');
+      loadData();
     } else {
-      showToast('❌ 送出失敗：' + (data.message || ''));
+      showToast('❌ 作廢失敗：' + (data.message || ''));
     }
   } catch(e) {
     showToast('❌ 無法連線');
