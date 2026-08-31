@@ -7,6 +7,7 @@
 
 ## 維護 SOP
 - 新增人員／離職交接／院所・品號異動 → 見 `docs/SOP.md`（含資料落點對照、逐項檢查清單、資料健檢）
+- 作廢紀錄機制（總表重複列業務自行作廢，免審核但留紀錄）→ 見 `docs/作廢紀錄.md`（n8n 建置規格，⚠️ 待建：submit-void/get-void-requests/execute-void 三個 webhook 從來沒建過，`edit-request.html`/`review.html` 呼叫它們一直是壞的；`void-report-self`/`get-void-requests` 是這次要新建的）
 
 ## Project Skill
 - `.claude/skills/verifier-baodao/` — Playwright headless 驗證腳本
