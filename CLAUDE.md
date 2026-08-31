@@ -43,6 +43,10 @@
 - /webhook/mark-picked：標記抓貨狀態
 - /webhook/save-doctor-habit：新增/覆寫一筆醫師習慣（依院區+醫師+部位比對，存在則更新）
 - /webhook/get-doctor-habit：查詢醫師習慣（依醫院+醫師，回傳該醫師底下所有部位）
+- /webhook/submit-void：作廢申請（edit-request.html 獨立分頁用，含申請原因，需審核）。⚠️ 之前未記錄於此，補上。
+- /webhook/get-void-requests：撈作廢申請清單（review.html 審核頁用）
+- /webhook/execute-void：執行作廢，從報表移除該筆資料（review.html 審核頁用，需 流水號+申請時間 比對待審記錄）
+- /webhook/void-report-self：**業務自行作廢（dashboard.html 總表用，僅重複列可用，免審核）**。⚠️ 待建：一次完成「登記＋立即執行」，寫進跟 submit-void/get-void-requests/execute-void 共用的同一張「作廢申請」紀錄表，但狀態直接寫「已執行」（申請者=執行者=同一人，申請時間=執行時間=同一時間戳），資料同時要從主報表移除。這樣 review.html 完全不用改，既有畫面邏輯就能正確顯示這筆是「已執行」。
 
 ## Google Sheets 分頁
 - 報刀單格式（gid=713793623）：主資料
