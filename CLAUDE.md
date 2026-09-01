@@ -7,7 +7,7 @@
 
 ## 維護 SOP
 - 新增人員／離職交接／院所・品號異動 → 見 `docs/SOP.md`（含資料落點對照、逐項檢查清單、資料健檢）
-- 作廢紀錄機制（總表重複列業務自行作廢，免審核但留紀錄）→ 見 `docs/作廢紀錄.md`（n8n 建置規格，⚠️ 待建：submit-void/get-void-requests/execute-void 三個 webhook 從來沒建過，`edit-request.html`/`review.html` 呼叫它們一直是壞的；`void-report-self`/`get-void-requests` 是這次要新建的）
+- 作廢紀錄機制（總表重複列業務自行作廢，免審核但留紀錄）→ 見 `docs/作廢紀錄.md`（n8n 建置規格）。**已完成並測試通過**：`void-report-self`/`get-void-requests` 已建置，`get-cases`/`get-performance` 已加上「已作廢 !== 是」過濾。⚠️ `get-performance` 讀的不是 `報刀單格式`，而是同一份 Google Sheets 文件裡另一個分頁「價格表」——用儲存格 `=` 公式逐欄對照 `報刀單格式` 產生（不是 QUERY/IMPORTRANGE），「已作廢」欄位也是用同樣公式模式加上去的。之後 `報刀單格式` 若異動欄位順序，要記得「價格表」的公式欄位對照可能跟著壞掉。
 
 ## Project Skill
 - `.claude/skills/verifier-baodao/` — Playwright headless 驗證腳本
@@ -27,6 +27,7 @@
 - doctor-habits.html：醫師習慣（慣用器械/復位工具/釘子鎖入/torque/補充），全員可閱覽編輯、不需審核。查詢頁一次看一筆（手機瀏覽考量）。`ZONE_HOSPITAL_DB` 是從 報刀_v2.html 的 `innerCodeDb`（大區/醫院）+ `rulesDb`（醫院/醫師）join 產生的靜態快照，非即時同步——院所/醫師異動時需重新產生並替換。「大千/新光/部桃/聯新/新竹台大/敏盛」因 innerCodeDb 無大區對應，暫未列入；「台中老人/中國醫總院」目前無醫師資料，畫面顯示「尚無醫師資料」。漢堡選單入口已加入（報刀_v2/track/edit-request/review/dashboard/performance 皆全員可見）。⚠️ n8n 踩雷紀錄：`讀取醫師習慣表`／`讀取醫師習慣表2`（Get Row(s)）查到 0 筆時，n8n 預設會直接停止整條流程（"No output data returned"），導致存檔/查詢完全沒有回應，不是憑證問題。兩個 node 都要在 Settings → **Always Output Data** 開啟，否則分頁剛重建、或第一次存檔（尚無既有資料）時會整條卡死。
 `讀取醫師習慣表`／`讀取醫師習慣表2`（Get Row(s)）查到 0 筆時，n8n 預設會直接停止整條流程（"No output data returned"），導致存檔/查詢完全沒有回應——不是憑證問題。兩個 node 都要在 **Settings → Always Output Data** 開啟，否則分頁剛重建、或第一次存檔時（尚無既有資料）會整條卡死。
 - 收據辨識.html：獨立小工具，服務室內設計朋友的「免用統一發票收據」辨識建檔，與報刀系統無關（品牌文字已中性化）。串接獨立 n8n webhook（不共用報刀單辨識頁面的 webhook/localStorage），localStorage key 為 `receipt_webhook_url`／`receipt_history`。表格欄位：日期／買受人／地址／品名／數量／單價／總價／合計金額／備註；備註以「⚠️」開頭時該列會醒目標示，提醒人工複核。上傳 file field 名稱為 `receipt`。
+- announcements.html：公告頁面，全員可見。資料來源是 `announcements-data.js`（純前端硬編碼陣列，`window.TANDRY_ANNOUNCEMENTS`，不接 n8n）——**要發新公告直接編輯這個檔案加一筆 `{id, date, title, body}` 物件、commit push 即可**，id 需唯一、順序不影響顯示（依 date 自動排序新到舊）。`報刀_v2.html` 進頁面時會用 localStorage `tandry_announcements_seen` 記錄已讀公告 id，未讀的會彈全螢幕提醒（同一則不重複打擾）；進 announcements.html 頁面會把全部公告標記為已讀。
 
 ## n8n Webhook
 - /webhook/manual-baodao：報刀送出
@@ -47,7 +48,7 @@
 - /webhook/submit-void：作廢申請（edit-request.html 獨立分頁用，含申請原因，需審核）。⚠️ 之前未記錄於此，補上。
 - /webhook/get-void-requests：撈作廢申請清單（review.html 審核頁用）
 - /webhook/execute-void：執行作廢，從報表移除該筆資料（review.html 審核頁用，需 流水號+申請時間 比對待審記錄）
-- /webhook/void-report-self：**業務自行作廢（dashboard.html 總表用，僅重複列可用，免審核）**。⚠️ 待建：一次完成「登記＋立即執行」，寫進跟 submit-void/get-void-requests/execute-void 共用的同一張「作廢申請」紀錄表，但狀態直接寫「已執行」（申請者=執行者=同一人，申請時間=執行時間=同一時間戳），資料同時要從主報表移除。這樣 review.html 完全不用改，既有畫面邏輯就能正確顯示這筆是「已執行」。
+- /webhook/void-report-self：**業務自行作廢（dashboard.html 總表用，僅重複列可用，免審核）**。一次完成「登記＋立即執行」，寫進跟 submit-void/get-void-requests/execute-void 共用的同一張「作廢申請」紀錄表（作廢紀錄表），狀態直接寫「已執行」（申請者=執行者=同一人，申請時間=執行時間=同一時間戳），資料同時從主報表（報刀單格式的「已作廢」欄）標記。review.html 不用改，既有畫面邏輯就能正確顯示這筆是「已執行」。已建置並測試通過。
 
 ## Google Sheets 分頁
 - 報刀單格式（gid=713793623）：主資料
@@ -110,7 +111,7 @@
 ## 漢堡選單（已實作）
 所有頁面（報刀_v2、track、edit-request、review、dashboard、performance）右上角統一有 ☰ 選單
 - 統一邏輯：`_role !== 'sales'` 才顯示 變更申請/審核/抓貨管理（sales 隱藏；變更申請/審核尚未完成測試、抓貨管理僅內勤）
-- 追蹤、業績儀表板、醫師習慣：全部角色可見
+- 追蹤、業績儀表板、醫師習慣、公告：全部角色可見
 - 業績儀表板（performance.html）範圍由頁內控制：sales 無業務切換、只看本人（`負責業務===displayName`）；admin/manager 可切換/看整體。⚠️ 此頁選單邏輯跟其他頁不同，不是用 `_show()`：trackBtn/editRequestBtn/reviewBtn/pickupBtn 綁在同一組、只認 `IS_ADMIN`（沒有 manager 區分）；doctorHabitsBtn 因為全員可見，直接不加 `display:none`，不需要 JS 顯示邏輯。
 - pickup.html 無漢堡選單
 - 各頁面省略自己那個連結
