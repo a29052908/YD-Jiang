@@ -267,6 +267,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', s
 .wh-confirm-footer button:last-child { background: var(--card); color: var(--muted); }
 .wh-confirm-footer button:last-child:hover { background: var(--bg); }
 </style>
+<script src="announcements-data.js"></script>
 <script>
 (function() {
   const token = localStorage.getItem('tandry_token');
@@ -323,6 +324,7 @@ document.addEventListener('click', () => {
         <a href="pickup.html" class="menu-item" id="pickupBtn" style="display:none;">📦 抓貨管理</a>
         <a href="performance.html" class="menu-item" id="perfBtn" style="display:none;">📊 業績儀表板</a>
         <a href="doctor-habits.html" class="menu-item" id="doctorHabitsBtn" style="display:none;">👨‍⚕️ 醫師習慣</a>
+        <a href="announcements.html" class="menu-item" id="announceBtn" style="display:none;">📢 公告</a>
         <a href="export.html" class="menu-item">📤 匯出統計表</a>
         <button class="menu-item danger" onclick="tandryLogout()">登出</button>
       </div>
@@ -648,10 +650,12 @@ let selectedHospital = '', innerCode = '';
   _show('trackBtn', true);
   _show('perfBtn', true);
   _show('doctorHabitsBtn', true);
+  _show('announceBtn', true);
   _show('editRequestBtn', _isStaff);
   _show('reviewBtn', _isStaff);
   _show('pickupBtn', _isStaff);
 }
+checkAnnouncements();
 let currentSales = (() => {
   const user = window.TANDRY_USER || {};
   if (user.displayName) {
@@ -2656,6 +2660,32 @@ function showFailureOverlay(serial){
   overlay.innerHTML=`<div style="font-size:64px;margin-bottom:16px;">⚠️</div><div style="color:white;font-size:22px;font-weight:700;margin-bottom:12px;">報刀送出失敗</div><div style="color:rgba(255,255,255,0.9);font-size:15px;max-width:420px;line-height:1.6;">${detail}</div><button id="failureOverlayCloseBtn" style="margin-top:24px;padding:12px 32px;border:none;border-radius:24px;background:#fff;color:#B71C1C;font-size:15px;font-weight:700;cursor:pointer;">我知道了</button>`;
   document.body.appendChild(overlay);
   document.getElementById('failureOverlayCloseBtn').onclick=()=>{if(document.body.contains(overlay))document.body.removeChild(overlay);};
+}
+
+// ── 公告提醒（未讀公告彈窗，資料來自 announcements-data.js）──────────
+function checkAnnouncements(){
+  const list=window.TANDRY_ANNOUNCEMENTS||[];
+  if(!list.length) return;
+  let seen=[];
+  try{ seen=JSON.parse(localStorage.getItem('tandry_announcements_seen')||'[]'); }catch(e){ seen=[]; }
+  const unseen=list.filter(a=>!seen.includes(a.id));
+  if(!unseen.length) return;
+  const sorted=[...unseen].sort((a,b)=>new Date((b.date||'').replace(/-/g,'/'))-new Date((a.date||'').replace(/-/g,'/')));
+  showAnnouncementModal(sorted);
+}
+function showAnnouncementModal(items){
+  const overlay=document.createElement('div');
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9998;display:flex;align-items:center;justify-content:center;padding:20px;';
+  const cards=items.map(a=>`<div style="margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid rgba(0,0,0,0.08);"><div style="font-size:12px;color:#888;margin-bottom:4px;">${a.date||''}</div><div style="font-size:16px;font-weight:700;margin-bottom:6px;">${a.title||''}</div><div style="font-size:14px;color:#333;line-height:1.6;white-space:pre-wrap;">${a.body||''}</div></div>`).join('');
+  overlay.innerHTML=`<div style="background:#fff;border-radius:16px;max-width:420px;width:100%;max-height:80vh;overflow:auto;padding:20px;"><div style="font-size:18px;font-weight:700;margin-bottom:14px;">📢 最新公告</div>${cards}<button id="announceCloseBtn" style="width:100%;margin-top:8px;padding:12px;border:none;border-radius:24px;background:#2D6A4F;color:#fff;font-size:15px;font-weight:700;cursor:pointer;">我知道了</button></div>`;
+  document.body.appendChild(overlay);
+  document.getElementById('announceCloseBtn').onclick=()=>{
+    let seen=[];
+    try{ seen=JSON.parse(localStorage.getItem('tandry_announcements_seen')||'[]'); }catch(e){ seen=[]; }
+    items.forEach(a=>{ if(!seen.includes(a.id)) seen.push(a.id); });
+    localStorage.setItem('tandry_announcements_seen', JSON.stringify(seen));
+    if(document.body.contains(overlay)) document.body.removeChild(overlay);
+  };
 }
 
 // ── 圖檔儲存（跨平台，含 iOS）────────────────
