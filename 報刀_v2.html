@@ -2651,8 +2651,8 @@ function showFailureOverlay(serial){
   const overlay=document.createElement('div');
   overlay.style.cssText='position:fixed;inset:0;background:rgba(183,28,28,0.96);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;';
   const detail = serial
-    ? `流水號 <span style="font-family:'JetBrains Mono',monospace;font-weight:700;">${serial}</span> 已建立，但部分品項可能未送出成功。請截圖畫面並聯絡內勤確認，避免資料不完整或重複建立。`
-    : `本次報刀尚未成功寫入系統，資料未儲存。請確認網路狀況後再按一次「確認送出」；若持續失敗，請聯絡內勤協助處理。`;
+    ? `流水號 <span style="font-family:'JetBrains Mono',monospace;font-weight:700;">${serial}</span> 已建立，但部分品項可能未送出成功。請截圖畫面並聯絡阿德確認，避免資料不完整或重複建立。`
+    : `本次報刀尚未成功寫入系統，資料未儲存。請確認網路狀況後再按一次「確認送出」；若持續失敗，請聯絡阿德協助處理。`;
   overlay.innerHTML=`<div style="font-size:64px;margin-bottom:16px;">⚠️</div><div style="color:white;font-size:22px;font-weight:700;margin-bottom:12px;">報刀送出失敗</div><div style="color:rgba(255,255,255,0.9);font-size:15px;max-width:420px;line-height:1.6;">${detail}</div><button id="failureOverlayCloseBtn" style="margin-top:24px;padding:12px 32px;border:none;border-radius:24px;background:#fff;color:#B71C1C;font-size:15px;font-weight:700;cursor:pointer;">我知道了</button>`;
   document.body.appendChild(overlay);
   document.getElementById('failureOverlayCloseBtn').onclick=()=>{if(document.body.contains(overlay))document.body.removeChild(overlay);};
