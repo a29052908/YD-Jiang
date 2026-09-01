@@ -1,0 +1,1367 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>小崔幫手</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+  :root {
+    --bg: #f5f6f8;
+    --surface: #ffffff;
+    --surface2: #f0f1f4;
+    --border: #e0e2e7;
+    --accent: #2f8f6e;
+    --accent-dark: #22694f;
+    --accent2: #3f7fd6;
+    --danger: #d84a5c;
+    --warning: #d69a2d;
+    --text: #1c2024;
+    --text-muted: #6b7280;
+    --text-dim: #9aa1ab;
+    --radius: 14px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #14161a;
+      --surface: #1c1f24;
+      --surface2: #242830;
+      --border: #33383f;
+      --accent: #3fb98a;
+      --accent-dark: #2f9370;
+      --accent2: #5b9bef;
+      --text: #eef0f2;
+      --text-muted: #9aa1ab;
+      --text-dim: #676e78;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Sans TC', sans-serif;
+    min-height: 100vh;
+    padding-bottom: 100px;
+  }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 16px; }
+
+  /* Header */
+  header {
+    display: flex; align-items: center; gap: 12px;
+    padding: 4px 0 16px;
+  }
+  header .logo {
+    width: 40px; height: 40px; border-radius: 10px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 900; font-size: 17px; color: #fff; flex-shrink: 0;
+  }
+  header h1 { font-size: 18px; font-weight: 700; }
+  header p { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
+  header .gear {
+    margin-left: auto; width: 38px; height: 38px; border-radius: 10px;
+    background: var(--surface); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; cursor: pointer;
+  }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 16px; margin-bottom: 14px;
+  }
+  .card h2 {
+    font-size: 13px; font-weight: 700; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .card h2 .badge {
+    background: var(--surface2); border: 1px solid var(--border);
+    padding: 1px 7px; border-radius: 20px; font-size: 11px; color: var(--text-muted);
+  }
+
+  label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 5px; }
+  input[type=text], input[type=tel], input[type=date], input[type=number], input[type=url], textarea, select {
+    width: 100%; padding: 10px 12px; background: var(--surface2);
+    border: 1px solid var(--border); border-radius: 10px; color: var(--text);
+    font-size: 14px; font-family: inherit; outline: none;
+  }
+  input:focus, textarea:focus, select:focus { border-color: var(--accent); }
+  .row { display: flex; gap: 10px; }
+  .row > * { flex: 1; min-width: 0; }
+  .field { margin-bottom: 10px; }
+
+  /* Customer picker */
+  .cust-search-wrap { position: relative; }
+  .cust-dropdown {
+    position: absolute; top: 100%; left: 0; right: 0; margin-top: 4px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    max-height: 280px; overflow-y: auto; z-index: 20; box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    display: none;
+  }
+  .cust-dropdown.show { display: block; }
+  .cust-item { padding: 10px 12px; cursor: pointer; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .cust-item:last-child { border-bottom: none; }
+  .cust-item:hover, .cust-item.active { background: var(--surface2); }
+  .cust-item .n { font-weight: 600; }
+  .cust-item .m { color: var(--text-dim); font-size: 11px; margin-top: 2px; }
+  .cust-empty { padding: 16px; text-align: center; color: var(--text-dim); font-size: 13px; }
+
+  .cust-selected {
+    background: rgba(63,185,138,0.08); border: 1px solid var(--accent);
+    border-radius: 10px; padding: 10px 12px; font-size: 13px; margin-top: 8px;
+    display: flex; align-items: flex-start; gap: 8px;
+  }
+  .cust-selected .info { flex: 1; }
+  .cust-selected .info b { font-size: 14px; }
+  .cust-selected .info div { color: var(--text-muted); font-size: 12px; margin-top: 2px; }
+  .cust-selected .clear-btn { background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 16px; }
+
+  /* Mode tabs */
+  .mode-tabs { display: flex; gap: 8px; margin-bottom: 14px; }
+  .mode-tab {
+    flex: 1; padding: 12px; text-align: center; border-radius: 12px;
+    background: var(--surface); border: 1px solid var(--border);
+    cursor: pointer; font-size: 14px; font-weight: 600; color: var(--text-muted);
+  }
+  .mode-tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .mode-panel { display: none; }
+  .mode-panel.active { display: block; }
+
+  /* Upload zone */
+  .upload-zone {
+    border: 2px dashed var(--border); border-radius: var(--radius);
+    padding: 32px 16px; text-align: center; cursor: pointer; position: relative;
+    background: var(--surface2);
+  }
+  .upload-zone.dragover { border-color: var(--accent); }
+  .upload-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+  .upload-zone .icon { font-size: 34px; display: block; margin-bottom: 8px; }
+  .upload-zone h3 { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+  .upload-zone p { font-size: 12px; color: var(--text-muted); }
+
+  .preview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 8px; margin-top: 12px; }
+  .preview-item { position: relative; border-radius: 8px; overflow: hidden; aspect-ratio: 3/4; background: var(--surface2); border: 1px solid var(--border); }
+  .preview-item img { width: 100%; height: 100%; object-fit: cover; }
+  .preview-item .rm { position: absolute; top: 4px; right: 4px; width: 20px; height: 20px; border-radius: 50%; background: rgba(216,74,92,0.9); border: none; color: #fff; font-size: 12px; cursor: pointer; }
+
+  button.btn {
+    padding: 11px 16px; border-radius: 10px; border: none; font-size: 14px;
+    font-weight: 600; cursor: pointer; font-family: inherit;
+  }
+  .btn-primary { background: var(--accent); color: #fff; width: 100%; }
+  .btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
+  .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border) !important; }
+  .btn-ghost { background: none; color: var(--accent2); }
+  .btn-danger-ghost { background: none; color: var(--danger); }
+  .btn-block { width: 100%; margin-top: 10px; }
+
+  .status-bar { margin-top: 10px; padding: 10px 12px; border-radius: 10px; font-size: 13px; display: none; align-items: center; gap: 10px; }
+  .status-bar.show { display: flex; }
+  .status-bar.loading { background: rgba(63,127,214,0.1); color: var(--accent2); }
+  .status-bar.success { background: rgba(63,185,138,0.12); color: var(--accent); }
+  .status-bar.error { background: rgba(216,74,92,0.1); color: var(--danger); }
+  .spinner { width: 14px; height: 14px; border: 2px solid rgba(63,127,214,0.3); border-top-color: var(--accent2); border-radius: 50%; animation: spin 0.8s linear infinite; flex-shrink: 0; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* OCR result table */
+  .ocr-row { display: flex; gap: 8px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); }
+  .ocr-row:last-child { border-bottom: none; }
+  .ocr-row input[type=checkbox] { width: 18px; height: 18px; flex-shrink: 0; }
+  .ocr-row .fields { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+  .ocr-row .raw { font-size: 11px; color: var(--text-dim); }
+  .ocr-row select { font-size: 13px; padding: 7px 8px; }
+  .ocr-row input[type=number] { width: 60px; flex-shrink: 0; text-align: center; padding: 7px 4px; }
+  .match-badge { font-size: 10px; padding: 1px 6px; border-radius: 20px; white-space: nowrap; }
+  .match-ok { background: rgba(63,185,138,0.15); color: var(--accent); }
+  .match-none { background: rgba(214,154,45,0.15); color: var(--warning); }
+
+  /* Category chips */
+  .cat-chips { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 8px; }
+  .cat-chip {
+    flex-shrink: 0; padding: 6px 12px; border-radius: 20px; background: var(--surface2);
+    border: 1px solid var(--border); font-size: 12px; cursor: pointer; white-space: nowrap; color: var(--text-muted);
+  }
+  .cat-chip.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  .product-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; max-height: 460px; overflow-y: auto; }
+  .product-card {
+    border: 1px solid var(--border); border-radius: 10px; padding: 10px; background: var(--surface2);
+    cursor: pointer; position: relative; user-select: none;
+  }
+  .product-card .pname { font-size: 12.5px; font-weight: 600; line-height: 1.3; margin-bottom: 4px; }
+  .product-card .pmeta { font-size: 11px; color: var(--text-dim); }
+  .product-card .pcode { font-size: 10px; color: var(--text-dim); margin-top: 2px; font-family: monospace; }
+  .product-card.in-cart { border-color: var(--accent); background: rgba(63,185,138,0.08); }
+  .qty-stepper {
+    position: absolute; top: 8px; right: 8px; display: flex; align-items: center; gap: 4px;
+    background: var(--accent); border-radius: 8px; padding: 2px;
+  }
+  .qty-stepper button { width: 20px; height: 20px; border: none; background: rgba(255,255,255,0.25); color: #fff; border-radius: 5px; font-size: 13px; cursor: pointer; line-height: 1; }
+  .qty-stepper span { color: #fff; font-size: 12px; font-weight: 700; min-width: 16px; text-align: center; }
+  .add-badge {
+    position: absolute; top: 8px; right: 8px; background: var(--accent); color: #fff;
+    width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px;
+  }
+  .search-box { margin-bottom: 10px; }
+
+  /* Cart */
+  .cart-row { display: flex; gap: 8px; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--border); }
+  .cart-row:last-child { border-bottom: none; }
+  .cart-row .name { flex: 1; font-size: 13px; }
+  .cart-row .name .code { display: block; font-size: 10.5px; color: var(--text-dim); font-family: monospace; }
+  .cart-row input[type=number] { width: 54px; text-align: center; padding: 6px 2px; font-size: 13px; }
+  .cart-row .price-input { width: 64px; text-align: right; padding: 6px 6px; font-size: 13px; }
+  .cart-row .rm { background: none; border: none; color: var(--danger); font-size: 17px; cursor: pointer; padding: 2px 6px; }
+  .cart-total { display: flex; justify-content: space-between; padding-top: 10px; margin-top: 6px; border-top: 1px solid var(--border); font-size: 14px; font-weight: 700; }
+  .cart-empty { text-align: center; padding: 24px; color: var(--text-dim); font-size: 13px; }
+
+  /* Sticky submit bar */
+  .submit-bar {
+    position: fixed; bottom: 0; left: 0; right: 0; background: var(--surface);
+    border-top: 1px solid var(--border); padding: 10px 16px; z-index: 30;
+    display: flex; gap: 8px; align-items: center;
+  }
+  .submit-bar .count { font-size: 12px; color: var(--text-muted); white-space: nowrap; }
+  .submit-bar .actions { display: flex; gap: 8px; flex: 1; }
+  .submit-bar button.btn { flex: 1; margin: 0; }
+
+  /* Settings modal */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100;
+    display: none; align-items: flex-end; justify-content: center;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal {
+    background: var(--bg); width: 100%; max-width: 760px; max-height: 88vh; overflow-y: auto;
+    border-radius: 18px 18px 0 0; padding: 20px 16px 32px;
+  }
+  .modal-head { display: flex; align-items: center; margin-bottom: 16px; }
+  .modal-head h2 { font-size: 16px; font-weight: 700; }
+  .modal-head button { margin-left: auto; background: none; border: none; font-size: 20px; color: var(--text-muted); cursor: pointer; }
+  .import-count { font-size: 12px; color: var(--accent); margin-top: 6px; }
+  .hint { font-size: 11.5px; color: var(--text-dim); margin-top: 4px; line-height: 1.5; }
+
+  .toast {
+    position: fixed; top: 16px; left: 50%; transform: translateX(-50%);
+    background: var(--text); color: var(--bg); padding: 10px 18px; border-radius: 20px;
+    font-size: 13px; z-index: 200; opacity: 0; transition: opacity 0.25s; pointer-events: none;
+  }
+  .toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="logo">崔</div>
+    <div>
+      <h1>小崔幫手</h1>
+      <p id="dateLabel">—</p>
+    </div>
+    <div class="gear" onclick="openSettings()">⚙️</div>
+  </header>
+
+  <!-- Customer -->
+  <div class="card">
+    <h2>1. 選擇客戶 / 送貨點</h2>
+    <div class="cust-search-wrap">
+      <input type="text" id="custSearch" placeholder="輸入藥局名稱、分店或客戶代碼搜尋…" autocomplete="off">
+      <div class="cust-dropdown" id="custDropdown"></div>
+    </div>
+    <div id="custSelectedBox"></div>
+  </div>
+
+  <!-- Mode tabs -->
+  <div class="mode-tabs">
+    <div class="mode-tab active" id="tabOcr" onclick="switchMode('ocr')">📷 拍照辨識</div>
+    <div class="mode-tab" id="tabBtn" onclick="switchMode('btn')">🔘 按鈕下單</div>
+  </div>
+
+  <!-- OCR mode -->
+  <div class="mode-panel active" id="panelOcr">
+    <div class="card">
+      <h2>拍照辨識訂單</h2>
+      <div class="upload-zone" id="uploadZone">
+        <input type="file" id="fileInput" accept="image/*" multiple capture="environment">
+        <span class="icon">📷</span>
+        <h3>拍照或上傳藥局採購單截圖</h3>
+        <p>可多張，系統會自動判讀品項與數量</p>
+      </div>
+      <div class="preview-grid" id="previewGrid"></div>
+      <button class="btn btn-primary btn-block" id="ocrBtn" disabled onclick="runOcr()">送出辨識</button>
+      <div class="status-bar" id="ocrStatus"><div class="spinner" id="ocrSpinner"></div><span id="ocrStatusMsg"></span></div>
+    </div>
+
+    <div class="card" id="ocrResultCard" style="display:none">
+      <h2>辨識結果 <span class="badge" id="ocrResultCount">0 筆</span></h2>
+      <div id="ocrResultList"></div>
+      <button class="btn btn-primary btn-block" onclick="addOcrToCart()">加入所選項目到訂單</button>
+    </div>
+  </div>
+
+  <!-- Button mode -->
+  <div class="mode-panel" id="panelBtn">
+    <div class="card">
+      <h2>商品選擇 <span class="badge" id="productCountBadge">0 項</span></h2>
+      <input type="text" class="search-box" id="productSearch" placeholder="搜尋商品名稱或條碼…" oninput="renderProductGrid()">
+      <div class="cat-chips" id="catChips"></div>
+      <div class="product-grid" id="productGrid"></div>
+    </div>
+  </div>
+
+  <!-- Cart -->
+  <div class="card">
+    <h2>目前訂單品項 <span class="badge" id="cartCountBadge">0 項</span></h2>
+    <div id="cartList"><div class="cart-empty">尚未加入任何品項</div></div>
+    <div class="cart-total"><span>小計</span><span id="cartTotal">NT$ 0</span></div>
+  </div>
+
+  <!-- Note -->
+  <div class="card">
+    <h2>訂單備註</h2>
+    <textarea id="orderNote" rows="2" placeholder="例如：採購單號 W202608160392"></textarea>
+  </div>
+
+</div>
+
+<!-- Sticky submit bar -->
+<div class="submit-bar">
+  <span class="count" id="submitCount">0 項</span>
+  <div class="actions">
+    <button class="btn btn-secondary" onclick="exportExcel()">匯出 Excel</button>
+    <button class="btn btn-primary" id="submitBtn" onclick="submitOrder()">送出訂單</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Settings modal -->
+<div class="modal-overlay" id="settingsOverlay">
+  <div class="modal">
+    <div class="modal-head"><h2>⚙️ 設定與資料匯入</h2><button onclick="closeSettings()">✕</button></div>
+
+    <div class="card">
+      <h2>業務基本資料</h2>
+      <div class="field"><label>員工代碼</label><input type="text" id="empCode" placeholder="例如 A115080301"></div>
+    </div>
+
+    <div class="card">
+      <h2>N8N Webhook 設定</h2>
+      <div class="field">
+        <label>拍照辨識 Webhook URL</label>
+        <input type="url" id="ocrWebhook" placeholder="https://ydj.zeabur.app/webhook/pharma-ocr-order">
+      </div>
+      <div class="field">
+        <label>送出訂單 Webhook URL</label>
+        <input type="url" id="submitWebhook" placeholder="https://ydj.zeabur.app/webhook/pharma-submit-order">
+      </div>
+      <button class="btn btn-secondary btn-block" onclick="saveSettings()">儲存設定</button>
+      <p class="hint">尚未設定 Webhook 也能使用「按鈕下單」與「匯出 Excel」，只是無法送出訂單到雲端。n8n 端需要建立的 workflow 規格請見同目錄 README.md。</p>
+    </div>
+
+    <div class="card">
+      <h2>匯入商品清單</h2>
+      <p class="hint">直接從 Excel 選取整個表格（含標題列：產品大類、品名、存貨代碼、進價、卡多摩進價、定價、樣品價、國際條碼、保存期限、退換貨、註記）複製，貼到下方後按匯入。</p>
+      <textarea id="productPaste" rows="4" placeholder="貼上商品清單 (Tab分隔)…"></textarea>
+      <button class="btn btn-secondary btn-block" onclick="importProducts()">匯入商品清單</button>
+      <div class="import-count" id="productImportMsg"></div>
+    </div>
+
+    <div class="card">
+      <h2>匯入客戶清單</h2>
+      <p class="hint">從 Excel 複製整個客戶表格（含標題列：交易狀態、客戶代碼、部門分類、開發者、區域、狀態、客戶名稱、藥局名稱(分店)、發票別、統編、發票抬頭、地址編號、出貨地、地址、電話、傳真、聯絡人、職稱）貼到下方。</p>
+      <textarea id="customerPaste" rows="4" placeholder="貼上客戶清單 (Tab分隔)…"></textarea>
+      <button class="btn btn-secondary btn-block" onclick="importCustomers()">匯入客戶清單</button>
+      <div class="import-count" id="customerImportMsg"></div>
+    </div>
+
+    <div class="card">
+      <h2>資料狀態</h2>
+      <p class="hint">商品：<span id="statProducts">0</span> 筆　客戶：<span id="statCustomers">0</span> 筆</p>
+      <button class="btn btn-secondary btn-block" onclick="restoreDefaults()">還原出廠內建清單</button>
+      <button class="btn btn-danger-ghost btn-block" onclick="clearAllData()">清除所有本機資料</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---------------- State ---------------- */
+const ORDER_COLUMNS = ['員工代碼','單據日期','客戶代碼','訂購人(客戶名稱)','收件人','地址編號','送貨地址','收件人電話','數量','商品名稱','存貨代碼','進價','訂單備註','公定進價'];
+
+/* 內建出廠資料：商品清單／客戶清單。之後要更新，直接到設定用「貼上匯入」覆蓋即可，
+   或按「還原出廠內建清單」把這份內建資料重新載入。 */
+const EMBEDDED_PRODUCTS_TSV = `
+產品大類	品名	存貨代碼	進價	卡多摩進價	定價	樣品價	國際條碼	保存期限	退換貨	註記
+益生菌-300億01	300億純淨益生菌(1入)	P1SBC00101	問助理			8		2年
+益生菌-300億30(藥)	300億純淨益生菌(30入/盒)-藥局版	P1SBC03002	590		1180	300	4718287343111	2年
+益生菌-300億05	300億純淨益生菌(5入/盒)	P1SBC00501	問助理			50	4718287341605	2年
+益生菌-400億01	400億敏立清益生菌(1入)	P1SBM00101	問助理			10		2年
+益生菌-400億30	400億敏立清益生菌(30入/盒)	P1SBM03001	640		1280	350	4718287342923	2年
+益生菌-400億05	400億敏立清益生菌(5入/盒)	P1SBM00501	問助理			220	4718287342916	2年
+益生菌-YOHO01	YOHO敏立清益生菌-乳酸(1入)	P1HMR00101	12			9		2年
+益生菌-YOHO05	YOHO敏立清益生菌-乳酸(5入/盒)	P1HMR00501	100			55	4718287341780	2年
+益生菌-YOHO60	YOHO敏立清益生菌-乳酸(60入/盒)	P1HMR06001	840	800	1680	500	4718287341643	2年
+兒童-多醣體02	小悠活多醣體咀嚼錠(2入/包)	P4XDJ00201	問助理		問助理	16	4718287341124	3年
+兒童-多醣體30	小悠活多醣體咀嚼錠(30入/瓶)	P4XDJ03001	410	365	820	230	4718287340707	3年
+兒童-多醣體30(藥)	小悠活多醣體咀嚼錠(30入/瓶)-藥局版	P4XDJ03003	410		820	230	4718287343104	3年
+兒童-魚油10	小悠活兒童魚油咀嚼軟膠囊(10入/瓶)	P4XYJ01001	問助理		問助理	85	4718287342404	3年
+兒童-魚油30	小悠活兒童魚油咀嚼軟膠囊(30入/盒)	P4XYJ03001	380	370	740	200	4718287342411	3年
+兒童-葉黃素10	小悠活兒童葉黃素咀嚼錠(10入/瓶)	P4XTE01001	問助理		問助理	40	4718287341346	3年
+兒童-葉黃素10(藥)	小悠活兒童葉黃素咀嚼錠(10入/瓶)-飛機版	P4XTE01003	問助理		問助理	40	4718287342794	3年
+兒童-葉黃素02	小悠活兒童葉黃素咀嚼錠(2入/包)	P4XTE00201	問助理		問助理	8	4718287341315	3年
+兒童-葉黃素45	小悠活兒童葉黃素咀嚼錠(45入/瓶)	P4XTE04501	260	230	520	175	4718287341353	3年
+兒童-維他命10	小悠活兒童綜合維他命咀嚼錠(10入/瓶)	P4XZU01001	0		170	28	4718287342206	2年
+兒童-維他命02	小悠活兒童綜合維他命咀嚼錠(2入/包)	P4XZU00201	問助理		問助理	6	4718287342190	2年
+兒童-維他命45	小悠活兒童綜合維他命咀嚼錠(45入/盒)	P4XZU04501	260	230	520	135	4718287342220	3年
+軟糖-柳橙C	小悠活柳橙C脆Q軟糖(10入/包)	P4XCH01001	22		39	12	4718287341766	2年	不可	24包/箱
+軟糖-益生菌	小悠活益生菌脆Q軟糖(10入/包)	P4XSQ01001	22		39	12	4718287341278	2年	不可	24包/箱
+無糖軟糖-葡萄	小悠活無糖Q小熊軟糖-益生菌(25g/包)	P4XUS01001	42		69	32	4718287342893	18個月	不可	48包/箱
+無糖軟糖-柳橙	小悠活無糖Q小熊軟糖-綜合維他命(25g/包)	P4XUZ01001	42		69	32	4718287342886	18個月	不可	48包/箱
+兒童-鈣10	小悠活鈣咀嚼錠(10入/瓶)-球棒版	P4XGJ01003	問助理		問助理	38	4718287342817	2年
+兒童-鈣02	小悠活鈣咀嚼錠(2入/包)	P4XGJ00201	問助理		問助理	8	4718287341889	2年
+兒童-鈣45	小悠活鈣咀嚼錠(45入/盒)-球棒版	P4XGJ04501	260	230	520	137	4718287341919	2年
+軟糖-葉黃素	小悠活葉黃素脆Q軟糖(10入/包)	P4XEQ01001	22		39	12	4718287341285	2年	不可	24包/箱
+B群10(藥)	原力B群長效緩釋錠(10入/瓶)-藥局版	P3LBH01002	問助理		問助理	50	4718287342770	3年
+B群02	原力B群長效緩釋錠(2入/紙夾)	P3LBH00201	問助理		問助理	10	4718287340950	3年
+B群60(公)	原力B群長效緩釋錠(60入/瓶)	P3LBH06001		370
+B群60(藥)	原力B群長效緩釋錠(60入/瓶)-藥局版	P3LBH06002	370		758	300	4718287342787	3年
+維他命-女性10(公)	原力女性綜合維他命+鐵(10入/瓶)-公司版	P3YNT01001	75		150	47	4718287342589	3年
+維他命-女性02	原力女性綜合維他命+鐵(2入/包)	P3YNT00201	25		49	10	4718287342572	3年
+維他命-女性30(公)	原力女性綜合維他命+鐵(30入/盒)	P3YNT03001	225		445	125	4718287342619	3年
+瑪卡-10	原力五色瑪卡+南非醉茄(10粒/盒)-藥局版	P3MNQ01001	250		499	160	4718287343289	3年
+維他命-男性10(公)	原力男性綜合維他命+鋅(10入/瓶)-公司版	P3YNX01001	75		150	47	4718287342664	3年
+維他命-男性02	原力男性綜合維他命+鋅(2入/包)	P3YNX00201	25		49	10	4718287342657	3年
+維他命-男性30(公)	原力男性綜合維他命+鋅(30入/盒)	P3YNX03001	225		445	125	4718287342695	3年
+力鈣鎂10	原力海藻鈣鎂錠(10入/瓶)	P3LGM01001	問助理		問助理	45	4718287341674	3年
+力鈣鎂02	原力海藻鈣鎂錠(2入/包)	P3LGM00201	問助理		問助理	8	4718287341698	3年
+力鈣鎂60(藥)	原力海藻鈣鎂錠(60入/瓶)-藥局版	P3LGM06002	395		790	270	4718287343128	3年
+D3鈣-粉末	原力鈣D3顆粒粉末(1入/盒)	P3LGD00101	0		0	8		3年
+D3鈣-粉末	原力鈣D3顆粒粉末(30入/盒)	P3LGD03001	395		790	240	4718287341261	3年
+多醣體10	原力葡聚多醣體(10入/瓶)	P3LPD01001	問助理		問助理	120	4718287341179	3年
+多醣體30(藥)	原力葡聚多醣體(30入/瓶)-藥局版	P3LPD03002	495		990	350	4718287343142	3年
+C+鋅-粉01	原力維生素C+鋅粉(1入)	P3LCX00101	0		0	4		3年
+C+鋅-粉05	原力維生素C+鋅粉(5入)	P3LCX00501	問助理		問助理	18	4718287342268	3年
+C+鋅-粉30(藥)	原力維生素C+鋅粉包(30入/盒)-藥局版	P3LCX03002	120		239	59	4718287343203	3年	不可	12盒可免運出，無搭贈
+D3-800IU120(藥)	原力維生素D800IU錠(120入/瓶)-藥局版	P3LSD12002	175		349	115	4718287343227	3年		12盒可免運出
+大豆萃取10(公)	悠活大豆萃取膠囊(10入/瓶)	P2HDJ01001	問助理		問助理	65	4718287341506	2年
+大豆萃取60(藥)	悠活大豆萃取膠囊(60入/瓶)-藥局版	P2HDJ06002	550		1100	380	4718287343180	3年
+活生素030	悠活生法素複方膠囊(30入/盒)	P2HSS03001	340		680	240	4718287343562	3年
+活苦牛70(藥)	悠活好代謝(70入/盒)合包-藥局版	P2HKN07002	1100		2180	1000	4718287341995	3年
+助眠-10	悠活助眠複方膠囊(10入/袋)	P2HZM01001	145		290	105	4718287342367	3年
+助眠-30	悠活助眠複方膠囊(30入/盒)	P2HZM03001	問助理		820	299	4718287342374	3年
+助眠-60	悠活助眠複方膠囊(60入/盒)	P2HZM06001	790		1580	550	4718287342381	3年	售完不補，改30入
+活紅納60(公)	悠活紅麴納豆Q10膠囊(60入/盒)	P2HHN06001	590		1180	450	4718287342879	3年
+活紅納60(藥)	悠活紅麴納豆Q10膠囊(60入/盒)-藥局版	P2HHN06002	590		1180	450	4718287343159	3年
+魚油80%10(公)	悠活深海黃金魚油軟膠囊(10入/瓶)	P2HJU01001	問助理		問助理	70	4718287341582	3年
+魚油80%60(公)	悠活深海黃金魚油軟膠囊(60入/瓶)	P2HJU06001		590
+魚油80%60(藥)	悠活深海黃金魚油軟膠囊(60入/瓶)-藥局版	P2HJU06003	590		1180	400	4718287343098	3年
+魚磷油-60	悠活魚油磷蝦油軟膠囊(60入/盒)	P2HYL06001	640		1280	420	4718287343043	3年	不可
+噴劑紫錐花	悠活紫錐花+維生素C噴劑(50ml/盒)	P2HZC05001	250		499	200	4718287341872	3年
+南瓜60	悠活黑麥花南瓜籽複方膠囊(60入/瓶)	P2HMG06001	420		1280	350	4718287343388	3年
+膠原蛋白01	悠活煥妍膠原蛋白精華粉(1入)	P2HJD00101	0		0	12	4718287341957	2年
+膠原蛋白20(藥)	悠活煥妍膠原蛋白精華粉(20入/盒)	P2HJD02001	425		850	250	4718287341056	2年
+膠原蛋白07(藥)	悠活煥妍膠原蛋白精華粉(7入/盒)	P2HJD00701	問助理		問助理	100	4718287341186	2年
+成人葉蝦10(藥)	悠活葉黃素+蝦紅素複方軟膠囊(10入/瓶)-藥局版	P2HHX01002	問助理		問助理	130	4718287342749	3年
+成人葉蝦30(藥)	悠活葉黃素+蝦紅素複方軟膠囊(30入/瓶)-藥局版	P2HHX03002	590		1180	380	4718287342756	3年
+葉酸鐵10	悠活葉酸+甘胺酸亞鐵植物膠囊(10入/瓶)	P2HTY01001	問助理		問助理	50	4718287341063	3年	不可
+葉酸鐵60	悠活葉酸+甘胺酸亞鐵植物膠囊(60入/瓶)	P2HTY06001	490		980	300	4718287340981	3年	不可
+C+鋅	悠活維生素C+鋅口含錠-鳳梨蘋果口味(28入/包)	P2HCF02801	70		129	35	4718287341407	2年	不可
+D3素-液-50ML	悠活維生素D3素食噴劑(50ml/瓶)	P2HUP05001	600	540	1080	450	4718287341858	3年	不可
+私密膠囊10(公)	悠活蔓越莓私密益生菌植物膠囊(10入/瓶)-60億	P2HMS01001	問助理		問助理	60	4718287341131	2年
+私密膠囊60(藥)	悠活蔓越莓私密益生菌植物膠囊(60入/瓶)-藥局版	P2HMS06002	475		950	300	4718287343135	2年
+優4蛋白-10	悠活優4蛋白+膽鹼沖泡粉包(10入/盒)	P2UGS01001	340		680	240	4718287343241	2年	預計26/8月初到貨
+優4蛋白-01	悠活優4蛋白+膽鹼沖泡粉包(1包)	P2UGS00101	35		70	25	4718287343234	2年
+薑黃10	悠活薑黃朝鮮薊植物膠囊(10入/瓶)	P2JHC01001	130		260	85	4718287342084	3年
+薑黃60(藥)	悠活薑黃朝鮮薊植物膠囊(60入/瓶)-藥局版	P2JHC06002	540		1080	430	4718287343197	3年
+UC II10	悠活關健複方膠囊(10入/盒)	P2HBB01001	問助理		570	180	4718287341520	2年
+UC II30(藥)	悠活關健複方膠囊(30入/盒)-藥局版	P2HBB03002	840		1780	535	4718287343081	3年
+`;
+const EMBEDDED_CUSTOMERS_TSV = `
+交易狀態	客戶代碼	部門分類	開發者	區域	狀態	客戶名稱	藥局名稱(分店)	發票別	統編	發票抬頭	地址編號	出貨地	地址	電話	傳真	聯絡人	職稱
+併入同德辰安	(禁用)C190407	藥局	A104	北三區	X	辰安藥局(二聯停用)		二聯發票			190407001	桃園市蘆竹區	338桃園市蘆竹區上興路216號	03-313-6631		黃藥師	藥師
+併入同德辰安	(禁用)C190407-01	藥局		北三區	X	辰安藥局樂心	樂心藥局	三聯發票	82328427	辰安藥局	19040701003	桃園市中壢區	320桃園市中壢區中山東路二段536號	03-4655667
+併入同德辰安	(禁用)C190407-01	藥局	A104	北三區	X	辰安藥局青埔	青埔辰安藥局	三聯發票	82328427	辰安藥局	19040701002	桃園市大園區	337桃園市大園區致遠一路1號	0911-296600		林藥師	藥師
+併入同德辰安	(禁用)C190407-01	藥局	A104	北三區	X	辰安藥局蘆竹		三聯發票	82328427	辰安藥局	19040701001	桃園市蘆竹區	338桃園市蘆竹區上興路216號	03-3136631		黃藥師	藥師
+併入同德辰安	(禁用)C190407-01	藥局		北三區	X	辰安藥局南崁	南崁辰安藥局	三聯發票	82328427	辰安藥局	19040701004	桃園市蘆竹區	338桃園市蘆竹區南崁路54號	03-3530102
+	C181201	藥局	A104	北三區		合約-全球藥業股份有限公司	總部	三聯發票	12986860	全球藥業股份有限公司	181201002	桃園市八德區	334桃園市八德區建國路866號2樓(總部)	03-3631517		呂亞涵	採購
+	C181201	藥局	A104	北三區		合約-全球藥業股份有限公司	總倉	三聯發票	12986860	全球藥業股份有限公司	181201001	桃園市八德區	334桃園市八德區建國路870巷2號	03-3631517		游採購	採購
+	C190402	藥局	A104	北三區	█	卡多摩33-林口仁愛店	33-林口仁愛店	三聯發票	70710216	台灣卡多摩嬰童館股份有限公司	190402033	新北市林口區	244新北市林口區仁愛路一段691號	02-2601-9373
+	C190402	藥局	A111060101	北三區	█	卡多摩Q002-林口仁愛二店	Q002-林口仁愛二店	三聯發票	70710216	台灣卡多摩嬰童館股份有限公司	190402Q002	新北市林口區	244新北市林口區仁愛路二段249號	02-26089096
+	C190402	藥局	A111060101	北三區	█	卡多摩66-新竹光復店	66-新竹光復店	三聯發票	70710216	台灣卡多摩嬰童館股份有限公司	190402066	新竹市東區	300新竹市東區光復路一段369號	03-5630056
+	C190402	藥局	A111060101	北三區	█	卡多摩57-竹北縣政店	57-竹北縣政店	三聯發票	70710216	台灣卡多摩嬰童館股份有限公司	190402057	新竹縣竹北市	302新竹縣竹北市縣政二路550號	03-5587073
+	C190402	藥局	A111060101	北三區	█	卡多摩64-中壢龍岡店	64-中壢龍岡店	三聯發票	70710216	台灣卡多摩嬰童館股份有限公司	190402064	桃園市中壢區	320桃園市中壢區龍岡路二段69號	03-428-0622
+	C190402	藥局	A104	北三區	█	卡多摩47-中壢環北店	47-中壢環北店	三聯發票	70710216	台灣卡多摩嬰童館股份有限公司	190402047	桃園市中壢區	320桃園市中壢區環北路107-1號	03-4333-822
+	C190402	藥局	A111060101	北三區	█	卡多摩58-平鎮山仔頂店	58-平鎮山仔頂店	三聯發票	70710216	台灣卡多摩嬰童館股份有限公司	190402058	桃園市平鎮區	324桃園市平鎮區中豐路山頂段150號	03-4698157
+	C190402	藥局	A104	北三區	█	卡多摩51-平鎮環南店	51-平鎮環南店	三聯發票	70710216	台灣卡多摩嬰童館股份有限公司	190402051	桃園市平鎮區	324桃園市平鎮區環南路139號	03-4015520
+	C190402	藥局	A111060101	北三區	█	卡多摩60-北龍店	60-北龍店	三聯發票	70710216	台灣卡多摩嬰童館股份有限公司	190402060	桃園市龍潭區	325桃園市龍潭區北龍路273-1號	03-4896575
+	C190402	藥局	A104	北三區	█	卡多摩53-楊梅埔心店	53-楊梅埔心店	三聯發票	70710216	台灣卡多摩嬰童館股份有限公司	190402053	桃園市楊梅區	326桃園市楊梅區永美路385-7號	03-431-1123
+	C190402	藥局	A104	北三區	█	卡多摩37-桃園中山店	37-桃園中山店	三聯發票	70710216	台灣卡多摩嬰童館股份有限公司	190402037	桃園市桃園區	330桃園市桃園區中山路393-1號	03-339-0622
+	C190402	藥局	A111060101	北三區	█	卡多摩59-春日店	59-春日店	三聯發票	70710216	台灣卡多摩嬰童館股份有限公司	190402059	桃園市桃園區	330桃園市桃園區春日路868號	03-3160612
+	C190402	藥局	A104	北三區	█	卡多摩38-桃園莊敬店	38-桃園莊敬店	三聯發票	70710216	台灣卡多摩嬰童館股份有限公司	190402038	桃園市桃園區	330桃園市桃園區莊敬路一段168號	03-2150117
+	C190402	藥局	A104	北三區	█	卡多摩35-桃園龜山店	35-桃園龜山店	三聯發票	70710216	台灣卡多摩嬰童館股份有限公司	190402035	桃園市龜山區	333桃園市龜山區文化三路388號	03-3278-575
+	C190402	藥局	A111060101	北三區	█	卡多摩55-龜山萬壽店	55-龜山萬壽店	三聯發票	70710216	台灣卡多摩嬰童館股份有限公司	190402055	桃園市龜山區	333桃園市龜山區萬壽路二段1287號1樓	03-359-1695
+	C190402	藥局	A104	北三區	█	卡多摩40-八德介壽店	40-八德介壽店	三聯發票	70710216	台灣卡多摩嬰童館股份有限公司	190402040	桃園市八德區	334桃園市八德區介壽路二段1068號(右邊卡多摩)	03-361-9140
+	C190402	藥局	A081	北三區	█	卡多摩54-八德金和店	54-八德金和店	三聯發票	70710216	台灣卡多摩嬰童館股份有限公司	190402054	桃園市八德區	334桃園市八德區金和路21號	03-361-7335
+	C190402	藥局	A111060101	北三區	█	卡多摩62-大溪店	62-大溪店	三聯發票	70710216	台灣卡多摩嬰童館股份有限公司	190402062	桃園市大溪區	335桃園市大溪區員林路一段75號	03-3801629
+	C190402	藥局	A111060101	北三區	█	卡多摩56-桃園大園店	56-桃園大園店	三聯發票	70710216	台灣卡多摩嬰童館股份有限公司	190402056	桃園市大園區	337桃園市大園區中華路88號	03-3397562
+	C190402	藥局	A104	北三區	█	卡多摩29-桃園蘆竹店	29-桃園蘆竹店	三聯發票	70710216	台灣卡多摩嬰童館股份有限公司	190402029	桃園市蘆竹區	338桃園市蘆竹區仁愛路一段26號	03-212-2780
+	C190402	藥局	A104	北三區	█	卡多摩38-桃園大興店	38-桃園莊敬店	三聯發票	70710216	台灣卡多摩嬰童館股份有限公司		桃園市桃園區
+	C190404	藥局	A104	北三區		合約-全郁藥局		二聯發票			190404001	桃園市蘆竹區	338桃園市蘆竹區大新路460號	03-323-1101		黃藥師	藥師
+	C190405	藥局	A104	北三區		合約-安博氏藥師藥局		三聯發票	82317391	安博氏藥師藥局	190405001	桃園市龜山區	333桃園市龜山區文化一路210號(貨可放警衛室)	03-328-3185		范藥師	藥師
+	C190408	藥局	A104	北三區		美日安	美日安藥局	二聯發票			190408001	桃園市中壢區	320桃園市中壢區民族路85號	03-495-1085		林藥師	藥師
+	C190408	藥局	A104	北三區		美日安添好運大藥局	添好運大藥局	二聯發票			190408004	桃園市平鎮區	324桃園市平鎮區中豐路188號	03-457-0009		林君南	藥師
+	C190408	藥局	A104	北三區		美日安雙林藥師藥局	雙林藥師藥局	二聯發票			190408005	桃園市平鎮區	324桃園市平鎮區民族路二段187號	03-491-3210		林藥師	藥師
+	C190408	藥局	A104	北三區		美日安恬心藥局	恬心藥局	二聯發票			190408003	桃園市平鎮區	324桃園市平鎮區延平路二段368號	03-493-2791		林藥師	藥師
+	C190409	藥局	A104	北三區		唯恩藥局		二聯發票			190409001	新北市林口區	244新北市林口區麗園一街9巷1號1樓之2	02-2600-5805		羅藥師	藥師
+	C190410	藥局	A104	北三區		康立藥局新竹	新竹康立藥局	三聯發票	78012122	康立藥局		新竹市北區	300新竹市北區水田街162號	03-545-7591
+	C190410	藥局	A104	北三區		康立藥局	康立藥局	三聯發票	78012122	康立藥局		新竹縣竹北市	302新竹縣竹北市中正東路288號	03-551-8093
+	C190410	藥局	A104	北三區		康立藥局竹北	竹北立康藥局	三聯發票	78012122	康立藥局		新竹縣竹北市	302新竹縣竹北市華興街220號	03-552-7730
+	C190410	藥局	A104	北三區		康立藥局總倉	總倉	三聯發票	78012122	康立藥局	190410001	新竹縣竹北市	302新竹縣竹北市聯興二街77號	03-656-6549	03-656-6553	劉藥師	藥師
+	C190410	藥局	A104	北三區		康立藥局立人藥局新豐	新豐立人藥局	三聯發票	78012122	康立藥局		新竹縣新豐鄉	304新竹縣新豐鄉建興路一段57號	03-557-8217
+	C190410	藥局	A104	北三區		康立藥局新埔	新埔康立藥局	三聯發票	78012122	康立藥局		新竹縣新埔鎮	305新竹縣新埔鎮中正路381號	03-589-6129
+	C190412	藥局	A104	北三區	█	合約-莘莘藥局		三聯發票	99442794	莘莘藥局	190412001	桃園市桃園區	330桃園市桃園區莊敬路一段368號	03-317-0681	03-317-0329	楊藥師	藥師
+	C190517-01	藥局	A104	北三區		安捷幸福藥局		三聯發票	61387352	安捷幸福藥局	19051701001	桃園市龜山區	333桃園市龜山區南祥路50號	03-222-0251		賴穎川	負責人
+	C190518	藥局	A104	北三區		合約-迦南藥局總店	迦南藥局(總店)	三聯發票	41157624	迦南藥局	190518001	桃園市桃園區	330桃園市桃園區國聖一街61號1樓之1號	03-360-9938		劉沛晴	藥師
+	C190518	藥局	A104	北三區		合約-迦南藥局安寶親子藥局	安寶親子藥局	三聯發票	41157624	迦南藥局	190518002	桃園市龜山區	333桃園市龜山區文化二路51號	03-328-1688		陳藥師	藥師
+	C190522	藥局		北三區	█	寶寶共和國中壢店	B003-中壢店	三聯發票	54735227	寶寶共和國股份有限公司	190522B003	桃園市中壢區	320桃園市中壢區中山東路二段510號B1	03-465-2783
+	C190623	藥局	A062	北三區	█	營養銀行-新竹民族門市	新竹民族門市	三聯發票	54714026	玥盛股份有限公司	190623037	新竹市東區	300新竹市東區三民里民族路122號	03-533-9546
+	C190623	藥局	A062	北三區	█	營養銀行-光復門市	光復門市	三聯發票	54714026	玥盛股份有限公司	190623016	新竹市東區	300新竹市東區光復路一段43號	03-563-5212
+	C190623	藥局	A062	北三區	█	營養銀行-建中門市	建中門市	三聯發票	54714026	玥盛股份有限公司	190623028	新竹市東區	300新竹市東區建中路152號1樓	03-572-4968
+	C190623	藥局	A062	北三區	█	營養銀行-國華門市	國華門市(原水田門市)	三聯發票	54714026	玥盛股份有限公司	190623013	新竹市東區	300新竹市東區國華街6號	03-515-3420
+	C190623	藥局	A062	北三區	█	營養銀行-牛埔門市	牛埔門市	三聯發票	54714026	玥盛股份有限公司	190623014	新竹市香山區	300新竹市香山區牛埔路154號	03-539-8948
+	C190623	藥局	A062	北三區	█	營養銀行-文興門市	文興門市	三聯發票	54714026	玥盛股份有限公司	190623012	新竹縣竹北市	302新竹縣竹北市文興路一段92號	03-667-6743
+	C190623	藥局	A062	北三區	█	營養銀行-成功門市	成功門市	三聯發票	54714026	玥盛股份有限公司	190623017	新竹縣竹北市	302新竹縣竹北市成功三路80號	03-550-2205
+	C190623	藥局	A062	北三區	█	營養銀行-竹北勝利門市	竹北勝利門市	三聯發票	54714026	玥盛股份有限公司	190623018	新竹縣竹北市	302新竹縣竹北市勝利六街86號	03-658-6842
+	C190623	藥局	A062	北三區	█	營養銀行-博愛門市	博愛門市	三聯發票	54714026	玥盛股份有限公司	190623032	新竹縣竹北市	302新竹縣竹北市博愛街166號	03-552-9790
+	C190623	藥局	A062	北三區	█	營養銀行-湖口中正門市	湖口中正門市	三聯發票	54714026	玥盛股份有限公司	190623034	新竹縣湖口鄉	303新竹縣湖口鄉中正路一段169號	03-590-4428
+	C190623	藥局	A062	北三區	█	營養銀行-新豐門市	新豐門市	三聯發票	54714026	玥盛股份有限公司	190623039	新竹縣新豐鄉	304新竹縣新豐鄉建興路103號	03-557-7571
+	C190623	藥局	A062	北三區	█	營養銀行-東寧門市	東寧門市	三聯發票	54714026	玥盛股份有限公司	190623023	新竹縣竹東鎮	310新竹縣竹東鎮東寧路二段316號	03-596-1979
+	C190623	藥局	A062	北三區	█	營養銀行-中北門市	中北門市	三聯發票	54714026	玥盛股份有限公司	190623008	桃園市中壢區	320桃園市中壢區中北路二段432號	03-438-5368
+	C190623	藥局	A062	北三區	█	營養銀行-龍東門市	龍東門市	三聯發票	54714026	玥盛股份有限公司	190623044	桃園市中壢區	320桃園市中壢區龍東路379號	03-438-3149
+	C190623	藥局	A062	北三區	█	營養銀行-山子頂門市	山子頂門市	三聯發票	54714026	玥盛股份有限公司	190623006	桃園市平鎮區	324桃園市平鎮區中豐路山頂段145號	03-469-5228
+	C190623	藥局	A062	北三區	█	營養銀行-楊梅新成門市	楊梅新成門市	三聯發票	54714026	玥盛股份有限公司	190623040	桃園市楊梅區	326桃園市楊梅區大平街90號	03-478-2937
+	C190623	藥局	A062	北三區	█	營養銀行-埔心門市	埔心門市	三聯發票	54714026	玥盛股份有限公司	190623030	桃園市楊梅區	326桃園市楊梅區永美路211號	03-481-0854
+	C190623	藥局	A111060101	北三區	█	營養銀行-桃園中正門市	桃園中正門市	三聯發票	54714026	玥盛股份有限公司	190623048	桃園市桃園區	330桃園市桃園區中正路642號	03-3580833
+	C190623	藥局	A062	北三區	█	營養銀行-園禾門市	園禾門市	三聯發票	54714026	玥盛股份有限公司	190623036	桃園市桃園區	330桃園市桃園區莊敬路二段39號1樓	03-317-4189
+	C190623	藥局	A062	北三區	█	營養銀行-園山門市	園山門市	三聯發票	54714026	玥盛股份有限公司	190623035	桃園市龜山區	333桃園市龜山區龜山村萬壽路二段899號	03-319-7822
+	C190623	藥局	A111060101	北三區	█	營養銀行-八德門市	八德門市	三聯發票	54714026	玥盛股份有限公司	190623002	桃園市八德區	334桃園市八德區建國路63號	03-3680693
+	C190623	藥局	A062	北三區	█	營養銀行-大園門市	大園門市	三聯發票	54714026	玥盛股份有限公司	190623004	桃園市大園區	337桃園市大園區中正東路32號之1	03-385-4099
+	C190623	藥局	A062	北三區	█	營養銀行-大竹門市	大竹門市	三聯發票	54714026	玥盛股份有限公司	190623003	桃園市蘆竹區	338桃園市蘆竹區大竹路458號	03-323-8303
+	C190623	藥局	A062	北三區	█	營養銀行-南崁門市	南崁門市	三聯發票	54714026	玥盛股份有限公司	190623027	桃園市蘆竹區	338桃園市蘆竹區南華一街2號	03-311-3133
+	C190624	藥局	A062	北三區	█	營養銀行-竹B門市	竹B門市	三聯發票	54714047	玥鑫股份有限公司	190624004	新竹市北區	300新竹市北區西大路616號	03-524-8112
+	C190624	藥局	A062	北三區	█	營養銀行-竹A門市	竹A門市	三聯發票	54714047	玥鑫股份有限公司	190624003	新竹市東區	300新竹市東區南大路456號	03-561-5786
+	C190624	藥局	A062	北三區	█	營養銀行-竹北門市	竹北門市	三聯發票	54714047	玥鑫股份有限公司	190624005	新竹縣竹北市	302新竹縣竹北市中正東路76號	03-553-5765
+	C190624	藥局	A062	北三區	█	營養銀行-竹東門市	竹東門市	三聯發票	54714047	玥鑫股份有限公司	190624006	新竹縣竹東鎮	310新竹縣竹東鎮長春路三段230號	03-596-9112
+	C190624	藥局	A062	北三區	█	營養銀行-壢B門市	壢B門市	三聯發票	54714047	玥鑫股份有限公司	190624019	桃園市中壢區	320桃園市中壢區中山路485號	03-2717620
+	C190624	藥局	A062	北三區	█	營養銀行-壢A門市	壢A門市	三聯發票	54714047	玥鑫股份有限公司	190624018	桃園市中壢區	320桃園市中壢區中美路23號	03-425-2826
+	C190624	藥局	A062	北三區	█	營養銀行-內壢門市	內壢門市	三聯發票	54714047	玥鑫股份有限公司	190624002	桃園市中壢區	320桃園市中壢區興農路134號	03-451-9212
+	C190624	藥局	A062	北三區	█	營養銀行-龍潭門市	龍潭門市	三聯發票	54714047	玥鑫股份有限公司	190624017	桃園市龍潭區	325桃園市龍潭區中正路94號	03-480-4538
+	C190624	藥局	A062	北三區	█	營養銀行-桃C門市	桃C門市	三聯發票	54714047	玥鑫股份有限公司	190624013	桃園市桃園區	330桃園市桃園區中山東路97號1樓	03-333-4470
+	C190624	藥局	A062	北三區	█	營養銀行-桃B門市	桃B門市	三聯發票	54714047	玥鑫股份有限公司	190624012	桃園市桃園區	330桃園市桃園區復興路307號	03-339-6616
+	C190624	藥局	A062	北三區	█	營養銀行-桃A門市	桃A門市	三聯發票	54714047	玥鑫股份有限公司	190624011	桃園市八德區	334桃園市八德區建國路1061號	03-363-8456
+	C190804	藥局	A104	北三區		長欣藥局		二聯發票			190804001	新北市林口區	244新北市林口區中山路188號	02-2601-3171		宋欣樺	藥師
+	C190805	藥局	A104	北三區	█	合約-家欣藥師藥局		三聯發票	34843389	家欣藥師藥局	190805001	新北市林口區	244新北市林口區文化二路1段567號1樓	02-2602-5388		夏語中	藥師
+	C190902	藥局	A104	北三區		合約-大廟藥局		二聯發票			190902001	桃園市桃園區	330桃園市桃園區中山路158號	03-333-7006		蔡育奇	藥師
+	C190909	藥局	A104	北三區		奇異果醫材有限公司大安藥局	奇異果大安藥局	三聯發票	90645777	奇異果醫材有限公司	190909003	台北市大安區	106台北市大安區大安路一段190號	02-2325-0891	03-369-7483	邱聖芳	藥師
+	C190909	藥局	A104	北三區		奇異果醫材有限公司三井藥局	奇異果三井藥局	三聯發票	90645777	奇異果醫材有限公司	190909002	新北市林口區	244新北市林口區文化三路一段241號	02-2606-8650	03-369-7483	邱聖芳	藥師
+	C190909	藥局	A104	北三區		奇異果醫材有限公司豐富藥局(總店)	奇異果豐富藥局(總店)	三聯發票	90645777	奇異果醫材有限公司	190909001	桃園市八德區	334桃園市八德區富城街112號	03-369-1764	03-369-7483	邱聖芳	藥師
+	C190916	藥局	A104	北三區		合約-鈞育藥局		二聯發票			190916001	桃園市中壢區	320桃園市中壢區吉林路127號	03-462-2031	03-463-0095	陳慧珍	藥師
+	C190921	藥局	A104	北三區		德美藥師藥局		二聯發票			190921001	桃園市蘆竹區	338桃園市蘆竹區中山路159號1樓	03-312-5081		蔡瓊梅	藥師
+	C191005	藥局	A104	北三區		吉康藥局		二聯發票			191005001	新竹市北區	300新竹市北區東大路3段389號1樓	03-536-9916		薛淑蘭	藥師
+停止往來	C191006	藥局	A104	北三區		安心藥局		二聯發票			191006001	桃園市平鎮區	324桃園市平鎮區上海路188號	03-439-8799		洪慈徽	藥師
+	C191008	藥局	A104	北三區		均祐健康藥局		二聯發票			191008001	新竹市北區	300新竹市北區中正路389號1樓	03-532-5369	03-532-2869	李健源	藥師
+	C191017	藥局	A104	北三區		合約-健佑藥局		三聯發票	72709236	健佑藥局	191017001	新竹市香山區	300新竹市香山區大庄路45巷6號	03-530-6555		鄧宇皓	藥師
+	C191018	藥局	A104	北三區		康泉生活藥局		二聯發票			191018001	桃園市平鎮區	324桃園市平鎮區平東路276號	03-460-1363		黎德慶	藥師
+	C191021	藥局	A104	北三區		得安專業藥師藥局		二聯發票			191021001	新竹市東區	300新竹市東區中華路二段652號	03-528-3038		張耿銘	藥師
+	C191101	藥局	A104	北三區		一家好藥局		二聯發票	72844710	一家好藥局	191101001	新北市林口區	244新北市林口區中山路500號	02-2602-8270	02-2602-8271	蔡富雄	藥師
+	C191107	藥局	A104	北三區		杏康健保特約藥局		二聯發票			191107001	新竹市東區	300新竹市東區光復路一段525巷23號	03-577-2966		張程詠	藥師
+	C191109	藥局	A104	北三區		合約-明湖健保藥局(祥宏生活)		三聯發票	53262798	祥宏生活事業有限公司	191109001	新竹市東區	300新竹市東區明湖路398號	03-519-1788	03-519-1787	謝明宏	藥師
+	C191109-01	藥局	A104	北三區		(禁用)合約-明湖健保藥局		二聯發票			19110901001	新竹市東區	300新竹市東區明湖路398號	03-519-1788	03-519-1787	謝明宏	藥師
+	C191211	藥局	A104	北三區		合約-欣立藥局		三聯發票	72634756	欣立藥局	191211001	桃園市桃園區	330桃園市桃園區龍安街181-1號1樓	03-379-2001		黃于珍	藥師
+	C200108	藥局	A104	北三區		合約-源川藥局		三聯發票	82330280	源川藥局	200108001	新竹縣竹北市	302新竹縣竹北市文興路二段9號	03-657-6165		林芝廷
+	C200108-01	藥局	A104	北三區		合約-源川藥局(二聯)		二聯發票			20010801001	新竹縣竹北市	302新竹縣竹北市文興路二段9號	03-657-6165		林芝廷
+	C200209	藥局	A104	北三區		(禁用)綠園藥局得意藥局	得意藥局	三聯發票	31616327	綠園藥局	200209003	新北市樹林區	238新北市樹林區學府路292號1樓	02-26686350		劉得懿	藥師
+	C200209	藥局	A104	北三區		綠園藥局		三聯發票	31616327	綠園藥局	200209001	新北市林口區	244新北市林口區仁愛路二段105號	02-8601-2258		林小慧
+	C200209	藥局	A104	北三區		(禁用)綠園藥局樂樂聯合藥局	樂樂聯合藥局	三聯發票	31616327	綠園藥局	200209002	桃園市龜山區	333桃園市龜山區萬壽路一段109號2樓	02-8200-0560		劉得懿	藥師
+	C200209-01	藥局	A104	北三區		綠園藥局樂樂聯合藥局		三聯發票	87521956	樂樂聯合藥局	20020901001	桃園市龜山區	333桃園市龜山區萬壽路一段109號2樓	02-8200-0560		劉得懿	藥師
+	C200209-02	藥局	A104	北三區		綠園藥局得意藥局		三聯發票	92778251	得意藥局	20020902001	新北市樹林區	238新北市樹林區學府路292號1樓	02-26686350		劉得懿	藥師(負責人)
+	C200504	藥局	A104	北三區		成發藥局		三聯發票	41157672	成發藥局	200504001	桃園市八德區	334桃園市八德區和平路250號	03-375-1696		蔡建鋒	藥師
+	C200603	藥局	A104	北三區		仁悅藥局		二聯發票			200603001	桃園市桃園區	330桃園市桃園區中山路60號	03-336-1718		莊雅婷	藥師
+	C200609	藥局		北三區		合約-安慶藥局	躍獅義安藥局	三聯發票	42069183	安慶藥局	200609003	桃園市桃園區	330桃園市桃園區莊敬路一段323號	03-358-7676
+	C200609	藥局	A104	北三區		合約-安慶藥局	浤安藥局	三聯發票	42069183	安慶藥局	200609002	桃園市桃園區	330桃園市桃園區慈德街1號	03-357-7665		張峻豪	老闆
+	C200609	藥局	A104	北三區		合約-安慶藥局	安慶藥局	三聯發票	42069183	安慶藥局	200609001	桃園市桃園區	330桃園市桃園區寶安里安慶街91號	03-302-7267		張峻豪	老闆
+	C200609	藥局		北三區		合約-安慶藥局	寧安藥局	三聯發票	42069183	安慶藥局	200609004	桃園市八德區	334桃園市八德區興豐路588號	03-368-8368
+	C200623	藥局	A104	北三區		合約-新寶樹藥局福安藥局	福安藥局	二聯發票			200623002	桃園市中壢區	320桃園市中壢區元化路232號	03-426-6000
+	C200623	藥局	A104	北三區		合約-新寶樹藥局	2間分店	二聯發票			200623001	桃園市八德區	334桃園市八德區介壽路一段974號	03-377-0000		莊詠翔	藥師
+停止往來	C200704	藥局	A104	北三區		大榮藥妝龍潭店(大榮大藥局)		三聯發票	49360500	大榮藥妝龍潭店	200704001	桃園市龍潭區	325桃園市龍潭區中豐路上林段2號	03-479-7795		吳經理	藥師
+	C200729	藥局	A104	北三區		合約-新月藥局		三聯發票	82276342	新月藥局	200729001	新竹縣竹東鎮	310新竹縣竹東鎮五豐里永康街81號1樓	03-596-0501		蔡育賢	藥師
+	C200736	藥局	A104	北三區		合約-樂謙藥師藥局		二聯發票			200736001	桃園市中壢區	320桃園市中壢區龍東路134號	03-466-2775		黎默謙	藥師
+	C200806	藥局	A111060101	北三區		合約-禾坊親子藥局禾實藥局	禾實藥局	三聯發票	90497038	禾坊醫療器材有限公司	200806004	新竹市東區	300新竹市東區食品路269號	03-5621272
+	C200806	藥局		北三區		合約-禾坊親子藥局總倉	總倉	三聯發票	90497038	禾坊醫療器材有限公司	200806003	新竹縣竹北市	302新竹縣竹北市中和街171號	03-6210231#11			藥師
+	C200806	藥局	A104	北三區		合約-禾坊親子藥局		三聯發票	90497038	禾坊醫療器材有限公司	200806001	新竹縣竹北市	302新竹縣竹北市科大一路85號	03-558-8797		曾婕伃	藥師
+	C200806	藥局	A111060101	北三區		合約-禾坊親子藥局禾樂藥局	禾樂藥局	三聯發票	90497038	禾坊醫療器材有限公司	200806002	新竹縣竹北市	302新竹縣竹北市華興街182號	03-656-0559		石博文	老闆
+	C200808-01	藥局	A104	北三區		克峰藥局		三聯發票	37985115	克峰藥局	20080801001	桃園市桃園區	330桃園市桃園區中路街17號	03-367-4520		王克峰	藥師
+	C200909	藥局	A104	北三區		松樹藥師藥局		二聯發票			200909001	桃園市觀音區	328桃園市觀音區中山路二段777號	03-498-8995		林玉珍	藥師
+	C201123	藥局	A104	北三區		大竹藥師藥局		二聯發票			201123001	桃園市蘆竹區	338桃園市蘆竹區南竹路五段259號	03-323-2508		張嘉娟	藥師
+	C201201	藥局	A104	北三區		好孕到嬰兒用品店		三聯發票	69645982	好孕有限公司	201201001	桃園市桃園區	330桃園市桃園區慈文路196號	03-317-0082		黃偉華	老闆
+	C201203	藥局		北三區	█	合約-同德辰安藥局林口辰安藥局	林口辰安藥局	三聯發票	87332738	同德辰安藥局	201203007	新北市林口區	244新北市林口區文化三路一段191巷5號	02-26099151
+	C201203	藥局		北三區	█	合約-同德辰安藥局樂心藥局	樂心藥局	三聯發票	87332738	同德辰安藥局	201203003	桃園市中壢區	320桃園市中壢區中山東路二段536號	03-4655667
+	C201203	藥局		北三區	█	合約-同德辰安藥局中山辰安藥局	中山辰安藥局	三聯發票	87332738	同德辰安藥局	201203010	桃園市中壢區	320桃園市中壢區中山東路二段550號	03-456-1716
+	C201203	藥局		北三區	█	合約-同德辰安藥局信義辰安藥局	信義辰安藥局	三聯發票	87332738	同德辰安藥局	201203005	桃園市中壢區	320桃園市中壢區信義路114號	03-4518171
+	C201203	藥局		北三區	█	合約-同德辰安藥局大成辰安藥局	大成辰安藥局	三聯發票	87332738	同德辰安藥局	201203004	桃園市楊梅區	326桃園市楊梅區大成路78號	03-3884397
+	C201203	藥局	A104	北三區	█	合約-同德辰安藥局		三聯發票	87332738	同德辰安藥局	201203001	桃園市桃園區	330桃園市桃園區同德十街25號	03-3012028		陳怡安	老闆
+	C201203	藥局		北三區	█	合約-同德辰安藥局萬壽辰安藥局	萬壽辰安藥局	三聯發票	87332738	同德辰安藥局	201203011	桃園市龜山區	333桃園市龜山區萬壽路二段1081號	03-320-8022
+	C201203	藥局		北三區	█	合約-同德辰安藥局廣興辰安藥局	廣興辰安藥局	三聯發票	87332738	同德辰安藥局	201203008	桃園市八德區	334桃園市八德區廣興二路11號	03-3683682
+	C201203	藥局		北三區	█	合約-同德辰安藥局大豐辰安藥局	大豐辰安藥局	三聯發票	87332738	同德辰安藥局	201203006	桃園市大園區	337桃園市大園區大豐二街110號	03-2805622
+	C201203	藥局		北三區	█	合約-同德辰安藥局青埔辰安藥局	青埔辰安藥局	三聯發票	87332738	同德辰安藥局	201203002	桃園市大園區	337桃園市大園區致遠一路1號	0911-296-600
+	C201203	藥局		北三區	█	合約-同德辰安藥局南崁辰安藥局	南崁辰安藥局	三聯發票	87332738	同德辰安藥局	201203009	桃園市蘆竹區	338桃園市蘆竹區南崁路54號
+	C201203-01	藥局	A104	北三區	█	(禁用)合約-同德辰安藥局		二聯發票			20120301012	桃園市桃園區	330桃園市桃園區同德十街25號	03-3012028		陳怡安	老闆
+	C201213	藥局	A104	北三區	X	(禁用)合約-井三原健保藥局新屋藥局	新屋藥局	三聯發票	87539920	井三原健保藥局	201213003	桃園市新屋區	327桃園市新屋區中華路294號	03-497-1008		林哲宇	藥師
+	C201213	藥局	A104	北三區	X	(禁用)合約-井三原健保藥局合春藥局	合春藥局	三聯發票	87539920	井三原健保藥局	201213002	桃園市觀音區	328桃園市觀音區新坡里新生路46號	03-498-2300		林哲宇	藥師
+	C201213	藥局	A104	北三區	X	(禁用)合約-井三原健保藥局總倉	總倉	三聯發票	87539920	井三原健保藥局	201213001	桃園市八德區	334桃園市八德區大成里介壽路一段956號	03-218-4078		林哲宇	老闆
+	C201213-01	藥局	A111060101	北三區		合約-井三原新屋(新屋)	新屋藥局	三聯發票	80764372	新屋藥局	20121301002	桃園市新屋區	327桃園市新屋區中華路294號	03-497-1008
+	C201213-01	藥局	A111060101	北三區		合約-井三原合春(新屋)	合春藥局	三聯發票	80764372	新屋藥局	20121301003	桃園市觀音區	328桃園市觀音區新坡里新生路46號	03-498-2300
+	C201213-01	藥局	A111060101	北三區		合約-井三原總倉(新屋)	井三原健保藥局總倉	三聯發票	80764372	新屋藥局	20121301001	桃園市八德區	334桃園市八德區大成里介壽路一段956號	03-218-4078
+	C210513	藥局	A104	北三區		合約-728藥局		二聯發票			210513001	新竹市東區	300新竹市東區明湖路1245號	0952-970196		胡思琳	藥師
+	C210603	藥局	A104	北三區		大順藥局		二聯發票			210603001	桃園市中壢區	320桃園市中壢區興仁路三段56號	03-4654675		涂德鴻	藥師
+	C210901	藥局	A104	北三區		福澤健康股份有限公司	福澤健行藥局	三聯發票	91022284	福澤健康股份有限公司		桃園市中壢區	320桃園市中壢區健行路139號	03-4283018
+	C210901	藥局	A104	北三區		福澤健康股份有限公司	福澤中豐藥局(總倉)	三聯發票	91022284	福澤健康股份有限公司	210901001	桃園市平鎮區	324桃園市平鎮區中豐路345號	03-4679863		林麗芬	副總經理.藥師
+	C210901	藥局	A104	北三區		福澤健康股份有限公司	福澤民族藥局	三聯發票	91022284	福澤健康股份有限公司		桃園市平鎮區	324桃園市平鎮區民族路二段139號	03-4014748
+	C210901	藥局	A104	北三區		福澤健康股份有限公司	福澤大業藥局	三聯發票	91022284	福澤健康股份有限公司		桃園市桃園區	330桃園市桃園區大業路一段422號1樓	03-3568835
+	C210901	藥局	A104	北三區		福澤健康股份有限公司	福澤大溪藥局	三聯發票	91022284	福澤健康股份有限公司		桃園市大溪區	335桃園市大溪區一心里復興路105號	03-3888145
+	C210903	藥局	A104	北三區		暘光健保藥局	暘光健保藥局	二聯發票			210903001	新竹縣芎林鄉	307新竹縣芎林鄉文山路385號	03-5121001		彭星淳	藥師
+	C210909	藥局	A104	北三區		埔頂藥局	埔頂藥局	二聯發票			210909001	桃園市大溪區	335桃園市大溪區埔頂路二段138號	03-380-0964		應藥師	藥師
+	C211006	藥局	A104	北三區		知博藥師藥局	知博藥師藥局	三聯發票	41133721	知博藥師藥局	211006001	桃園市蘆竹區	338桃園市蘆竹區中山路160號	03-2221886		張藥師	副理
+	C211102	藥局	A104	北三區	█	合約-薰衣草藥局	薰衣草藥局	二聯發票			211102001	桃園市中壢區	320桃園市中壢區新生路335號	03-4253330		魏婉婷	藥師
+	C211104	藥局	A104	北三區		沐霖藥局	沐霖藥局	二聯發票			211104001	新北市林口區	244新北市林口區文化三路二段286號	02-26032086
+	C211105	藥局	A104	北三區		合約-幸運草健保藥局		三聯發票	31617199	幸運草健保藥局	211105001	桃園市桃園區	330桃園市桃園區縣府路280號	03-3379977		紀乃鈞	藥師
+	C211218	藥局	A104	北三區		(禁用)南竹健保藥局		二聯發票			211218001	桃園市蘆竹區	338桃園市蘆竹區南竹路一段76號	03-3526182		游騰蔚	負責人藥師
+	C211218-01	藥局	A104	北三區		南竹健保藥局		三聯發票	31727581	南竹健保藥局	21121801001	桃園市蘆竹區	338桃園市蘆竹區南竹路一段76號	03-3526182		游騰蔚	負責人藥師
+	C211220-03	藥局		北三區		合約-湧恩國際生醫-中壢青商店	中壢青商店	三聯發票	42600218	湧恩國際生醫有限公司	21122003005	桃園市龍潭區	320桃園市中壢區青商路135號	03-2870407
+	C211220-03	藥局		北三區		合約-湧恩國際生醫有限公司	懷恩藥師藥局	三聯發票	42600218	湧恩國際生醫有限公司	21122003004	桃園市龍潭區	325桃園市龍潭區中正路上華段5號	03-4708899
+	C220322	藥局	A117	北三區	█	傅仁良小兒科(良美藥局)		二聯發票			220322001	新竹縣竹北市	302新竹縣竹北市博愛街174號	03-5520460		陳信良	藥師
+	C220333	藥局	A117	北三區		林君怡小兒科(華好潾藥局)		二聯發票			220333001	新竹市東區	300新竹市東區龍山東路206號	03-5795023		林君怡	醫師
+	C220338	藥局	A104	北三區		(禁用)樂樂聯合藥局		三聯發票	87521956	樂樂聯合藥局	220338001	桃園市龜山區	333桃園市龜山區萬壽路一段109號2樓	02-82000560		劉得懿	藥師
+	C220422	藥局	A081	北三區		鄧藥局		二聯發票			220422001	新竹縣竹東鎮	310新竹縣竹東鎮大同路43號
+	C220504	藥局	A081	北三區		杏德生技股份有限公司		三聯發票	29086569	杏德生技股份有限公司	220504001	桃園市楊梅區	326桃園市楊梅區高鐵南路十段179號	03-355-0813		張捷婷
+	C220901	藥局	A111060101	北三區		合約-如家藥師藥局	如家藥局(竹北店)	三聯發票	30107084	如家藥師藥局	220901003	新竹縣竹北市	302新竹縣竹北市中正西路189號	03-5533161		孔令星	負責人
+	C220901	藥局	A111060101	北三區		合約-如家藥師藥局	如家藥局(金竹店)	三聯發票	30107084	如家藥師藥局	220901002	新竹縣竹北市	302新竹縣竹北市勝利六街68號	03-6683215		孔令星	負責人
+	C220901	藥局	A111060101	北三區		合約-如家藥師藥局	如家藥局(仁和店)	三聯發票	30107084	如家藥師藥局	220901004	新竹縣湖口鄉	303新竹縣湖口鄉仁和路182號	03-5978541		孔令星	負責人
+	C220901	藥局	A111060101	北三區		合約-如家藥師藥局	如家藥局(總倉)	三聯發票	30107084	如家藥師藥局	220901001	新竹縣湖口鄉	303新竹縣湖口鄉光復東路249號	03-5972606		孔令星	負責人
+	C220904	藥局	A111060101	北三區		耀品卉坊藥局		二聯發票			220904001	桃園市平鎮區	324桃園市平鎮區平東路56-1號	03-450-7717		黎美琪	店長
+	C220906	藥局	A111060101	北三區		方米藥局		三聯發票	87447788	方米藥局	220906001	新竹縣竹北市	302新竹縣竹北市博愛路511號	03-551-0015		吳昇案	負責人藥師
+禁用	C220906-01	藥局	A111060101	北三區		方米藥局(二聯)		二聯發票			22090601001	新竹縣竹北市	302新竹縣竹北市博愛路511號	03-551-0015		吳昇案	負責人藥師
+	C220926	藥局	A111060101	北三區		藥局訂單		二聯發票
+	C221017	藥局	A111060101	北三區		合約-晴一藥局	芎林店	三聯發票	85366373	晴一藥局	221017002	新竹縣芎林鄉	307新竹縣芎林鄉芎林村文德路46號	03-5927270
+	C221017	藥局	A111060101	北三區		合約-晴一藥局	總倉	三聯發票	85366373	晴一藥局	221017001	桃園市中壢區	320桃園市中壢區民族路五段258號	03-4909427		劉榮豐	負責人藥師
+	C221026	藥局	A111060101	北三區		松益藥局		二聯發票			221026001	桃園市中壢區	320桃園市中壢區松義路85號(1樓夾層)	03-4900193		曹藥師	負責人藥師
+停止往來	C221106	藥局	A117	北三區		佳禾藥局		二聯發票			221106001	苗栗縣苗栗市	360苗栗縣苗栗市建台街7號	03-7373041		徐正斌	藥師
+	C221226	藥局	A111060101	北三區		裕翔藥局		三聯發票	72777439	裕翔藥局	221226001	桃園市中壢區	320桃園市中壢區自強里榮民路48號	03-4355499		岳藥師	藥師
+	C230204	藥局	A111060101	北三區		大崙大藥局		三聯發票	85271025	大崙大藥局	230204001	桃園市中壢區	320桃園市中壢區中正路四段113號	03-4983597		黃俊嘉	負責人藥師
+	C230415	藥局	A111060101	北三區		(禁用)証翔有限公司-真善美藥局	統倉	三聯發票	25081726	証翔有限公司	230415001	新竹縣湖口鄉	303新竹縣湖口鄉瑞祥街41號2樓	03-699-3530		黃桂金
+	C230415-01	藥局	A111060101	北三區		嘉迪恩有限公司-真善美藥局	百年店	三聯發票	29080853	嘉迪恩有限公司	23041501001	桃園市龍潭區	325桃園市龍潭區中豐路309號	03-499-2236		陳店長
+	C230518	藥局	A117	北三區		好心健保藥局	好好健保藥局	二聯發票			230518004	新竹市北區	300新竹市北區中福路83號	03-5366996
+	C230518	藥局	A117	北三區		好心健保藥局	好好健保藥局竹東二重店	二聯發票			230518003	新竹縣竹東鎮	310新竹縣竹東鎮中興路三段276號310	03-5830678
+	C230518	藥局	A117	北三區		好心健保藥局	好心健保藥局	二聯發票			230518001	苗栗縣竹南鎮	350苗栗縣竹南鎮中華路157號	03-7687088		陳佩君	藥師
+	C230518	藥局	A117	北三區		好心健保藥局	好康健保藥局	二聯發票			230518002	苗栗縣竹南鎮	350苗栗縣竹南鎮科專七路219號	03-7680877
+	C230523	藥局	A111060101	北三區	█	(禁用)合約-家樂藥局		二聯發票			230523001	桃園市平鎮區	324桃園市平鎮區中庸路45巷136號1樓	03-419-1468
+	C230523-01	藥局	A111060101	北三區	█	合約-樂藥-總倉辦公室		三聯發票	94136135	樂藥有限公司	23052301001	桃園市平鎮區	324桃園市平鎮區中庸路45巷136號1樓	03-4030040
+	C230523-01	藥局		北三區	█	合約-樂藥-家樂藥局		三聯發票	94136135	樂藥有限公司	23052301003	桃園市平鎮區	324桃園市平鎮區中豐路山頂段21號1樓	03-4191468
+	C230523-01	藥局		北三區	█	合約-樂藥-合樂藥局		三聯發票	94136135	樂藥有限公司	23052301004	桃園市平鎮區	324桃園市平鎮區金城街63號1樓	03-4390900
+	C230523-01	藥局		北三區	█	合約-樂藥-樂興藥局		三聯發票	94136135	樂藥有限公司	23052301005	桃園市平鎮區	324桃園市平鎮區義興街21號	03-4923885
+	C230523-01	藥局	A111060101	北三區	█	合約-樂藥-築樂藥局		三聯發票	94136135	樂藥有限公司	23052301002	桃園市蘆竹區	338桃園市蘆竹區大興二街22號1樓	03-323-8906
+	C230801	藥局	A111060101	北三區		千恩藥局		二聯發票			230801001	桃園市中壢區	320桃園市中壢區榮民路181號	03-285-0608		張富喬	藥師
+	C230804	藥局	A111060101	北三區		新康博藥師藥局		二聯發票			230804001	桃園市中壢區	320桃園市中壢區龍岡路二段56號	03-4683698		鄭舟辰	藥師
+	C230811	藥局	A111060101	北三區		明錩藥局		二聯發票			230811001	新竹縣竹北市	302新竹縣竹北市勝利十一路187號	03-6578583
+	C230904	藥局	A111060101	北三區		福澤藥局(北二)	延平分店	三聯發票	92626889	福澤延平藥局	230904001	桃園市平鎮區	324桃園市平鎮區延平路二段12號	03-4950957		宋霽庭	藥師
+	C230916	藥局	A111060101	北三區		(禁用)合約-竹楓藥局		二聯發票			230916001	新竹縣湖口鄉	303新竹縣湖口鄉中正路一段38號	03-6692335		陳建邦	負責人
+	C230916-01	藥局	A111060101	北三區		合約-竹楓藥局(三聯)		三聯發票	92763709	竹楓藥局	23091601001	新竹縣湖口鄉	303新竹縣湖口鄉中正路一段38號	03-6692335		陳建邦	負責人
+	C231112	藥局	A111060101	北三區		佳佳藥局		二聯發票			231112001	桃園市中壢區	320桃園市中壢區中央西路二段210號	03-4028216		鄧軒婷	負責人
+停止往來	C231211	藥局	A111060101	北三區		上大健康-新資生連鎖總倉	新資生連鎖藥局總倉	三聯發票	24855293	上大健康醫藥股份有限公司	231211001	桃園市桃園區	330桃園市桃園區正光路423-11號2樓	03-360-6180
+停止往來	C231211-01	藥局	A111060101	北三區		新資生龜山大藥局	新資生連鎖藥局總倉	三聯發票	72645058	新資生龜山大藥局	23121101001	桃園市桃園區	330桃園市桃園區正光路423-11號2樓	03-360-6180
+	C240106	藥局	A112100201	北三區		家和藥局		二聯發票			240106001	桃園市龜山區	333桃園市龜山區建國東路97號	03-319-6416		李藥師	藥師
+	C240206	藥局	A112100201	北三區		明昌藥局		三聯發票	09879351	明昌藥局	240206001	桃園市龜山區	333桃園市龜山區萬壽路二段1191-6號1樓	03-350-1205		蕭群雄	負責人
+	C240207	藥局	A111060101	北三區		合約-躍獅興業藥局		三聯發票	49791212	躍獅興業藥局	240207001	桃園市桃園區	330桃園市桃園區大業路二段15號	03-316-3569		翁藥師
+	C240302	藥局	A112100201	北三區		穩好藥局		二聯發票			240302001	桃園市龜山區	333桃園市龜山區中興路137號1樓	03-350-0088		蕭藥師	藥師
+	C240506	藥局	A112100201	北三區		芯羽藥局		三聯發票	93031372	芯羽藥局	240506001	桃園市龜山區	333桃園市龜山區長慶三街66號1樓	03-3278903		周意玲	藥師
+	C240611	藥局	A111060101	北三區		宜新藥局		三聯發票	95097187	宜新藥局	240611001	新竹縣新豐鄉	304新竹縣新豐鄉明新一街6號	03-5597666		劉曉莉老闆、邱筱茜負責人
+	C240613	藥局	A112100201	北三區		沃德藥局		二聯發票			240613001	桃園市龜山區	333桃園市龜山區長壽路137號1樓	03-3192137		郭琮瀚	藥師
+	C240701	藥局	A112100201	北三區		士昌藥局		二聯發票			240701001	新北市林口區	244新北市林口區工六路36號1樓	02-26018863		陳士介	藥師
+	C240702	藥局	A112100201	北三區		美得心藥局		二聯發票			240702001	新北市林口區	244新北市林口區公園路63號1樓	02-26001770		曾家儀	藥師
+	C240901	藥局	A112100201	北三區		黑皮藥局		二聯發票			240901001	桃園市平鎮區	324桃園市平鎮區和平路131號	03-4570170		黃笛軒	藥師
+	C241102	藥局	A112100201	北三區		益兒康藥局		二聯發票			241102001	桃園市桃園區	330桃園市桃園區國際路二段40號	03-3798851
+	C250201	藥局	A112100201	北三區		長康藥局		三聯發票	87546014	長康藥局	250201001	新北市林口區	244新北市林口區中山路166號	02-26012661
+	C250301	藥局	A112100201	北三區		利安藥局(竹北)		二聯發票			250301001	新竹縣竹北市	302新竹縣竹北市新瀧三街3號	03-6673503
+	C250422	藥局	A112100201	北三區		杏心藥局		二聯發票			250422001	桃園市桃園區	330桃園市桃園區春日路451號1樓	03-3331667		鄭瑩佩	負責人
+停止往來	C250702	藥局	A111060101	北三區		美康健保藥局(佳恩藥房-合豐藥局)	合豐藥局	三聯發票	09749581	佳恩藥房	250702001	桃園市桃園區	330桃園市桃園區中山東路82號	03-3394007		廖藥師,楊藥師	藥師
+	C250707	藥局	A111060101	北三區		健康社區藥局		二聯發票			250707001	桃園市龍潭區	325桃園市龍潭區中正路290號	03-4992198
+	C250801	藥局	A111060101	北三區		青瑭藥局		三聯發票	87433709	青瑭藥局	250801001	桃園市中壢區	320桃園市中壢區民權路四段277號1樓	03-2875901		古力云	負責人藥師
+	C250805	藥局	A111060101	北三區		心柚藥局		三聯發票	60155853	心柚藥局	250805001	新竹市東區	300新竹市東區藝術路3號	03-5200575		許耕嘉	負責人藥師
+	C251111	藥局	A111060101	北三區		大麥中西藥局		三聯發票	60268287	大麥中西藥局	251111001	桃園市桃園區	330桃園市桃園區龍安街70號	03-2170968		鄭藥師	藥師
+	C251201	藥局	A111060101	北三區		知禾藥局		二聯發票			251201001	桃園市中壢區	320桃園市中壢區文發路5號	03-2877728
+		藥局	A111060101	北三區		新資生連鎖藥局北信義店	北信義店	三聯發票				台北市信義區	110台北市信義區永吉路180巷67弄5號	02-2753-0568
+		藥局	A111060101	北三區		新資生連鎖藥局北投中和店	北投中和店	三聯發票				台北市北投區	112台北市北投區中和街294號1樓	02-2896-6790
+		藥局	A111060101	北三區		新資生連鎖藥局西湖店	西湖店	三聯發票				台北市內湖區	114台北市內湖區內湖路一段285巷65弄17號	02-2658-8060
+		藥局	A111060101	北三區		新資生連鎖藥局康寧店	康寧店	三聯發票				台北市內湖區	114台北市內湖區康寧路一段40號	02-2790-0760
+		藥局	A104	北三區		合約-全球(環球生活)	*合約-全球-三峽欣美店	三聯發票	12986860	環球生活事業股份有限公司		新北市三峽區	237新北市三峽區大同路52號	02-8671-2269			採購
+		藥局	A111060101	北三區		新資生連鎖藥局五華店	五華店	三聯發票				新北市三重區	241新北市三重區五華街95號1樓	02-2988-3007
+		藥局	A104	北三區		合約-全球(環球生活)	*合約-全球-林口忠孝店	三聯發票	12986860	環球生活事業股份有限公司		新北市林口區	244新北市林口區忠孝路497號	02-2609-2139			採購
+停止往來		藥局	A104	北三區		喜樂藥師藥局		二聯發票				新北市林口區	244新北市林口區麗林里公園路15號	02-2600-5566		李文杰	藥師
+		藥局	A111060101	北三區		新資生連鎖藥局長安店	長安店	三聯發票				新北市蘆洲區	247新北市蘆洲區長安路47號	02-2282-1780
+停止往來		藥局	A104	北三區		好好健保藥局	2間分店	二聯發票				新竹市北區	300新竹市北區中福路83號	03-536-6996
+停止往來		藥局	A104	北三區		俏媽咪親子生活館新竹店	新竹店	三聯發票	26656615	俏媽咪親子生活館		新竹市北區	300新竹市北區北大路285-1號	03-521-2990		鄭經理	經理
+停止往來		藥局	A104	北三區		三立藥局		二聯發票				新竹市東區	300新竹市東區新源街100號	03-574-0112		蔡碩寧	藥師
+停止往來		藥局	A104	北三區		阿姆斯壯藥局		二聯發票				新竹縣竹北市	302新竹縣竹北市六家五路一段125號	03-658-9178		蕭佑竹	藥師
+停止往來		藥局	A104	北三區		正科大藥局		二聯發票				新竹縣竹北市	302新竹縣竹北市科大一路16號	03-657-3561		何佳凌	藥師
+停止往來		藥局	A104	北三區		俏媽咪親子生活館竹北店	竹北店	三聯發票	26656615	俏媽咪親子生活館		新竹縣竹北市	302新竹縣竹北市莊敬南路100號	03-658-3039	03-657-8827	鄭經理	經理
+停止往來		藥局	A104	北三區		第一調劑藥局		二聯發票				新竹縣新豐鄉	304新竹縣新豐鄉建興路一段154號	03-557-5001		陳瑋倫	藥師
+停止往來		藥局	A104	北三區		高平堂健保藥局	2間分店	二聯發票				新竹縣關西鎮	306新竹縣關西鎮正義路66號	03-587-2263		范綱智	藥師
+		藥局	A104	北三區		合約-全球(環球生活)	*合約-全球-中壢永美店	三聯發票	12986860	環球生活事業股份有限公司		桃園市中壢區	320桃園市中壢區中山東路二段530號	03-466-1839			採購
+		藥局	A104	北三區		閤家康中壢	中壢	二聯發票				桃園市中壢區	320桃園市中壢區中北路二段431號	03-284-1880
+停止往來		藥局	A104	北三區		佳倫藥局		二聯發票				桃園市中壢區	320桃園市中壢區內壢忠孝路151之1號	03-435-8385		邱勤喜	藥師
+		藥局	A111060101	北三區		新資生連鎖藥局弘揚店	弘揚店	三聯發票				桃園市中壢區	320桃園市中壢區弘揚路64號	03-438-0898
+停止往來		藥局	A104	北三區		得群藥局		二聯發票				桃園市中壢區	320桃園市中壢區自強六路42號	03-453-5953		游喬安	店長
+停止往來		藥局	A104	北三區		億源		二聯發票				桃園市中壢區	320桃園市中壢區林森路176號	03-459-5111		邱藥師	藥師
+停止往來		藥局	A104	北三區		優良藥局		二聯發票				桃園市中壢區	320桃園市中壢區長春路20號	03-461-2336		呂淑芬	藥師
+		藥局	A111060101	北三區		新資生連鎖藥局信義店	信義店	三聯發票				桃園市中壢區	320桃園市中壢區信義路147號	03-463-6494
+停止往來		藥局	A104	北三區		全美藥局		二聯發票				桃園市中壢區	320桃園市中壢區後寮一路136號1樓	03-466-9431		蕭惠貞	藥師
+		藥局	A104	北三區		合約-全球(環球生活)	*合約-全球-中壢青埔店	三聯發票	12986860	環球生活事業股份有限公司		桃園市中壢區	320桃園市中壢區高鐵南路二段227號	03-287-3147			採購
+停止往來		藥局	A104	北三區		德泰藥局		二聯發票				桃園市中壢區	320桃園市中壢區健行路127號	03-468-6457	03-458-5410	林明德	藥師
+停止往來		藥局	A104	北三區		博士藥師藥局		二聯發票				桃園市中壢區	320桃園市中壢區健行路220號	03-428-0557		胡淵斌	藥師
+		藥局	A104	北三區		合約-全球(環球生活)	*合約-全球-中壢同慶店	三聯發票	12986860	環球生活事業股份有限公司		桃園市中壢區	320桃園市中壢區健行路52號	03-468-8239			採購
+		藥局	A104	北三區		合約-全球(環球生活)	*合約-全球-中壢宜美店	三聯發票	12986860	環球生活事業股份有限公司		桃園市中壢區	320桃園市中壢區莊敬路716號	03-463-7687			採購
+		藥局	A111060101	北三區		新資生連鎖藥局永記店	永記店	三聯發票				桃園市中壢區	320桃園市中壢區新生路13號	03-422-3053
+停止往來		藥局	A104	北三區		千葉大藥局		二聯發票				桃園市中壢區	320桃園市中壢區新生路307號	03-425-1886		莊新輝	藥師
+		藥局	A111060101	北三區		新資生連鎖藥局福州店	福州店	三聯發票				桃園市中壢區	320桃園市中壢區福州二街409號	03-463-8812
+		藥局	A104	北三區		閤家康龍岡	龍岡	二聯發票				桃園市中壢區	320桃園市中壢區龍岡路三段176號	03-428-5880
+停止往來		藥局	A104	北三區		環中藥局		二聯發票				桃園市中壢區	320桃園市中壢區環中東路181號	03-461-8873		童成鍾	藥師
+停止往來		藥局	A104	北三區		安心藥局		二聯發票				桃園市平鎮區	324桃園市平鎮區上海路188號	03-439-8799	03-439-9738	洪慈徽	藥師
+		藥局	A104	北三區		閤家康平鎮	平鎮	二聯發票				桃園市平鎮區	324桃園市平鎮區山頂段256號	03-419-4550
+		藥局	A104	北三區		合約-全球(環球生活)	*合約-全球-平鎮和平店	三聯發票	12986860	環球生活事業股份有限公司		桃園市平鎮區	324桃園市平鎮區和平路160號	03-468-3247			採購
+		藥局	A111060101	北三區		新資生連鎖藥局龍潭中正店	龍潭中正店	三聯發票				桃園市龍潭區	325桃園市龍潭區中正路140-1號	03-489-5168
+		藥局	A104	北三區		合約-全球(環球生活)	*合約-全球-龍潭龍正店	三聯發票	12986860	環球生活事業股份有限公司		桃園市龍潭區	325桃園市龍潭區中正路231號	03-489-9639			採購
+		藥局	A104	北三區		合約-全球(環球生活)	*合約-全球-龍潭全球店	三聯發票	12986860	環球生活事業股份有限公司		桃園市龍潭區	325桃園市龍潭區北龍路185號	03-480-2710			採購
+停止往來		藥局	A104	北三區		合康美藥局		二聯發票				桃園市楊梅區	326桃園市楊梅區中山北路二段79號	03-481-2598		徐志文	藥師
+		藥局	A104	北三區		合約-全球(環球生活)	*合約-全球-楊梅埔心店	三聯發票	12986860	環球生活事業股份有限公司		桃園市楊梅區	326桃園市楊梅區永美路395號	03-482-4839			採購
+停止往來		藥局	A104	北三區		大榮大藥局	大榮藥妝	二聯發票				桃園市楊梅區	326桃園市楊梅區埔心里瑞溪路2段207號	03-431-1938
+		藥局	A111060101	北三區		新資生連鎖藥局楊梅店	楊梅店	三聯發票				桃園市楊梅區	326桃園市楊梅區楊新路100號	03-288-9590
+停止往來		藥局	A104	北三區		宜康美藥局		二聯發票				桃園市楊梅區	326桃園市楊梅區環東路452-454號	03-488-3805		朱純逸	藥師
+停止往來		藥局	A104	北三區		得康美藥妝店	2間分店	三聯發票	26501155	得康美藥妝店		桃園市楊梅區	326桃園市楊梅區環南路128號	03-478-8128		陳蒼洲	藥師
+停止往來		藥局	A104	北三區		媽媽的店	1+9寵	三聯發票	42768530	興仁實業有限公司		桃園市桃園區	330桃園市桃園區力行路169-2號	03-338-4333		葛興鑑	老闆
+		藥局	A104	北三區		民富大藥局	2間分店	二聯發票				桃園市桃園區	330桃園市桃園區大有路500號1F	03-346-9976
+停止往來		藥局	A104	北三區		鴻發藥師藥局(鑫鴻藥業)		三聯發票	53840572	鑫鴻藥業有限公司		桃園市桃園區	330桃園市桃園區大有路543號	03-358-2468	03-358-2380	高鐽銘	藥師
+停止往來		藥局	A104	北三區		大興藥局		二聯發票				桃園市桃園區	330桃園市桃園區大德一街96號	03-326-6868		王德嵩	藥師
+		藥局	A104	北三區		合約-全球(環球生活)	*合約-全球-桃園維格店	三聯發票	12986860	環球生活事業股份有限公司		桃園市桃園區	330桃園市桃園區大興西路二段129號	03-301-6639			採購
+停止往來		藥局	A104	北三區		禾安連鎖藥局		二聯發票				桃園市桃園區	330桃園市桃園區中山路254號	03-331-8966		施秦維	藥師
+		藥局	A111060101	北三區		新資生連鎖藥局中平店	中平店	三聯發票				桃園市桃園區	330桃園市桃園區中平路91號	03-228-8793
+		藥局	A104	北三區		合約-全球(環球生活)	*合約-全球-桃園奇美店	三聯發票	12986860	環球生活事業股份有限公司		桃園市桃園區	330桃園市桃園區中正五街185號	03-358-7727			採購
+停止往來		藥局	A104	北三區		大愛藥師藥局		二聯發票				桃園市桃園區	330桃園市桃園區中正路435號	03-337-6771		李湄芳	藥師
+		藥局	A111060101	北三區		新資生連鎖藥局民安店	民安店	三聯發票				桃園市桃園區	330桃園市桃園區民安路98號	03-331-0098
+停止往來		藥局	A104	北三區		同生藥師藥局		二聯發票				桃園市桃園區	330桃園市桃園區永安路259號1樓	03-334-9791	03-334-9793	陳美如	藥師
+停止往來		藥局	A104	北三區		書心有限公司桃園分公司		三聯發票	62176909	書心有限公司桃園分公司		桃園市桃園區	330桃園市桃園區同德里中正路1085號	03-326-8833	03-326-6688	施涵馨	營養師
+停止往來		藥局	A104	北三區		俏媽咪親子生活館桃園店	桃園店	三聯發票	26656615	俏媽咪親子生活館		桃園市桃園區	330桃園市桃園區幸福路77-1號	03-326-1955		鄭經理	經理
+		藥局	A104	北三區		保安藥師藥局		二聯發票				桃園市桃園區	330桃園市桃園區春日路1372號	03-357-8722		黃女桂	藥師
+		藥局	A111060101	北三區		新資生連鎖藥局桃德店	桃德店	三聯發票				桃園市桃園區	330桃園市桃園區桃德路51號	03-367-9980
+停止往來		藥局	A104	北三區		經國藥局		三聯發票	72698792	經國藥局		桃園市桃園區	330桃園市桃園區經國路200號	03-315-1959		周小姐,康光輝	藥師
+		藥局	A104	北三區		合約-全球(環球生活)	*合約-全球-桃園龍安店	三聯發票	12986860	環球生活事業股份有限公司		桃園市桃園區	330桃園市桃園區龍安街111號	03-360-9639			採購
+		藥局	A104	北三區		博爾康生活藥局		三聯發票	41189392	博爾康生活藥局		桃園市龜山區	333桃園市龜山區大同路250號	03-350-6588		林藥師	藥師
+停止往來		藥局	A104	北三區		高田藥師藥局		二聯發票				桃園市龜山區	333桃園市龜山區山鶯路76號	03-3336363		謝茵淇	藥師
+停止往來		藥局	A104	北三區		輝安大藥局		二聯發票				桃園市龜山區	333桃園市龜山區中原街3號	03-329-0636			蘇雅玲
+		藥局	A111060101	北三區		新資生連鎖藥局中興店	中興店	三聯發票				桃園市龜山區	333桃園市龜山區中興路350號	03-359-6959
+		藥局	A111060101	北三區		新資生連鎖藥局文青店	文青店	三聯發票				桃園市龜山區	333桃園市龜山區文青路209號	03-327-5280
+		藥局	A104	北三區		全興藥局		二聯發票				桃園市龜山區	333桃園市龜山區光峰路153號1樓	03-359-7901		郭世武	藥師
+		藥局	A111060101	北三區		新資生連鎖藥局龜山店	龜山店	三聯發票				桃園市龜山區	333桃園市龜山區自強東路1號	03-329-0429
+停止往來		藥局	A104	北三區		和信藥局		二聯發票				桃園市龜山區	333桃園市龜山區南祥路58號1樓	03-212-4028		劉秋霞	藥師
+		藥局	A104	北三區		合約-全球(環球生活)	*合約-全球-龜山萬壽店	三聯發票	12986860	環球生活事業股份有限公司		桃園市龜山區	333桃園市龜山區萬壽路二段927號	03-359-1247			採購
+		藥局	A104	北三區		合約-全球(環球生活)	*合約-全球-八德佳美店	三聯發票	12986860	環球生活事業股份有限公司		桃園市八德區	334桃園市八德區介壽路一段688號	03-377-2239			採購
+停止往來		藥局	A104	北三區		敏誠	5間分店	三聯發票	98971599	復興藥局		桃園市八德區	334桃園市八德區介壽路一段782號	03-363-5916		朱採購	採購
+		藥局	A111060101	北三區		新資生連鎖藥局介壽店	介壽店	三聯發票				桃園市八德區	334桃園市八德區介壽路一段820號	03-366-9106
+		藥局	A104	北三區		合約-全球(環球生活)	*合約-全球-八德環球店	三聯發票	12986860	環球生活事業股份有限公司		桃園市八德區	334桃園市八德區介壽路一段831號	03-375-6939			採購
+		藥局	A104	北三區		合約-全球(環球生活)	*合約-全球-八德健民店	三聯發票	12986860	環球生活事業股份有限公司		桃園市八德區	334桃園市八德區介壽路二段282號	03-366-6639			採購
+停止往來		藥局	A104	北三區		維益特藥局		二聯發票				桃園市八德區	334桃園市八德區和平路190號	03-367-7885		吳文中	藥師
+停止往來		藥局	A104	北三區		誠泰藥局		二聯發票				桃園市八德區	334桃園市八德區東勇街51－2號	03-364-9340	03-363-8364	簡威榮	藥師
+		藥局	A104	北三區		合約-全球(環球生活)	*合約-全球-總倉	三聯發票	12986860	環球生活事業股份有限公司		桃園市八德區	334桃園市八德區建國路870巷2號	03-363-1517		游採購	採購
+		藥局	A104	北三區		合約-全球醫藥股份有限公司	總倉	三聯發票	12986860	全球醫藥股份有限公司		桃園市八德區	334桃園市八德區建國路870巷2號	03-363-1517		游採購	採購
+停止往來		藥局	A104	北三區		德濟藥局		二聯發票				桃園市八德區	334桃園市八德區桃鶯路114號	03-362-2750		黃仁俊	藥師
+		藥局	A104	北三區		奇異果藥局		三聯發票	82159793	奇異果藥局		桃園市八德區	334桃園市八德區富城街112號	03-369-1764	03-369-7483	邱聖芳	藥師
+		藥局	A111060101	北三區		新資生連鎖藥局員林店	員林店	三聯發票				桃園市大溪區	335桃園市大溪區員林路一段270號	03-388-9900
+停止往來		藥局	A104	北三區		閤家康大溪	大溪	二聯發票				桃園市大溪區	335桃園市大溪區員林路二段390-6號	03-307-6310		潘採購	採購
+		藥局	A111060101	北三區		新資生連鎖藥局康莊店	康莊店	三聯發票				桃園市大溪區	335桃園市大溪區康莊路133號	03-388-2276
+		藥局	A111060101	北三區		新資生連鎖藥局瑞特醫材	瑞特醫材	三聯發票				桃園市大溪區	335桃園市大溪區復興路69號	03-387-3261
+		藥局	A111060101	北三區		新資生連鎖藥局復興店	復興店	三聯發票				桃園市大溪區	335桃園市大溪區復興路96號1樓	03-388-2206
+		藥局	A111060101	北三區		新資生連鎖藥局大園店	大園店	三聯發票				桃園市大園區	337桃園市大園區新生路95號	03-385-3608
+		藥局	A111060101	北三區		新資生連鎖藥局南崁中山店	南崁中山店	三聯發票				桃園市蘆竹區	338桃園市蘆竹區中山路51號	03-312-0699
+停止往來		藥局	A104	北三區		誼康藥局		三聯發票	30180351	誼康藥局		桃園市蘆竹區	338桃園市蘆竹區奉化路126號	03-312-9045		康家鳳	藥師
+停止往來		藥局	A104	北三區		康而美聖安藥師藥局		二聯發票				桃園市蘆竹區	338桃園市蘆竹區南山路一段2-1號	03-322-8753		蔡培成	藥師
+停止往來		藥局	A104	北三區		政興藥局		二聯發票				桃園市蘆竹區	338桃園市蘆竹區南昌路254號	03-321-5544	03-321-5544	黃凱琳	藥師
+`;
+
+let products = JSON.parse(localStorage.getItem('pharma_products') || '[]');
+let customers = JSON.parse(localStorage.getItem('pharma_customers') || '[]');
+
+if (products.length === 0) {
+  products = parseProductsTsv(EMBEDDED_PRODUCTS_TSV);
+  localStorage.setItem('pharma_products', JSON.stringify(products));
+}
+if (customers.length === 0) {
+  customers = parseCustomersTsv(EMBEDDED_CUSTOMERS_TSV);
+  localStorage.setItem('pharma_customers', JSON.stringify(customers));
+}
+let cart = [];
+let selectedCustomer = null;
+let ocrFiles = [];
+let ocrParsedItems = [];
+let activeCategory = '全部';
+let currentMode = 'ocr';
+
+/* ---------------- Init ---------------- */
+document.getElementById('empCode').value = localStorage.getItem('pharma_empCode') || '';
+document.getElementById('ocrWebhook').value = localStorage.getItem('pharma_ocrWebhook') || '';
+document.getElementById('submitWebhook').value = localStorage.getItem('pharma_submitWebhook') || '';
+
+function todayLabel() {
+  const d = new Date();
+  const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), day = String(d.getDate()).padStart(2,'0');
+  return { display: `${y}/${m}/${day}`, raw: `${y}${m}${day}` };
+}
+const today = todayLabel();
+document.getElementById('dateLabel').textContent = `單據日期 ${today.display}`;
+
+renderCategoryChips();
+renderProductGrid();
+updateCartUI();
+updateStatCounts();
+
+/* ---------------- Toast ---------------- */
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+/* ---------------- Settings modal ---------------- */
+function openSettings() { document.getElementById('settingsOverlay').classList.add('show'); }
+function closeSettings() { document.getElementById('settingsOverlay').classList.remove('show'); }
+
+function saveSettings() {
+  localStorage.setItem('pharma_empCode', document.getElementById('empCode').value.trim());
+  localStorage.setItem('pharma_ocrWebhook', document.getElementById('ocrWebhook').value.trim());
+  localStorage.setItem('pharma_submitWebhook', document.getElementById('submitWebhook').value.trim());
+  toast('✅ 設定已儲存');
+}
+
+function clearAllData() {
+  if (!confirm('確定要清除所有本機資料（商品、客戶、設定）？此動作無法復原。')) return;
+  localStorage.removeItem('pharma_products');
+  localStorage.removeItem('pharma_customers');
+  localStorage.removeItem('pharma_empCode');
+  localStorage.removeItem('pharma_ocrWebhook');
+  localStorage.removeItem('pharma_submitWebhook');
+  location.reload();
+}
+
+/* ---------------- TSV parsing helpers ---------------- */
+function parseTsv(raw) {
+  return raw.split(/\r?\n/).map(l => l.split('\t')).filter(cols => cols.some(c => c.trim() !== ''));
+}
+function cell(cols, i) { return (cols[i] || '').trim(); }
+function toNumber(v) {
+  const n = parseFloat(String(v).replace(/[^\d.\-]/g, ''));
+  return isNaN(n) ? null : n;
+}
+
+/* 產品大類, 品名, 存貨代碼, 進價, 卡多摩進價, 定價, 樣品價, 國際條碼, 保存期限, 退換貨, 註記 */
+function parseProductsTsv(raw) {
+  const rows = parseTsv(raw);
+  const parsed = [];
+  for (const cols of rows) {
+    const itemCode = cell(cols, 2);
+    if (!itemCode || itemCode === '存貨代碼') continue; // skip header / invalid rows
+    parsed.push({
+      category: cell(cols, 0),
+      name: cell(cols, 1),
+      itemCode,
+      cost: toNumber(cell(cols, 3)),
+      kodomoCost: toNumber(cell(cols, 4)),
+      listPrice: toNumber(cell(cols, 5)),
+      samplePrice: toNumber(cell(cols, 6)),
+      barcode: cell(cols, 7),
+      shelfLife: cell(cols, 8),
+      returnable: cell(cols, 9),
+      note: cell(cols, 10),
+    });
+  }
+  return parsed;
+}
+
+function importProducts() {
+  const raw = document.getElementById('productPaste').value;
+  if (!raw.trim()) { toast('請先貼上商品清單'); return; }
+  const parsed = parseProductsTsv(raw);
+  if (parsed.length === 0) { toast('沒有解析到有效商品列，請確認格式'); return; }
+  products = parsed;
+  localStorage.setItem('pharma_products', JSON.stringify(products));
+  document.getElementById('productImportMsg').textContent = `✅ 已匯入 ${parsed.length} 筆商品`;
+  renderCategoryChips();
+  renderProductGrid();
+  updateStatCounts();
+  toast(`✅ 商品清單已更新（${parsed.length} 筆）`);
+}
+
+/* 交易狀態, 客戶代碼, 部門分類, 開發者, 區域, 狀態, 客戶名稱, 藥局名稱(分店), 發票別, 統編, 發票抬頭, 地址編號, 出貨地, 地址, 電話, 傳真, 聯絡人, 職稱 */
+function parseCustomersTsv(raw) {
+  const rows = parseTsv(raw);
+  const parsed = [];
+  for (const cols of rows) {
+    const name = cell(cols, 6);
+    if (!name || name === '客戶名稱') continue;
+    const status = cell(cols, 0);
+    if (status === '停止往來' || status === '禁用') continue;
+    parsed.push({
+      code: cell(cols, 1),
+      deptType: cell(cols, 2),
+      developer: cell(cols, 3),
+      region: cell(cols, 4),
+      status: cell(cols, 5),
+      name,
+      branch: cell(cols, 7),
+      invoiceType: cell(cols, 8),
+      taxId: cell(cols, 9),
+      invoiceTitle: cell(cols, 10),
+      addressId: cell(cols, 11),
+      shipCity: cell(cols, 12),
+      address: cell(cols, 13),
+      phone: cell(cols, 14),
+      fax: cell(cols, 15),
+      contact: cell(cols, 16),
+      title: cell(cols, 17),
+    });
+  }
+  return parsed;
+}
+
+function importCustomers() {
+  const raw = document.getElementById('customerPaste').value;
+  if (!raw.trim()) { toast('請先貼上客戶清單'); return; }
+  const parsed = parseCustomersTsv(raw);
+  if (parsed.length === 0) { toast('沒有解析到有效客戶列，請確認格式'); return; }
+  customers = parsed;
+  localStorage.setItem('pharma_customers', JSON.stringify(customers));
+  document.getElementById('customerImportMsg').textContent = `✅ 已匯入 ${parsed.length} 筆客戶（已略過停止往來/禁用）`;
+  updateStatCounts();
+  toast(`✅ 客戶清單已更新（${parsed.length} 筆）`);
+}
+
+function restoreDefaults() {
+  if (!confirm('確定要還原成內建的預設商品／客戶清單？目前已匯入的資料會被取代。')) return;
+  products = parseProductsTsv(EMBEDDED_PRODUCTS_TSV);
+  customers = parseCustomersTsv(EMBEDDED_CUSTOMERS_TSV);
+  localStorage.setItem('pharma_products', JSON.stringify(products));
+  localStorage.setItem('pharma_customers', JSON.stringify(customers));
+  renderCategoryChips();
+  renderProductGrid();
+  updateStatCounts();
+  toast(`✅ 已還原內建清單（商品 ${products.length} 筆／客戶 ${customers.length} 筆）`);
+}
+
+function updateStatCounts() {
+  document.getElementById('statProducts').textContent = products.length;
+  document.getElementById('statCustomers').textContent = customers.length;
+  document.getElementById('productCountBadge').textContent = `${products.length} 項`;
+}
+
+/* ---------------- Customer picker ---------------- */
+const custSearch = document.getElementById('custSearch');
+const custDropdown = document.getElementById('custDropdown');
+
+custSearch.addEventListener('input', () => {
+  const q = custSearch.value.trim();
+  if (!q) { custDropdown.classList.remove('show'); return; }
+  const ql = q.toLowerCase();
+  const matches = customers.filter(c =>
+    (c.name && c.name.toLowerCase().includes(ql)) ||
+    (c.branch && c.branch.toLowerCase().includes(ql)) ||
+    (c.code && c.code.toLowerCase().includes(ql)) ||
+    (c.addressId && c.addressId.toLowerCase().includes(ql))
+  ).slice(0, 30);
+
+  custDropdown.innerHTML = matches.length
+    ? matches.map((c, i) => `
+        <div class="cust-item" onclick="selectCustomer(${customers.indexOf(c)})">
+          <div class="n">${escapeHtml(c.name)}</div>
+          <div class="m">${escapeHtml(c.code)} · ${escapeHtml(c.addressId)} · ${escapeHtml(c.address)}</div>
+        </div>`).join('')
+    : `<div class="cust-empty">找不到符合的客戶，請確認已在設定中匯入客戶清單</div>`;
+  custDropdown.classList.add('show');
+});
+
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.cust-search-wrap')) custDropdown.classList.remove('show');
+});
+
+function selectCustomer(idx) {
+  selectedCustomer = customers[idx];
+  custSearch.value = '';
+  custDropdown.classList.remove('show');
+  renderSelectedCustomer();
+}
+
+function renderSelectedCustomer() {
+  const box = document.getElementById('custSelectedBox');
+  if (!selectedCustomer) { box.innerHTML = ''; return; }
+  const c = selectedCustomer;
+  box.innerHTML = `
+    <div class="cust-selected">
+      <div class="info">
+        <b>${escapeHtml(c.name)}</b>
+        <div>客戶代碼 ${escapeHtml(c.code)} ／ 地址編號 ${escapeHtml(c.addressId)}</div>
+        <div>${escapeHtml(c.address)}</div>
+        <div>☎ ${escapeHtml(c.phone || '未提供')}</div>
+      </div>
+      <button class="clear-btn" onclick="clearCustomer()">✕</button>
+    </div>`;
+}
+function clearCustomer() { selectedCustomer = null; renderSelectedCustomer(); }
+
+function escapeHtml(s) {
+  return String(s || '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+/* ---------------- Mode switch ---------------- */
+function switchMode(mode) {
+  currentMode = mode;
+  document.getElementById('tabOcr').classList.toggle('active', mode === 'ocr');
+  document.getElementById('tabBtn').classList.toggle('active', mode === 'btn');
+  document.getElementById('panelOcr').classList.toggle('active', mode === 'ocr');
+  document.getElementById('panelBtn').classList.toggle('active', mode === 'btn');
+}
+
+/* ---------------- OCR upload ---------------- */
+const fileInput = document.getElementById('fileInput');
+const uploadZone = document.getElementById('uploadZone');
+const previewGrid = document.getElementById('previewGrid');
+const ocrBtn = document.getElementById('ocrBtn');
+
+uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('dragover'); });
+uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
+uploadZone.addEventListener('drop', e => {
+  e.preventDefault();
+  uploadZone.classList.remove('dragover');
+  addOcrFiles(Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/')));
+});
+fileInput.addEventListener('change', () => { addOcrFiles(Array.from(fileInput.files)); fileInput.value = ''; });
+
+function addOcrFiles(files) {
+  ocrFiles = [...ocrFiles, ...files];
+  renderOcrPreviews();
+  ocrBtn.disabled = ocrFiles.length === 0;
+}
+function removeOcrFile(i) { ocrFiles.splice(i, 1); renderOcrPreviews(); ocrBtn.disabled = ocrFiles.length === 0; }
+function renderOcrPreviews() {
+  previewGrid.innerHTML = ocrFiles.map((f, i) => `
+    <div class="preview-item">
+      <img src="${URL.createObjectURL(f)}">
+      <button class="rm" onclick="removeOcrFile(${i})">×</button>
+    </div>`).join('');
+}
+
+function showOcrStatus(type, msg, spin) {
+  const bar = document.getElementById('ocrStatus');
+  bar.className = `status-bar show ${type}`;
+  document.getElementById('ocrStatusMsg').textContent = msg;
+  document.getElementById('ocrSpinner').style.display = spin ? 'block' : 'none';
+}
+function hideOcrStatus() { document.getElementById('ocrStatus').className = 'status-bar'; }
+
+async function runOcr() {
+  const webhook = localStorage.getItem('pharma_ocrWebhook') || '';
+  if (!webhook) { showOcrStatus('error', '❌ 尚未設定拍照辨識 Webhook，請至右上角設定'); return; }
+  if (ocrFiles.length === 0) return;
+
+  ocrBtn.disabled = true;
+  showOcrStatus('loading', `辨識中，共 ${ocrFiles.length} 張圖片…`, true);
+
+  try {
+    const formData = new FormData();
+    ocrFiles.forEach(f => formData.append('images', f));
+
+    const res = await fetch(webhook, { method: 'POST', body: formData });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+
+    ocrParsedItems = Array.isArray(data.items) ? data.items : [];
+    if (data.poNumber) {
+      const noteEl = document.getElementById('orderNote');
+      if (!noteEl.value.trim()) noteEl.value = `採購單號：${data.poNumber}`;
+    }
+
+    showOcrStatus('success', `✅ 辨識完成，找到 ${ocrParsedItems.length} 個品項`);
+    renderOcrResults();
+
+    ocrFiles = [];
+    renderOcrPreviews();
+    ocrBtn.disabled = true;
+  } catch (err) {
+    showOcrStatus('error', `❌ 辨識失敗：${err.message}`);
+    ocrBtn.disabled = false;
+  }
+}
+
+function fuzzyMatchProduct(rawName) {
+  if (!rawName || products.length === 0) return null;
+  const norm = s => String(s).toLowerCase().replace(/[\s()（）\-\/]/g, '');
+  const target = norm(rawName);
+  let best = null, bestScore = 0;
+  for (const p of products) {
+    const pn = norm(p.name);
+    if (!pn) continue;
+    let score = 0;
+    if (pn === target) score = 100;
+    else if (pn.includes(target) || target.includes(pn)) score = 70;
+    else {
+      // token overlap
+      const a = new Set(target.split(''));
+      const b = new Set(pn.split(''));
+      let overlap = 0;
+      a.forEach(ch => { if (b.has(ch)) overlap++; });
+      score = (overlap / Math.max(a.size, b.size)) * 60;
+    }
+    if (score > bestScore) { bestScore = score; best = p; }
+  }
+  return bestScore >= 35 ? best : null;
+}
+
+function renderOcrResults() {
+  const card = document.getElementById('ocrResultCard');
+  const list = document.getElementById('ocrResultList');
+  document.getElementById('ocrResultCount').textContent = `${ocrParsedItems.length} 筆`;
+  card.style.display = ocrParsedItems.length ? 'block' : 'none';
+
+  list.innerHTML = ocrParsedItems.map((item, i) => {
+    const match = fuzzyMatchProduct(item.name);
+    item._matchedCode = match ? match.itemCode : '';
+    const options = products.map(p =>
+      `<option value="${p.itemCode}" ${match && p.itemCode === match.itemCode ? 'selected' : ''}>${escapeHtml(p.name)}</option>`
+    ).join('');
+    return `
+      <div class="ocr-row">
+        <input type="checkbox" id="ocrChk${i}" ${match ? 'checked' : ''}>
+        <div class="fields">
+          <div class="raw">辨識原文：「${escapeHtml(item.name)}」<span class="match-badge ${match ? 'match-ok' : 'match-none'}">${match ? '已配對' : '未配對'}</span></div>
+          <select id="ocrSel${i}" onchange="ocrParsedItems[${i}]._matchedCode = this.value">
+            <option value="">— 選擇對應商品 —</option>
+            ${options}
+          </select>
+        </div>
+        <input type="number" id="ocrQty${i}" value="${item.qty || 1}" min="1">
+      </div>`;
+  }).join('');
+}
+
+function addOcrToCart() {
+  let added = 0;
+  ocrParsedItems.forEach((item, i) => {
+    const chk = document.getElementById(`ocrChk${i}`);
+    if (!chk || !chk.checked) return;
+    const code = document.getElementById(`ocrSel${i}`).value;
+    const qty = parseInt(document.getElementById(`ocrQty${i}`).value, 10) || 1;
+    if (!code) return;
+    const p = products.find(pr => pr.itemCode === code);
+    if (!p) return;
+    addToCart(p, qty);
+    added++;
+  });
+  if (added === 0) { toast('請至少選擇一個已配對商品的品項'); return; }
+  ocrParsedItems = [];
+  renderOcrResults();
+  toast(`✅ 已加入 ${added} 個品項到訂單`);
+}
+
+/* ---------------- Button mode: category + grid ---------------- */
+function deriveCategory(raw) {
+  if (!raw) return '其他';
+  if (raw.includes('-')) return raw.split('-')[0];
+  return raw.replace(/\d+(\([^)]*\))?$/, '').trim() || raw;
+}
+
+function renderCategoryChips() {
+  const cats = ['全部', ...new Set(products.map(p => deriveCategory(p.category)))];
+  const chips = document.getElementById('catChips');
+  chips.innerHTML = cats.map(c =>
+    `<div class="cat-chip ${c === activeCategory ? 'active' : ''}" onclick="setCategory('${escapeHtml(c).replace(/'/g,"\\'")}')">${escapeHtml(c)}</div>`
+  ).join('');
+}
+function setCategory(c) { activeCategory = c; renderCategoryChips(); renderProductGrid(); }
+
+function cartQtyFor(itemCode) {
+  const line = cart.find(l => l.itemCode === itemCode);
+  return line ? line.qty : 0;
+}
+
+function renderProductGrid() {
+  const q = (document.getElementById('productSearch').value || '').toLowerCase();
+  const grid = document.getElementById('productGrid');
+  let list = products;
+  if (activeCategory !== '全部') list = list.filter(p => deriveCategory(p.category) === activeCategory);
+  if (q) list = list.filter(p => p.name.toLowerCase().includes(q) || (p.barcode || '').includes(q) || p.itemCode.toLowerCase().includes(q));
+
+  if (list.length === 0) {
+    grid.innerHTML = `<div class="cart-empty" style="grid-column:1/-1">${products.length === 0 ? '尚未匯入商品清單，請至右上角設定匯入' : '找不到符合的商品'}</div>`;
+    return;
+  }
+
+  grid.innerHTML = list.map(p => {
+    const qty = cartQtyFor(p.itemCode);
+    return `
+      <div class="product-card ${qty > 0 ? 'in-cart' : ''}" onclick="quickAdd('${escapeAttr(p.itemCode)}')">
+        <div class="pname">${escapeHtml(p.name)}</div>
+        <div class="pmeta">定價 ${p.listPrice ?? '-'} ／ 進價 ${p.cost ?? '洽詢'}</div>
+        <div class="pcode">${escapeHtml(p.itemCode)}</div>
+        ${qty > 0 ? `
+          <div class="qty-stepper" onclick="event.stopPropagation()">
+            <button onclick="stepQty('${escapeAttr(p.itemCode)}', -1)">−</button>
+            <span>${qty}</span>
+            <button onclick="stepQty('${escapeAttr(p.itemCode)}', 1)">＋</button>
+          </div>` : ''}
+      </div>`;
+  }).join('');
+}
+function escapeAttr(s) { return String(s).replace(/'/g, "\\'"); }
+
+function quickAdd(itemCode) {
+  const p = products.find(pr => pr.itemCode === itemCode);
+  if (!p) return;
+  const existing = cart.find(l => l.itemCode === itemCode);
+  if (existing) { existing.qty += 1; }
+  else addToCart(p, 1);
+  renderProductGrid();
+  updateCartUI();
+}
+function stepQty(itemCode, delta) {
+  const line = cart.find(l => l.itemCode === itemCode);
+  if (!line) return;
+  line.qty += delta;
+  if (line.qty <= 0) cart = cart.filter(l => l !== line);
+  renderProductGrid();
+  updateCartUI();
+}
+
+/* ---------------- Cart ---------------- */
+function addToCart(product, qty) {
+  const existing = cart.find(l => l.itemCode === product.itemCode);
+  if (existing) { existing.qty += qty; return; }
+  cart.push({
+    itemCode: product.itemCode,
+    name: product.name,
+    qty: qty,
+    price: product.cost ?? 0,
+    listPrice: product.cost ?? 0,
+  });
+}
+
+function removeCartLine(i) { cart.splice(i, 1); renderProductGrid(); updateCartUI(); }
+function updateCartQty(i, v) { cart[i].qty = Math.max(1, parseInt(v, 10) || 1); updateCartUI(); }
+function updateCartPrice(i, v) { cart[i].price = parseFloat(v) || 0; updateCartUI(); }
+
+function updateCartUI() {
+  const list = document.getElementById('cartList');
+  document.getElementById('cartCountBadge').textContent = `${cart.length} 項`;
+  document.getElementById('submitCount').textContent = `${cart.length} 項`;
+
+  if (cart.length === 0) {
+    list.innerHTML = '<div class="cart-empty">尚未加入任何品項</div>';
+    document.getElementById('cartTotal').textContent = 'NT$ 0';
+    return;
+  }
+
+  list.innerHTML = cart.map((l, i) => `
+    <div class="cart-row">
+      <div class="name">${escapeHtml(l.name)}<span class="code">${escapeHtml(l.itemCode)}</span></div>
+      <input type="number" value="${l.qty}" min="1" onchange="updateCartQty(${i}, this.value)">
+      <input type="number" class="price-input" value="${l.price}" onchange="updateCartPrice(${i}, this.value)">
+      <button class="rm" onclick="removeCartLine(${i})">×</button>
+    </div>`).join('');
+
+  const total = cart.reduce((sum, l) => sum + l.qty * l.price, 0);
+  document.getElementById('cartTotal').textContent = `NT$ ${total.toLocaleString()}`;
+}
+
+/* ---------------- Build order rows ---------------- */
+function buildOrderRows() {
+  if (!selectedCustomer) return null;
+  const empCode = localStorage.getItem('pharma_empCode') || '';
+  const note = document.getElementById('orderNote').value.trim();
+  return cart.map(l => ({
+    '員工代碼': empCode,
+    '單據日期': today.raw,
+    '客戶代碼': selectedCustomer.code,
+    '訂購人(客戶名稱)': selectedCustomer.name,
+    '收件人': selectedCustomer.name,
+    '地址編號': selectedCustomer.addressId,
+    '送貨地址': selectedCustomer.address,
+    '收件人電話': selectedCustomer.phone,
+    '數量': l.qty,
+    '商品名稱': l.name,
+    '存貨代碼': l.itemCode,
+    '進價': l.price,
+    '訂單備註': note,
+    '公定進價': l.listPrice,
+  }));
+}
+
+function validateOrder() {
+  if (!selectedCustomer) { toast('請先選擇客戶'); return false; }
+  if (cart.length === 0) { toast('尚未加入任何品項'); return false; }
+  if (!(localStorage.getItem('pharma_empCode') || '').trim()) { toast('請至設定填寫員工代碼'); return false; }
+  return true;
+}
+
+/* ---------------- Export Excel ---------------- */
+function exportExcel() {
+  if (!validateOrder()) return;
+  const rows = buildOrderRows();
+  const ws = XLSX.utils.json_to_sheet(rows, { header: ORDER_COLUMNS });
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, '訂單');
+  const fname = `訂單_${selectedCustomer.name}_${today.raw}.xlsx`;
+  XLSX.writeFile(wb, fname);
+  toast('✅ 已匯出 Excel');
+}
+
+/* ---------------- Submit to n8n ---------------- */
+async function submitOrder() {
+  if (!validateOrder()) return;
+  const webhook = localStorage.getItem('pharma_submitWebhook') || '';
+  if (!webhook) { toast('尚未設定送出訂單 Webhook，可先用「匯出 Excel」'); openSettings(); return; }
+
+  const rows = buildOrderRows();
+  const submitBtn = document.getElementById('submitBtn');
+  submitBtn.disabled = true;
+  submitBtn.textContent = '送出中…';
+
+  try {
+    const res = await fetch(webhook, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ rows }),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    toast(`✅ 已送出 ${rows.length} 筆訂單資料`);
+    cart = [];
+    selectedCustomer = null;
+    document.getElementById('orderNote').value = '';
+    renderSelectedCustomer();
+    renderProductGrid();
+    updateCartUI();
+  } catch (err) {
+    toast(`❌ 送出失敗：${err.message}`);
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = '送出訂單';
+  }
+}
+</script>
+</body>
+</html>
