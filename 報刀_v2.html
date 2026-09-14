@@ -655,7 +655,10 @@ let selectedHospital = '', innerCode = '';
   _show('reviewBtn', _isStaff);
   _show('pickupBtn', _isStaff);
 }
-checkAnnouncements();
+// 訂閱公告優先，關掉後才輪到一般公告（避免兩個彈窗疊在一起）
+// ⚠️ 必須等 DOMContentLoaded：SUB_NOTICE 是用 const 宣告在本段之後，
+//    直接呼叫會踩到 TDZ（ReferenceError），整段 script 會中斷。
+window.addEventListener('DOMContentLoaded', () => checkSubscriptionNotice(checkAnnouncements));
 let currentSales = (() => {
   const user = window.TANDRY_USER || {};
   if (user.displayName) {
@@ -2660,6 +2663,107 @@ function showFailureOverlay(serial){
   overlay.innerHTML=`<div style="font-size:64px;margin-bottom:16px;">⚠️</div><div style="color:white;font-size:22px;font-weight:700;margin-bottom:12px;">報刀送出失敗</div><div style="color:rgba(255,255,255,0.9);font-size:15px;max-width:420px;line-height:1.6;">${detail}</div><button id="failureOverlayCloseBtn" style="margin-top:24px;padding:12px 32px;border:none;border-radius:24px;background:#fff;color:#B71C1C;font-size:15px;font-weight:700;cursor:pointer;">我知道了</button>`;
   document.body.appendChild(overlay);
   document.getElementById('failureOverlayCloseBtn').onclick=()=>{if(document.body.contains(overlay))document.body.removeChild(overlay);};
+}
+
+// ══ 訂閱制公告 ══════════════════════════════════════════════════════
+// 緩衝期內「每天第一次開啟系統」跳一次，必須按下按鈕才關閉，關閉時回傳已讀紀錄。
+// 要改日期／價格／額度，只改下面這個物件即可，不用動其他地方。
+const SUB_NOTICE = {
+  id: 'sub-2026-09',                 // 換一個 id ＝ 所有人重新再看到一輪
+  bufferEndText: '9/30',             // 緩衝期最後一天（顯示用）
+  enforceFromText: '10/1',           // 開始停用的日期（顯示用）
+  stopShowingAfter: '2026-10-31',    // 過了這天就不再跳，避免永遠彈下去
+  weeklyCap: 7,                      // 陽春版每週上限
+  ackWebhook: 'https://ydj.zeabur.app/webhook/ack-subscription',
+};
+
+function _todayStr(){
+  const d = new Date(), p = n => String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`;
+}
+
+// done: 關閉後要接著做的事（用來串後面的一般公告，避免兩個彈窗疊在一起）
+function checkSubscriptionNotice(done){
+  const next = typeof done === 'function' ? done : function(){};
+  const today = _todayStr();
+  if (today > SUB_NOTICE.stopShowingAfter) return next();
+  let last = '';
+  try { last = localStorage.getItem('tandry_sub_notice_shown') || ''; } catch(e) {}
+  if (last === `${SUB_NOTICE.id}|${today}`) return next();   // 今天已經跳過了
+  showSubscriptionNotice(next);
+}
+
+function showSubscriptionNotice(done){
+  const cap = SUB_NOTICE.weeklyCap;
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:10000;display:flex;align-items:center;justify-content:center;padding:16px;';
+  overlay.innerHTML = `
+    <div style="background:#fff;border-radius:16px;max-width:440px;width:100%;max-height:88vh;display:flex;flex-direction:column;overflow:hidden;">
+      <div style="background:#1a1a2e;color:#fff;padding:16px 20px;font-size:16px;font-weight:700;">報刀系統｜訂閱制公告</div>
+      <div style="padding:20px;overflow:auto;font-size:14px;line-height:1.75;color:#1a1a2e;">
+        <div style="margin-bottom:14px;">報刀系統持續為大家節省時間、降低出錯風險：</div>
+        <div style="background:#f5f4f0;border-radius:10px;padding:12px 14px;margin-bottom:16px;font-size:13px;line-height:1.8;">
+          ・每月對刀單，從手動輸入 → 系統一鍵匯出，省下 30 分鐘～1 小時<br>
+          ・報刀出錯風險大幅降低，避免整張單歸零的損失
+        </div>
+        <div style="margin-bottom:16px;">
+          這套系統的開發與維護，是我個人持續投入的心力與資源。<br>
+          為了讓系統能穩定運作並持續擴充功能，即日起轉為訂閱制。
+        </div>
+        <div style="font-weight:700;margin-bottom:8px;">【方案】</div>
+        <div style="border:1px solid #e0ddd6;border-radius:10px;overflow:hidden;margin-bottom:16px;font-size:13px;">
+          <div style="display:flex;justify-content:space-between;padding:11px 14px;border-bottom:1px solid #e0ddd6;">
+            <span>完整版　月繳</span><span style="font-weight:700;font-family:'JetBrains Mono',monospace;">1,000 元</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:11px 14px;border-bottom:1px solid #e0ddd6;background:#f0f7f3;">
+            <span>完整版　季繳<br><span style="font-size:11px;color:#2d6a4f;">9 折，另含季報數據分析</span></span>
+            <span style="font-weight:700;font-family:'JetBrains Mono',monospace;">2,700 元</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:11px 14px;">
+            <span>陽春版　月繳<br><span style="font-size:11px;color:#888680;">每週上限 ${cap} 筆，超過需自行記錄</span></span>
+            <span style="font-weight:700;font-family:'JetBrains Mono',monospace;">300 元</span>
+          </div>
+        </div>
+        <div style="font-weight:700;margin-bottom:8px;">【緩衝期】</div>
+        <div style="margin-bottom:16px;">
+          即日起至 <b>${SUB_NOTICE.bufferEndText}</b> 前，維持現行使用方式不變。<br>
+          <b>${SUB_NOTICE.enforceFromText}</b> 起，未訂閱帳號將暫停使用權限。
+        </div>
+        <div style="color:#888680;font-size:13px;">有問題歡迎私訊討論。</div>
+      </div>
+      <div style="padding:14px 20px 18px;border-top:1px solid #e0ddd6;">
+        <button id="subNoticeBtn" style="width:100%;padding:13px;border:none;border-radius:24px;background:#1a1a2e;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;">我知道了</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  document.getElementById('subNoticeBtn').onclick = () => {
+    try { localStorage.setItem('tandry_sub_notice_shown', `${SUB_NOTICE.id}|${_todayStr()}`); } catch(e) {}
+    ackSubscriptionNotice();                       // 不等回應，避免拖慢關閉
+    if (document.body.contains(overlay)) document.body.removeChild(overlay);
+    done();
+  };
+}
+
+// 已讀紀錄：記下誰、什麼時候按了「我知道了」（日後若有人說不知道要收費，有紀錄可查）
+function ackSubscriptionNotice(){
+  const u = window.TANDRY_USER || {};
+  try {
+    const ctrl = new AbortController();
+    setTimeout(() => ctrl.abort(), 8000);
+    fetch(SUB_NOTICE.ackWebhook, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        token: localStorage.getItem('tandry_token') || '',
+        公告代號: SUB_NOTICE.id,
+        帳號: u.username || '',
+        姓名: u.displayName || u.username || '',
+        確認時間: new Date().toLocaleString('sv-SE').replace('T',' ').slice(0,16),
+        裝置: navigator.userAgent.slice(0,120),
+      }),
+      signal: ctrl.signal,
+    }).catch(e => console.warn('[訂閱公告] 已讀紀錄回傳失敗', e));
+  } catch(e) { console.warn('[訂閱公告] 已讀紀錄送出例外', e); }
 }
 
 // ── 公告提醒（未讀公告彈窗，資料來自 announcements-data.js）──────────
