@@ -83,8 +83,8 @@
 ## 流水號規則
 格式：{業務代碼}{年後2碼}{月2碼}{日2碼}{序號2碼}
 例：IV26050801
-業務代碼：IV=Ivan, DI=Dino, HE=Henry, VI=Vincent, KA=Kaley, MA=Mandy, ED=Eddie, BR=Bruce, AN=Andrew, RI=Richie, EA=Eason, DA=Darren, DE=Derek。⚠️ Nick（新增業務，負責台中區）已加入 報刀_v2.html 的 salesList，但流水號代碼字母、email/角色需在 n8n + Google Sheets 登入帳號分頁另外設定，前端目前沒有他的代碼。
-（email/角色/最新流水號存於 n8n + Google Sheets 登入帳號分頁，不在前端；前端僅 `報刀_v2.html` salesList 名單。角色：Ivan/Eddie/Bruce/Eason=admin，其餘 sales）
+業務代碼對照的**唯一真實來源是 Google Sheets `設定` 分頁**（姓名／業務代碼／最新流水號／email／管理／訂閱方案／本週已用）。2026/09 起 `manual-baodao` 的 `產生流水號` node 已改成直接讀這個分頁用姓名查代碼，**不再寫死 `SALES_CODE` 對照表**——新增業務只要在 Sheets 加一列就會動，不用改 n8n Code。舊寫法漏加誰就會讓那個人報刀直接失敗（Nick/Ian/Jason 都因此壞過），這個坑已經排除，細節見 `docs/訂閱制.md` 第五節。
+（Google 登入授權名單仍是 n8n `查員工並發Token1` 節點裡寫死的 `EMAIL_USERS`，這塊沒有接 Sheets；前端僅 `報刀_v2.html` salesList 名單。角色：Ivan/Eddie/Bruce/Eason=admin，其餘 sales）
 
 ## 正字記數系統
 ### 報刀_v2.html（已完成）
