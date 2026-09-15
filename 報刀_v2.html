@@ -310,6 +310,7 @@ document.addEventListener('click', () => {
     <h1>報刀系統</h1>
   </div>
 <div style="display:flex;align-items:center;gap:8px;">
+    <span id="quotaBadge" style="display:none;font-size:11px;font-weight:700;color:#fff;background:rgba(255,255,255,0.15);border-radius:20px;padding:4px 10px;white-space:nowrap;"></span>
     <span id="salesName" style="font-size:13px;color:rgba(255,255,255,0.7);"></span>
     <div class="sales-badge" onclick="openSalesModal()">
       🏭 <span id="warehouseBadge">選庫別</span>
@@ -658,7 +659,7 @@ let selectedHospital = '', innerCode = '';
 // 訂閱公告優先，關掉後才輪到一般公告（避免兩個彈窗疊在一起）
 // ⚠️ 必須等 DOMContentLoaded：SUB_NOTICE 是用 const 宣告在本段之後，
 //    直接呼叫會踩到 TDZ（ReferenceError），整段 script 會中斷。
-window.addEventListener('DOMContentLoaded', () => checkSubscriptionNotice(checkAnnouncements));
+window.addEventListener('DOMContentLoaded', () => { renderQuotaBadge(); checkSubscriptionNotice(checkAnnouncements); });
 let currentSales = (() => {
   const user = window.TANDRY_USER || {};
   if (user.displayName) {
@@ -2510,6 +2511,13 @@ function _showWarehouseConfirm(zone, defaultWarehouse) {
 
 function showPreview(){
   if(!currentWarehouse){showToast('請先選擇庫別','error');return;}
+  // 陽春版額度用完就先擋在這，不要讓人做完預覽/截圖才發現送不出去。
+  // 沒有快取就放行，交給後端判斷（寧可多送一次也不要誤擋）。
+  { const q = readQuota();
+    if (q && q.plan === '陽春' && q.remain <= 0) {
+      showBlockedOverlay({ code:'QUOTA_EXCEEDED', cap:q.cap, used:q.cap });
+      return;
+    } }
   _updateToolDisplay();
   const td=document.getElementById('toolDisplay');
   if(td){const h=buildDamageScrewHTML();td.innerHTML=h||'';}
@@ -2663,6 +2671,78 @@ function showFailureOverlay(serial){
   overlay.innerHTML=`<div style="font-size:64px;margin-bottom:16px;">⚠️</div><div style="color:white;font-size:22px;font-weight:700;margin-bottom:12px;">報刀送出失敗</div><div style="color:rgba(255,255,255,0.9);font-size:15px;max-width:420px;line-height:1.6;">${detail}</div><button id="failureOverlayCloseBtn" style="margin-top:24px;padding:12px 32px;border:none;border-radius:24px;background:#fff;color:#B71C1C;font-size:15px;font-weight:700;cursor:pointer;">我知道了</button>`;
   document.body.appendChild(overlay);
   document.getElementById('failureOverlayCloseBtn').onclick=()=>{if(document.body.contains(overlay))document.body.removeChild(overlay);};
+}
+
+// ══ 陽春版每週額度 ═══════════════════════════════════════════════════
+// 真正的把關在 n8n（manual-baodao）。前端這段只負責「早點讓使用者知道」，
+// 額度資訊是從上一次送出成功的回應快取下來的，所以不需要額外的 webhook。
+// ⚠️ 前端快取可能過期（例如換裝置），所以前端只提示、不當作最終判斷。
+
+function _quotaKey(){
+  const u = window.TANDRY_USER || {};
+  return 'tandry_quota_' + (u.username || 'anon');
+}
+
+// 從送出成功的回應存下剩餘額度（後端只有陽春版會回 remain）
+function saveQuotaFromResponse(json){
+  if (!json || json.remain === undefined || json.remain === null) return;
+  try {
+    localStorage.setItem(_quotaKey(), JSON.stringify({
+      remain: json.remain, cap: json.cap || 7, plan: json.plan || '陽春', monday: _thisMonday(),
+    }));
+  } catch(e) {}
+  renderQuotaBadge();
+}
+
+function _thisMonday(){
+  const d = new Date();
+  const back = (d.getDay() + 6) % 7;           // 週一=0
+  const m = new Date(d.getTime() - back * 86400000);
+  const p = n => String(n).padStart(2,'0');
+  return `${m.getFullYear()}-${p(m.getMonth()+1)}-${p(m.getDate())}`;
+}
+
+// 讀快取；跨週自動失效（額度每週一歸零）
+function readQuota(){
+  try {
+    const q = JSON.parse(localStorage.getItem(_quotaKey()) || 'null');
+    if (!q || q.monday !== _thisMonday()) return null;
+    return q;
+  } catch(e) { return null; }
+}
+
+function renderQuotaBadge(){
+  const q = readQuota();
+  const el = document.getElementById('quotaBadge');
+  if (!el) return;
+  if (!q || q.plan !== '陽春') { el.style.display = 'none'; return; }
+  el.style.display = '';
+  el.textContent = `本週剩 ${q.remain} 筆`;
+  el.style.background = q.remain <= 0 ? '#e63946' : (q.remain <= 2 ? '#f4a261' : 'rgba(255,255,255,0.15)');
+}
+
+// 被後端擋下來時的說明畫面（跟一般送出失敗要分清楚，不然會以為是系統壞了）
+function showBlockedOverlay(info){
+  const isQuota = info && info.code === 'QUOTA_EXCEEDED';
+  const title = isQuota ? '本週額度已用完' : '無法報刀';
+  const body = isQuota
+    ? `陽春版每週上限 <b>${info.cap || 7}</b> 筆，本週已用 <b>${info.used ?? ''}</b> 筆。<br><br>這一筆<b>沒有送出</b>，系統也不會產生流水號與截圖，請自行記錄後轉給內勤。<br><br>升級完整版即可不限筆數，請私訊 Ivan。`
+    : `${(info && info.message) || '請聯絡 Ivan 確認帳號狀態'}<br><br>這一筆<b>沒有送出</b>。`;
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(183,28,28,0.96);z-index:10001;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;';
+  overlay.innerHTML = `<div style="font-size:60px;margin-bottom:14px;">🚫</div>
+    <div style="color:#fff;font-size:21px;font-weight:700;margin-bottom:12px;">${title}</div>
+    <div style="color:rgba(255,255,255,0.92);font-size:15px;max-width:420px;line-height:1.7;">${body}</div>
+    <button id="blockedCloseBtn" style="margin-top:24px;padding:12px 32px;border:none;border-radius:24px;background:#fff;color:#B71C1C;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;">我知道了</button>`;
+  document.body.appendChild(overlay);
+  document.getElementById('blockedCloseBtn').onclick = () => {
+    if (document.body.contains(overlay)) document.body.removeChild(overlay);
+  };
+  // 額度用完了，把快取更新成 0，下次進來就直接擋在前面
+  if (isQuota) {
+    try { localStorage.setItem(_quotaKey(), JSON.stringify({ remain:0, cap:info.cap||7, plan:'陽春', monday:_thisMonday() })); } catch(e) {}
+    renderQuotaBadge();
+  }
 }
 
 // ══ 訂閱制公告 ══════════════════════════════════════════════════════
@@ -2897,6 +2977,7 @@ async function confirmSubmit(){
   if(!patientId){showToast('請輸入病歷號','error');btn.disabled=false;btn.textContent='✅ 確認送出';return;}
   let serialNo='';
   let anyFailed=false;
+  let blocked=null;   // 後端拒絕時的回應（額度用完／未訂閱）
   for(const item of items){
     const codeOut=item.另洽?(item.innerCode||'')+'（另洽）':(item.innerCode||'');
     const isFirst=items.indexOf(item)===0;
@@ -2921,10 +3002,23 @@ async function confirmSubmit(){
       const res=await fetch(WEBHOOK_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(row),signal:ctrl.signal});
       clearTimeout(t);
       console.log('[confirmSubmit] response status:', res.status);
-      if(isFirst){try{const json=await res.json();serialNo=json.serialNo||json.流水號||'';console.log('[confirmSubmit] serialNo:', serialNo);}catch(e){console.warn('[confirmSubmit] parse json failed:', e);}}
+      if(isFirst){
+        let json=null;
+        try{ json=await res.json(); }catch(e){ console.warn('[confirmSubmit] parse json failed:', e); }
+        // 後端明確拒絕（額度用完／未訂閱／查無業務代碼）：HTTP 是 200，但 success=false。
+        // 一定要擋在這裡，否則會被當成送出成功、跳出流水號空白的成功畫面。
+        if(json && json.success===false){ blocked=json; break; }
+        serialNo=(json&&(json.serialNo||json.流水號))||'';
+        if(json) saveQuotaFromResponse(json);
+        console.log('[confirmSubmit] serialNo:', serialNo);
+      }
       if(!res.ok && !serialNo){console.error('[confirmSubmit] HTTP error:', res.status); anyFailed=true;}
     }catch(e){console.error('報刀資料送出失敗',e);anyFailed=true;}
   }
+  if(blocked){ showBlockedOverlay(blocked); btn.disabled=false; btn.textContent='✅ 確認送出'; return; }
+  // 沒拿到流水號＝後端沒真的寫進去（回應為空或格式非預期）。
+  // 這種情況絕不能跳成功畫面，否則就是「圖片右上角流水號空白」那種假成功、事後才發現漏刀。
+  if(!serialNo){ console.error('[confirmSubmit] 沒有取得流水號，視為失敗'); anyFailed=true; }
   if(anyFailed){showFailureOverlay(serialNo);btn.disabled=false;btn.textContent='✅ 確認送出';return;}
   // 流水號填回預覽
   const serialEl=document.getElementById('previewSerialEl');
