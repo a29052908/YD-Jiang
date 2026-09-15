@@ -2784,24 +2784,26 @@ function showSubscriptionNotice(done){
         <div style="margin-bottom:14px;">報刀系統持續為大家節省時間、降低出錯風險：</div>
         <div style="background:#f5f4f0;border-radius:10px;padding:12px 14px;margin-bottom:16px;font-size:13px;line-height:1.8;">
           ・每月對刀單，從手動輸入 → 系統一鍵匯出，省下 30 分鐘～1 小時<br>
-          ・報刀出錯風險大幅降低，避免整張單歸零的損失
+          ・筆誤出錯風險大幅降低，避免整張單被扣錢歸零<br>
+          ・避免被扣錢!!<br>
+          ・避免被扣錢!!
         </div>
         <div style="margin-bottom:16px;">
-          這套系統的開發與維護，是我個人持續投入的心力與資源。<br>
-          為了讓系統能穩定運作並持續擴充功能，即日起轉為訂閱制。
+          這套系統的開發與維護，是我個人近半年投入的心力與金錢。<br>
+          為了讓系統能穩定運作並持續擴充功能，<b>${SUB_NOTICE.enforceFromText}</b> 起轉為訂閱制。
         </div>
         <div style="font-weight:700;margin-bottom:8px;">【方案】</div>
         <div style="border:1px solid #e0ddd6;border-radius:10px;overflow:hidden;margin-bottom:16px;font-size:13px;">
           <div style="display:flex;justify-content:space-between;padding:11px 14px;border-bottom:1px solid #e0ddd6;">
-            <span>完整版　月繳</span><span style="font-weight:700;font-family:'JetBrains Mono',monospace;">1,000 元</span>
+            <span>完整版｜月繳</span><span style="font-weight:700;font-family:'JetBrains Mono',monospace;white-space:nowrap;">1,000 元</span>
           </div>
           <div style="display:flex;justify-content:space-between;padding:11px 14px;border-bottom:1px solid #e0ddd6;background:#f0f7f3;">
-            <span>完整版　季繳<br><span style="font-size:11px;color:#2d6a4f;">9 折，另含季報數據分析</span></span>
-            <span style="font-weight:700;font-family:'JetBrains Mono',monospace;">2,700 元</span>
+            <span>完整版｜季繳<br><span style="font-size:11px;color:#2d6a4f;">9 折，季繳另協助季報數據分析</span></span>
+            <span style="font-weight:700;font-family:'JetBrains Mono',monospace;white-space:nowrap;">2,700 元</span>
           </div>
           <div style="display:flex;justify-content:space-between;padding:11px 14px;">
-            <span>陽春版　月繳<br><span style="font-size:11px;color:#888680;">每週上限 ${cap} 筆，超過需自行記錄</span></span>
-            <span style="font-weight:700;font-family:'JetBrains Mono',monospace;">300 元</span>
+            <span>陽春版｜月繳<br><span style="font-size:11px;color:#888680;">每週上限 ${cap} 筆，超過需自行手寫報刀單，系統防錯功能亦不適用於超出部分</span></span>
+            <span style="font-weight:700;font-family:'JetBrains Mono',monospace;white-space:nowrap;">300 元</span>
           </div>
         </div>
         <div style="font-weight:700;margin-bottom:8px;">【緩衝期】</div>
@@ -2809,10 +2811,26 @@ function showSubscriptionNotice(done){
           即日起至 <b>${SUB_NOTICE.bufferEndText}</b> 前，維持現行使用方式不變。<br>
           <b>${SUB_NOTICE.enforceFromText}</b> 起，未訂閱帳號將暫停使用權限。
         </div>
-        <div style="color:#888680;font-size:13px;">有問題歡迎私訊討論。</div>
+        <div style="color:#888680;font-size:13px;margin-bottom:18px;">有問題歡迎私訊討論。</div>
+        <div style="border-top:1px dashed #e0ddd6;padding-top:16px;font-size:13px;line-height:1.9;color:#5a5850;">
+          <div style="margin-bottom:10px;">很感謝大家這兩個月使用下來對系統的認可。</div>
+          <div style="margin-bottom:10px;">
+            最初開發這套系統，是因為自己在趕刀、血糖低、注意力下降的狀態下，
+            常常出現各種筆誤，被扣了不少錢，但問題的根本一直沒有真正解決。
+          </div>
+          <div style="margin-bottom:10px;">
+            後來去報名了 AI 自動化課程，學費不便宜，
+            但總算把腦中構想完整實現，也真正解決了「出錯被扣錢」這個懲罰性問題。
+          </div>
+          <div>
+            系統背後有持續的運行成本，這部分需要大家一起分攤，
+            希望這套系統能讓大家跟刀更順、業績爆爆爆！
+          </div>
+        </div>
       </div>
       <div style="padding:14px 20px 18px;border-top:1px solid #e0ddd6;">
         <button id="subNoticeBtn" style="width:100%;padding:13px;border:none;border-radius:24px;background:#1a1a2e;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;">我知道了</button>
+        <div style="text-align:center;color:#888680;font-size:12px;margin-top:10px;">繳費方式：LINE Pay 或私訊索取帳號轉帳</div>
       </div>
     </div>`;
   document.body.appendChild(overlay);
