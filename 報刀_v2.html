@@ -310,6 +310,7 @@ document.addEventListener('click', () => {
     <h1>報刀系統</h1>
   </div>
 <div style="display:flex;align-items:center;gap:8px;">
+    <span id="quotaBadge" style="display:none;font-size:11px;font-weight:700;color:#fff;background:rgba(255,255,255,0.15);border-radius:20px;padding:4px 10px;white-space:nowrap;"></span>
     <span id="salesName" style="font-size:13px;color:rgba(255,255,255,0.7);"></span>
     <div class="sales-badge" onclick="openSalesModal()">
       🏭 <span id="warehouseBadge">選庫別</span>
@@ -655,7 +656,10 @@ let selectedHospital = '', innerCode = '';
   _show('reviewBtn', _isStaff);
   _show('pickupBtn', _isStaff);
 }
-checkAnnouncements();
+// 訂閱公告優先，關掉後才輪到一般公告（避免兩個彈窗疊在一起）
+// ⚠️ 必須等 DOMContentLoaded：SUB_NOTICE 是用 const 宣告在本段之後，
+//    直接呼叫會踩到 TDZ（ReferenceError），整段 script 會中斷。
+window.addEventListener('DOMContentLoaded', () => { renderQuotaBadge(); checkSubscriptionNotice(checkAnnouncements); });
 let currentSales = (() => {
   const user = window.TANDRY_USER || {};
   if (user.displayName) {
@@ -2507,6 +2511,13 @@ function _showWarehouseConfirm(zone, defaultWarehouse) {
 
 function showPreview(){
   if(!currentWarehouse){showToast('請先選擇庫別','error');return;}
+  // 陽春版額度用完就先擋在這，不要讓人做完預覽/截圖才發現送不出去。
+  // 沒有快取就放行，交給後端判斷（寧可多送一次也不要誤擋）。
+  { const q = readQuota();
+    if (q && q.plan === '陽春' && q.remain <= 0) {
+      showBlockedOverlay({ code:'QUOTA_EXCEEDED', cap:q.cap, used:q.cap });
+      return;
+    } }
   _updateToolDisplay();
   const td=document.getElementById('toolDisplay');
   if(td){const h=buildDamageScrewHTML();td.innerHTML=h||'';}
@@ -2662,6 +2673,179 @@ function showFailureOverlay(serial){
   document.getElementById('failureOverlayCloseBtn').onclick=()=>{if(document.body.contains(overlay))document.body.removeChild(overlay);};
 }
 
+// ══ 陽春版每週額度 ═══════════════════════════════════════════════════
+// 真正的把關在 n8n（manual-baodao）。前端這段只負責「早點讓使用者知道」，
+// 額度資訊是從上一次送出成功的回應快取下來的，所以不需要額外的 webhook。
+// ⚠️ 前端快取可能過期（例如換裝置），所以前端只提示、不當作最終判斷。
+
+function _quotaKey(){
+  const u = window.TANDRY_USER || {};
+  return 'tandry_quota_' + (u.username || 'anon');
+}
+
+// 從送出成功的回應存下剩餘額度（後端只有陽春版會回 remain）
+function saveQuotaFromResponse(json){
+  if (!json || json.remain === undefined || json.remain === null) return;
+  try {
+    localStorage.setItem(_quotaKey(), JSON.stringify({
+      remain: json.remain, cap: json.cap || 7, plan: json.plan || '陽春', monday: _thisMonday(),
+    }));
+  } catch(e) {}
+  renderQuotaBadge();
+}
+
+function _thisMonday(){
+  const d = new Date();
+  const back = (d.getDay() + 6) % 7;           // 週一=0
+  const m = new Date(d.getTime() - back * 86400000);
+  const p = n => String(n).padStart(2,'0');
+  return `${m.getFullYear()}-${p(m.getMonth()+1)}-${p(m.getDate())}`;
+}
+
+// 讀快取；跨週自動失效（額度每週一歸零）
+function readQuota(){
+  try {
+    const q = JSON.parse(localStorage.getItem(_quotaKey()) || 'null');
+    if (!q || q.monday !== _thisMonday()) return null;
+    return q;
+  } catch(e) { return null; }
+}
+
+function renderQuotaBadge(){
+  const q = readQuota();
+  const el = document.getElementById('quotaBadge');
+  if (!el) return;
+  if (!q || q.plan !== '陽春') { el.style.display = 'none'; return; }
+  el.style.display = '';
+  el.textContent = `本週剩 ${q.remain} 筆`;
+  el.style.background = q.remain <= 0 ? '#e63946' : (q.remain <= 2 ? '#f4a261' : 'rgba(255,255,255,0.15)');
+}
+
+// 被後端擋下來時的說明畫面（跟一般送出失敗要分清楚，不然會以為是系統壞了）
+function showBlockedOverlay(info){
+  const isQuota = info && info.code === 'QUOTA_EXCEEDED';
+  const title = isQuota ? '本週額度已用完' : '無法報刀';
+  const body = isQuota
+    ? `陽春版每週上限 <b>${info.cap || 7}</b> 筆，本週已用 <b>${info.used ?? ''}</b> 筆。<br><br>這一筆<b>沒有送出</b>，系統也不會產生流水號與截圖，請自行記錄後轉給內勤。<br><br>升級完整版即可不限筆數，請私訊 Ivan。`
+    : `${(info && info.message) || '請聯絡 Ivan 確認帳號狀態'}<br><br>這一筆<b>沒有送出</b>。`;
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(183,28,28,0.96);z-index:10001;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;';
+  overlay.innerHTML = `<div style="font-size:60px;margin-bottom:14px;">🚫</div>
+    <div style="color:#fff;font-size:21px;font-weight:700;margin-bottom:12px;">${title}</div>
+    <div style="color:rgba(255,255,255,0.92);font-size:15px;max-width:420px;line-height:1.7;">${body}</div>
+    <button id="blockedCloseBtn" style="margin-top:24px;padding:12px 32px;border:none;border-radius:24px;background:#fff;color:#B71C1C;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;">我知道了</button>`;
+  document.body.appendChild(overlay);
+  document.getElementById('blockedCloseBtn').onclick = () => {
+    if (document.body.contains(overlay)) document.body.removeChild(overlay);
+  };
+  // 額度用完了，把快取更新成 0，下次進來就直接擋在前面
+  if (isQuota) {
+    try { localStorage.setItem(_quotaKey(), JSON.stringify({ remain:0, cap:info.cap||7, plan:'陽春', monday:_thisMonday() })); } catch(e) {}
+    renderQuotaBadge();
+  }
+}
+
+// ══ 訂閱制公告 ══════════════════════════════════════════════════════
+// 緩衝期內「每天第一次開啟系統」跳一次，必須按下按鈕才關閉，關閉時回傳已讀紀錄。
+// 要改日期／價格／額度，只改下面這個物件即可，不用動其他地方。
+const SUB_NOTICE = {
+  id: 'sub-2026-09',                 // 換一個 id ＝ 所有人重新再看到一輪
+  bufferEndText: '9/30',             // 緩衝期最後一天（顯示用）
+  enforceFromText: '10/1',           // 開始停用的日期（顯示用）
+  stopShowingAfter: '2026-10-31',    // 過了這天就不再跳，避免永遠彈下去
+  weeklyCap: 7,                      // 陽春版每週上限
+  ackWebhook: 'https://ydj.zeabur.app/webhook/ack-subscription',
+};
+
+function _todayStr(){
+  const d = new Date(), p = n => String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`;
+}
+
+// done: 關閉後要接著做的事（用來串後面的一般公告，避免兩個彈窗疊在一起）
+function checkSubscriptionNotice(done){
+  const next = typeof done === 'function' ? done : function(){};
+  const today = _todayStr();
+  if (today > SUB_NOTICE.stopShowingAfter) return next();
+  let last = '';
+  try { last = localStorage.getItem('tandry_sub_notice_shown') || ''; } catch(e) {}
+  if (last === `${SUB_NOTICE.id}|${today}`) return next();   // 今天已經跳過了
+  showSubscriptionNotice(next);
+}
+
+function showSubscriptionNotice(done){
+  const cap = SUB_NOTICE.weeklyCap;
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:10000;display:flex;align-items:center;justify-content:center;padding:16px;';
+  overlay.innerHTML = `
+    <div style="background:#fff;border-radius:16px;max-width:440px;width:100%;max-height:88vh;display:flex;flex-direction:column;overflow:hidden;">
+      <div style="background:#1a1a2e;color:#fff;padding:16px 20px;font-size:16px;font-weight:700;">報刀系統｜訂閱制公告</div>
+      <div style="padding:20px;overflow:auto;font-size:14px;line-height:1.75;color:#1a1a2e;">
+        <div style="margin-bottom:14px;">報刀系統持續為大家節省時間、降低出錯風險：</div>
+        <div style="background:#f5f4f0;border-radius:10px;padding:12px 14px;margin-bottom:16px;font-size:13px;line-height:1.8;">
+          ・每月對刀單，從手動輸入 → 系統一鍵匯出，省下 30 分鐘～1 小時<br>
+          ・報刀出錯風險大幅降低，避免整張單歸零的損失
+        </div>
+        <div style="margin-bottom:16px;">
+          這套系統的開發與維護，是我個人持續投入的心力與資源。<br>
+          為了讓系統能穩定運作並持續擴充功能，即日起轉為訂閱制。
+        </div>
+        <div style="font-weight:700;margin-bottom:8px;">【方案】</div>
+        <div style="border:1px solid #e0ddd6;border-radius:10px;overflow:hidden;margin-bottom:16px;font-size:13px;">
+          <div style="display:flex;justify-content:space-between;padding:11px 14px;border-bottom:1px solid #e0ddd6;">
+            <span>完整版　月繳</span><span style="font-weight:700;font-family:'JetBrains Mono',monospace;">1,000 元</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:11px 14px;border-bottom:1px solid #e0ddd6;background:#f0f7f3;">
+            <span>完整版　季繳<br><span style="font-size:11px;color:#2d6a4f;">9 折，另含季報數據分析</span></span>
+            <span style="font-weight:700;font-family:'JetBrains Mono',monospace;">2,700 元</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:11px 14px;">
+            <span>陽春版　月繳<br><span style="font-size:11px;color:#888680;">每週上限 ${cap} 筆，超過需自行記錄</span></span>
+            <span style="font-weight:700;font-family:'JetBrains Mono',monospace;">300 元</span>
+          </div>
+        </div>
+        <div style="font-weight:700;margin-bottom:8px;">【緩衝期】</div>
+        <div style="margin-bottom:16px;">
+          即日起至 <b>${SUB_NOTICE.bufferEndText}</b> 前，維持現行使用方式不變。<br>
+          <b>${SUB_NOTICE.enforceFromText}</b> 起，未訂閱帳號將暫停使用權限。
+        </div>
+        <div style="color:#888680;font-size:13px;">有問題歡迎私訊討論。</div>
+      </div>
+      <div style="padding:14px 20px 18px;border-top:1px solid #e0ddd6;">
+        <button id="subNoticeBtn" style="width:100%;padding:13px;border:none;border-radius:24px;background:#1a1a2e;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;">我知道了</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  document.getElementById('subNoticeBtn').onclick = () => {
+    try { localStorage.setItem('tandry_sub_notice_shown', `${SUB_NOTICE.id}|${_todayStr()}`); } catch(e) {}
+    ackSubscriptionNotice();                       // 不等回應，避免拖慢關閉
+    if (document.body.contains(overlay)) document.body.removeChild(overlay);
+    done();
+  };
+}
+
+// 已讀紀錄：記下誰、什麼時候按了「我知道了」（日後若有人說不知道要收費，有紀錄可查）
+function ackSubscriptionNotice(){
+  const u = window.TANDRY_USER || {};
+  try {
+    const ctrl = new AbortController();
+    setTimeout(() => ctrl.abort(), 8000);
+    fetch(SUB_NOTICE.ackWebhook, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        token: localStorage.getItem('tandry_token') || '',
+        公告代號: SUB_NOTICE.id,
+        帳號: u.username || '',
+        姓名: u.displayName || u.username || '',
+        確認時間: new Date().toLocaleString('sv-SE').replace('T',' ').slice(0,16),
+        裝置: navigator.userAgent.slice(0,120),
+      }),
+      signal: ctrl.signal,
+    }).catch(e => console.warn('[訂閱公告] 已讀紀錄回傳失敗', e));
+  } catch(e) { console.warn('[訂閱公告] 已讀紀錄送出例外', e); }
+}
+
 // ── 公告提醒（未讀公告彈窗，資料來自 announcements-data.js）──────────
 function checkAnnouncements(){
   const list=window.TANDRY_ANNOUNCEMENTS||[];
@@ -2793,6 +2977,7 @@ async function confirmSubmit(){
   if(!patientId){showToast('請輸入病歷號','error');btn.disabled=false;btn.textContent='✅ 確認送出';return;}
   let serialNo='';
   let anyFailed=false;
+  let blocked=null;   // 後端拒絕時的回應（額度用完／未訂閱）
   for(const item of items){
     const codeOut=item.另洽?(item.innerCode||'')+'（另洽）':(item.innerCode||'');
     const isFirst=items.indexOf(item)===0;
@@ -2817,10 +3002,23 @@ async function confirmSubmit(){
       const res=await fetch(WEBHOOK_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(row),signal:ctrl.signal});
       clearTimeout(t);
       console.log('[confirmSubmit] response status:', res.status);
-      if(isFirst){try{const json=await res.json();serialNo=json.serialNo||json.流水號||'';console.log('[confirmSubmit] serialNo:', serialNo);}catch(e){console.warn('[confirmSubmit] parse json failed:', e);}}
+      if(isFirst){
+        let json=null;
+        try{ json=await res.json(); }catch(e){ console.warn('[confirmSubmit] parse json failed:', e); }
+        // 後端明確拒絕（額度用完／未訂閱／查無業務代碼）：HTTP 是 200，但 success=false。
+        // 一定要擋在這裡，否則會被當成送出成功、跳出流水號空白的成功畫面。
+        if(json && json.success===false){ blocked=json; break; }
+        serialNo=(json&&(json.serialNo||json.流水號))||'';
+        if(json) saveQuotaFromResponse(json);
+        console.log('[confirmSubmit] serialNo:', serialNo);
+      }
       if(!res.ok && !serialNo){console.error('[confirmSubmit] HTTP error:', res.status); anyFailed=true;}
     }catch(e){console.error('報刀資料送出失敗',e);anyFailed=true;}
   }
+  if(blocked){ showBlockedOverlay(blocked); btn.disabled=false; btn.textContent='✅ 確認送出'; return; }
+  // 沒拿到流水號＝後端沒真的寫進去（回應為空或格式非預期）。
+  // 這種情況絕不能跳成功畫面，否則就是「圖片右上角流水號空白」那種假成功、事後才發現漏刀。
+  if(!serialNo){ console.error('[confirmSubmit] 沒有取得流水號，視為失敗'); anyFailed=true; }
   if(anyFailed){showFailureOverlay(serialNo);btn.disabled=false;btn.textContent='✅ 確認送出';return;}
   // 流水號填回預覽
   const serialEl=document.getElementById('previewSerialEl');

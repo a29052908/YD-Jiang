@@ -7,6 +7,7 @@
 
 ## 維護 SOP
 - 新增人員／離職交接／院所・品號異動 → 見 `docs/SOP.md`（含資料落點對照、逐項檢查清單、資料健檢）
+- 訂閱制（完整版 1,000/月・2,700/季；陽春版 300/月＋每週上限 7 筆）→ 見 `docs/訂閱制.md`（含定價分析、n8n 建置規格、額度控管作法）。前端訂閱公告已上線（`報刀_v2.html` 的 `SUB_NOTICE`），後端 `ack-subscription`／`google-login` 回傳訂閱方案／`manual-baodao` 額度控管**尚未建置**。
 - 作廢紀錄機制（總表重複列業務自行作廢，免審核但留紀錄）→ 見 `docs/作廢紀錄.md`（n8n 建置規格）。**已完成並測試通過**：`void-report-self`/`get-void-requests` 已建置，`get-cases`/`get-performance` 已加上「已作廢 !== 是」過濾。⚠️ `get-performance` 讀的不是 `報刀單格式`，而是同一份 Google Sheets 文件裡另一個分頁「價格表」——用儲存格 `=` 公式逐欄對照 `報刀單格式` 產生（不是 QUERY/IMPORTRANGE），「已作廢」欄位也是用同樣公式模式加上去的。之後 `報刀單格式` 若異動欄位順序，要記得「價格表」的公式欄位對照可能跟著壞掉。
 
 ## Project Skill
