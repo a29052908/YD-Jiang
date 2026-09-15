@@ -9,8 +9,7 @@
 |------|------|---------|
 | **Google 登入授權名單**（email/角色）| n8n 登入工作流 `查員工並發Token1` 節點 `EMAIL_USERS` | n8n 編輯節點（**目前只開放 Google 登入，這份最關鍵**）|
 | **帳密登入名單**（帳號/密碼/角色）| n8n 登入工作流 `驗證帳密並發Token` 節點 `TANDRY_USERS` | n8n（登入頁已隱藏帳密，目前可略，建議同步）|
-| **業務代碼對照**（IV/DE/AN…）| n8n 流水號工作流（webhook `手動報刀 Webhook1` / `manual-baodao`）Code 節點 `SALES_CODE` | n8n（**沒加＝該業務報刀時 throw「未知業務」直接失敗**）|
-| **最新流水號** | Google Sheets 登入帳號分頁（業務代碼＋最新流水號）| 直接編輯試算表 |
+| **業務代碼對照／訂閱方案／最新流水號**（IV/DE/AN…）| Google Sheets `設定` 分頁（姓名／業務代碼／最新流水號／email／管理／訂閱方案／本週已用）| 直接編輯試算表。⚠️ 2026/09 起 `manual-baodao` 的 `產生流水號` node 已改成直接讀這個分頁比對姓名取代碼，**不再需要另外改 n8n 的 `SALES_CODE`**（舊寫法只要漏加就會 throw「未知業務」整批失敗，現在只要姓名／代碼兩欄有填就會動）。`本週已用` 是公式自動算，不用手動維護。|
 | **業務下拉名單**（報刀頁選報刀者）| `報刀_v2.html` `salesList` | 前端改碼 → PR |
 | **業績儀表板業務名冊** | `performance.html` `SALES_ROSTER` | 前端改碼 → PR |
 | **追蹤指派對象下拉** | `track.html` 指派區 `#assignTo` 的 `<option>` | 前端改碼 → PR |
@@ -24,22 +23,23 @@
 ## 二、情境 SOP
 
 ### A. 新增業務人員
-- [ ] 1. n8n `EMAIL_USERS` 加一行 `{ email, username, role(admin/sales), displayName }` — 沒做＝**無法登入**
+- [ ] 1. n8n `EMAIL_USERS` 加一行 `{ email, username, role(admin/sales), displayName }` — 沒做＝**無法登入**（這步還是要改 n8n，因為登入授權名單目前沒有接 Sheets）
 - [ ] 2. n8n `TANDRY_USERS` 加一行（帳密登入啟用時才需要，目前可略）
-- [ ] 3. n8n `SALES_CODE` 加業務代碼（如 `'Derek':'DE'`）— 沒做＝**該人報刀直接失敗（未知業務）**
-- [ ] 4. Google Sheets 登入帳號分頁加一列（業務代碼＋最新流水號，初始流水號可留空）
-- [ ] 5. `報刀_v2.html` `salesList` 加名字（報刀頁選得到自己）
-- [ ] 6. `performance.html` `SALES_ROSTER` 加名字（業績儀表板切換得到）
-- [ ] 7. `track.html` `#assignTo` 加 `<option>` 名字（追蹤才指派得到他；顯示名要與帳號一致，n8n 篩選比對 displayName/username）
-- [ ] 8. `CLAUDE.md` 業務代碼對照＋角色更新
-- [ ] 9.（若負責院所）到 `innerCodeDb` 把該院所 `負責業務` 設成他
+- [ ] 3. Google Sheets `設定` 分頁加一列：`姓名`／`業務代碼`（如 `Derek`／`DE`，兩欄沒填就會報刀失敗）／`最新流水號`（留空即可）／`email`／`管理`（角色）／`訂閱方案`（`完整`/`陽春`/`未訂閱`/`停用`，**留空預設當「完整」**，如果這位是陽春版才需要手動填）／`本週已用`（公式，往下拉複製前一列即可，不用手動填數字）
+- [ ] 4. `報刀_v2.html` `salesList` 加名字（報刀頁選得到自己）
+- [ ] 5. `performance.html` `SALES_ROSTER` 加名字（業績儀表板切換得到）
+- [ ] 6. `track.html` `#assignTo` 加 `<option>` 名字（追蹤才指派得到他；顯示名要與帳號一致，n8n 篩選比對 displayName/username）
+- [ ] 7. `CLAUDE.md` 業務代碼對照＋角色更新
+- [ ] 8.（若負責院所）到 `innerCodeDb` 把該院所 `負責業務` 設成他
 - [ ] ✅ 驗證：本人 Google 登入成功 → 報一筆看流水號正確 → 業績儀表板下拉找得到他
+
+> ⚠️ 2026/09 起，業務代碼、訂閱方案、額度都改成直接讀 `設定` 分頁（見 `docs/訂閱制.md`），**不再需要碰 n8n 的 Code node**——只有「新帳號能不能登入」（步驟 1）還是要改 n8n，其餘全部是 Sheets 編輯 + 前端 PR。
 
 ### B. 人員離職 / 交接
 - [ ] 1. `innerCodeDb`：把離職者負責的**所有院所** `負責業務` 改成接手人（共管用 `Henry/Darren` 斜線）
 - [ ] 2. n8n `EMAIL_USERS` 移除其 email — 沒做＝**離職後仍能登入**
 - [ ] 3. n8n `TANDRY_USERS` 移除（帳密啟用時）
-- [ ] 4. n8n `SALES_CODE`：可保留（不影響；歷史流水號才能對應），不必刪
+- [ ] 4. Google Sheets `設定` 分頁：`訂閱方案` 改成 `停用`（多一層防呆——萬一離職者手機還留著登入 session，報刀時也會被擋；業務代碼那一列本身不用刪，歷史流水號還要靠它對應）
 - [ ] 5. **歷史業績＝保留在離職者名下**（不動舊資料）→ `salesList` / `SALES_ROSTER` 名字**也保留**，才看得到歷史業績
 - [ ] 6. `CLAUDE.md` 記錄交接（誰接誰、日期）
 - [ ] ✅ 驗證：離職者登不進去 → 接手人登入看得到新院所 → 儀表板該院所歸屬正確
@@ -83,6 +83,6 @@
 
 ---
 
-## 附：目前業務代碼對照（n8n `SALES_CODE`，已齊全）
-`IV=Ivan, DE=Derek, HE=Henry, VI=Vincent, KA=Kaley, MA=Mandy, ED=Eddie, BR=Bruce, AN=Andrew, RI=Richie, EA=Eason, DA=Darren`
-（Dino 已離職，不在對照內。角色：Ivan/Eddie/Bruce/Eason=admin，其餘 sales。）
+## 附：業務代碼對照
+
+2026/09 起這份對照的**唯一真實來源是 Google Sheets `設定` 分頁**，不再寫死在 n8n 或這份文件裡——避免又出現「Sheets 有了、n8n 沒同步」的落差（Nick／Ian／Jason 就是這樣壞過一次，見 `docs/訂閱制.md`）。要查目前有誰、代碼是什麼、角色是什麼，直接看那張表最準。
