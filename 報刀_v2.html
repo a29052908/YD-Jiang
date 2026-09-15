@@ -2685,7 +2685,15 @@ function _quotaKey(){
 
 // 從送出成功的回應存下剩餘額度（後端只有陽春版會回 remain）
 function saveQuotaFromResponse(json){
-  if (!json || json.remain === undefined || json.remain === null) return;
+  if (!json) return;
+  if (json.remain === undefined || json.remain === null) {
+    // 完整版（或後端沒帶額度資訊）：清掉舊的陽春版快取。
+    // 不清的話，若這個人是在還沒被擋、額度還沒歸零前就升級的，topbar
+    // 會一直卡著升級前的「本週剩 N 筆」，雖然不會真的擋單，但顯示是錯的。
+    try { localStorage.removeItem(_quotaKey()); } catch(e) {}
+    renderQuotaBadge();
+    return;
+  }
   try {
     localStorage.setItem(_quotaKey(), JSON.stringify({
       remain: json.remain, cap: json.cap || 7, plan: json.plan || '陽春', monday: _thisMonday(),
@@ -2733,7 +2741,8 @@ function showBlockedOverlay(info){
   overlay.innerHTML = `<div style="font-size:60px;margin-bottom:14px;">🚫</div>
     <div style="color:#fff;font-size:21px;font-weight:700;margin-bottom:12px;">${title}</div>
     <div style="color:rgba(255,255,255,0.92);font-size:15px;max-width:420px;line-height:1.7;">${body}</div>
-    <button id="blockedCloseBtn" style="margin-top:24px;padding:12px 32px;border:none;border-radius:24px;background:#fff;color:#B71C1C;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;">我知道了</button>`;
+    <button id="blockedCloseBtn" style="margin-top:24px;padding:12px 32px;border:none;border-radius:24px;background:#fff;color:#B71C1C;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;">我知道了</button>
+    ${isQuota ? `<div id="blockedRetryLink" style="margin-top:16px;color:rgba(255,255,255,0.85);font-size:13px;text-decoration:underline;cursor:pointer;">已升級方案？點這裡重新整理額度再試一次</div>` : ''}`;
   document.body.appendChild(overlay);
   document.getElementById('blockedCloseBtn').onclick = () => {
     if (document.body.contains(overlay)) document.body.removeChild(overlay);
@@ -2742,6 +2751,17 @@ function showBlockedOverlay(info){
   if (isQuota) {
     try { localStorage.setItem(_quotaKey(), JSON.stringify({ remain:0, cap:info.cap||7, plan:'陽春', monday:_thisMonday() })); } catch(e) {}
     renderQuotaBadge();
+    // ⚠️ 這個快取是唯一問題來源：升級方案是在 Sheets 改的，前端完全不知道，
+    // 只要這個裝置的快取還卡在 remain:0，showPreview() 就會一直搶先擋下、連後端都碰不到，
+    // 要等到下週一快取自動失效才會恢復。這個連結手動清掉快取讓它重新走一次 showPreview()，
+    // 沒有快取時 showPreview() 本來就會放行交給後端判斷，才吃得到剛改好的訂閱方案。
+    const retryLink = document.getElementById('blockedRetryLink');
+    if (retryLink) retryLink.onclick = () => {
+      try { localStorage.removeItem(_quotaKey()); } catch(e) {}
+      renderQuotaBadge();
+      if (document.body.contains(overlay)) document.body.removeChild(overlay);
+      showPreview();
+    };
   }
 }
 
