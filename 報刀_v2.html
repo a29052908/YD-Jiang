@@ -2755,6 +2755,9 @@ const SUB_NOTICE = {
   stopShowingAfter: '2026-10-31',    // 過了這天就不再跳，避免永遠彈下去
   weeklyCap: 7,                      // 陽春版每週上限
   ackWebhook: 'https://ydj.zeabur.app/webhook/ack-subscription',
+  // 對應 announcements-data.js 裡同一份公告的 id，內容重複貼過去讓大家能回頭查。
+  // 關掉這個彈窗時順便標記那筆公告已讀，避免關掉這個又立刻跳出內容幾乎一樣的一般公告彈窗。
+  announcementId: 'ann-2026-09-15-01',
 };
 
 function _todayStr(){
@@ -2836,6 +2839,17 @@ function showSubscriptionNotice(done){
   document.body.appendChild(overlay);
   document.getElementById('subNoticeBtn').onclick = () => {
     try { localStorage.setItem('tandry_sub_notice_shown', `${SUB_NOTICE.id}|${_todayStr()}`); } catch(e) {}
+    // 同步標記 announcements-data.js 裡對應那筆公告已讀，
+    // 不然關掉這個彈窗後馬上又跳出內容幾乎一樣的一般公告彈窗。
+    if (SUB_NOTICE.announcementId) {
+      try {
+        const seen = JSON.parse(localStorage.getItem('tandry_announcements_seen') || '[]');
+        if (!seen.includes(SUB_NOTICE.announcementId)) {
+          seen.push(SUB_NOTICE.announcementId);
+          localStorage.setItem('tandry_announcements_seen', JSON.stringify(seen));
+        }
+      } catch(e) {}
+    }
     ackSubscriptionNotice();                       // 不等回應，避免拖慢關閉
     if (document.body.contains(overlay)) document.body.removeChild(overlay);
     done();
