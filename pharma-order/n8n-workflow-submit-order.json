@@ -1,0 +1,118 @@
+{
+  "name": "小崔幫手 - 送出訂單",
+  "nodes": [
+    {
+      "id": "webhook_submit",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [-400, 0],
+      "webhookId": "pharma-submit-order",
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "pharma-submit-order",
+        "responseMode": "responseNode",
+        "options": {}
+      }
+    },
+    {
+      "id": "split_rows",
+      "name": "拆分每個品項",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [-160, 0],
+      "parameters": {
+        "fieldToSplitOut": "body.rows",
+        "options": {}
+      }
+    },
+    {
+      "id": "google_sheets_append",
+      "name": "寫入 Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [80, 0],
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "REPLACE_WITH_YOUR_GOOGLE_SHEET_ID"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "訂單"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "員工代碼": "={{ $json['員工代碼'] }}",
+            "單據日期": "={{ $json['單據日期'] }}",
+            "客戶代碼": "={{ $json['客戶代碼'] }}",
+            "訂購人(客戶名稱)": "={{ $json['訂購人(客戶名稱)'] }}",
+            "收件人": "={{ $json['收件人'] }}",
+            "地址編號": "={{ $json['地址編號'] }}",
+            "送貨地址": "={{ $json['送貨地址'] }}",
+            "收件人電話": "={{ $json['收件人電話'] }}",
+            "數量": "={{ $json['數量'] }}",
+            "商品名稱": "={{ $json['商品名稱'] }}",
+            "存貨代碼": "={{ $json['存貨代碼'] }}",
+            "進價": "={{ $json['進價'] }}",
+            "訂單備註": "={{ $json['訂單備註'] }}",
+            "公定進價": "={{ $json['公定進價'] }}"
+          },
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      },
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "REPLACE_WITH_YOUR_GOOGLE_SHEETS_CREDENTIAL_ID",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "id": "code_build_response",
+      "name": "組回應內容",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [320, 0],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const items = $input.all();\nreturn [{ json: { success: true, count: items.length } }];"
+      }
+    },
+    {
+      "id": "respond_webhook",
+      "name": "回傳給前端",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [560, 0],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [[{ "node": "拆分每個品項", "type": "main", "index": 0 }]]
+    },
+    "拆分每個品項": {
+      "main": [[{ "node": "寫入 Google Sheets", "type": "main", "index": 0 }]]
+    },
+    "寫入 Google Sheets": {
+      "main": [[{ "node": "組回應內容", "type": "main", "index": 0 }]]
+    },
+    "組回應內容": {
+      "main": [[{ "node": "回傳給前端", "type": "main", "index": 0 }]]
+    }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1" },
+  "pinData": {}
+}

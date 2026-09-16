@@ -1,0 +1,101 @@
+{
+  "name": "小崔幫手 - 拍照辨識訂單",
+  "nodes": [
+    {
+      "id": "webhook_ocr",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [-400, 0],
+      "webhookId": "pharma-ocr-order",
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "pharma-ocr-order",
+        "responseMode": "responseNode",
+        "options": {},
+        "binaryData": true
+      }
+    },
+    {
+      "id": "code_prepare_images",
+      "name": "拆出每張圖片並轉base64",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-160, 0],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// 前端用 formData.append('images', file) 上傳，可能多張同名欄位。\n// 這裡把每個 binary property 攤平成獨立 item，並轉成 base64 給 Claude 視覺 API 用。\n// 注意：getBinaryDataBuffer 的呼叫方式在不同 n8n 版本略有差異，\n// 若這行報錯，改用 this.helpers.getBinaryDataBuffer(itemIndex, propertyName)。\nconst inputItems = $input.all();\nconst result = [];\n\nfor (let i = 0; i < inputItems.length; i++) {\n  const item = inputItems[i];\n  const binaryKeys = Object.keys(item.binary || {});\n  for (const key of binaryKeys) {\n    const buffer = await $helpers.getBinaryDataBuffer(i, key);\n    const meta = item.binary[key];\n    result.push({\n      json: {\n        fileName: meta.fileName || key,\n        mimeType: meta.mimeType || 'image/jpeg',\n        base64: buffer.toString('base64'),\n      },\n    });\n  }\n}\n\nif (result.length === 0) {\n  throw new Error('沒有收到任何圖片，請確認前端有用 images 欄位上傳檔案');\n}\n\nreturn result;"
+      }
+    },
+    {
+      "id": "http_claude_vision",
+      "name": "Claude 視覺辨識",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [80, 0],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "anthropic-version", "value": "2023-06-01" },
+            { "name": "content-type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  model: \"claude-sonnet-5\",\n  max_tokens: 1024,\n  messages: [\n    {\n      role: \"user\",\n      content: [\n        { type: \"image\", source: { type: \"base64\", media_type: $json.mimeType, data: $json.base64 } },\n        { type: \"text\", text: \"這是一張藥局端開出的採購單截圖，請幫我抽取以下資訊並回傳純 JSON（不要任何說明文字、不要用 markdown code fence）：{ \\\"poNumber\\\": \\\"採購單編號（若有，沒有則空字串）\\\", \\\"items\\\": [ { \\\"name\\\": \\\"商品名稱\\\", \\\"qty\\\": 數量整數，用「進貨數量」欄位 } ] } 只需要商品名稱與進貨數量，其他欄位忽略。\" }\n      ]\n    }\n  ]\n}) }}",
+        "options": {}
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_YOUR_ANTHROPIC_CREDENTIAL_ID",
+          "name": "Anthropic API Key (x-api-key header)"
+        }
+      }
+    },
+    {
+      "id": "code_merge_results",
+      "name": "合併辨識結果",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [320, 0],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// 把每張圖片的 Claude 回覆解析成 JSON，合併成單一 { poNumber, items } 回傳給前端\nconst inputItems = $input.all();\nlet poNumber = '';\nlet allItems = [];\n\nfor (const item of inputItems) {\n  const raw = item.json?.content?.[0]?.text || '';\n  const cleaned = raw.replace(/```json|```/g, '').trim();\n  let parsed;\n  try {\n    parsed = JSON.parse(cleaned);\n  } catch (e) {\n    continue; // 這張圖辨識失敗就跳過，不整個報錯\n  }\n  if (parsed.poNumber && !poNumber) poNumber = parsed.poNumber;\n  if (Array.isArray(parsed.items)) allItems = allItems.concat(parsed.items);\n}\n\nreturn [{ json: { poNumber, items: allItems } }];"
+      }
+    },
+    {
+      "id": "respond_webhook",
+      "name": "回傳給前端",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [560, 0],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [[{ "node": "拆出每張圖片並轉base64", "type": "main", "index": 0 }]]
+    },
+    "拆出每張圖片並轉base64": {
+      "main": [[{ "node": "Claude 視覺辨識", "type": "main", "index": 0 }]]
+    },
+    "Claude 視覺辨識": {
+      "main": [[{ "node": "合併辨識結果", "type": "main", "index": 0 }]]
+    },
+    "合併辨識結果": {
+      "main": [[{ "node": "回傳給前端", "type": "main", "index": 0 }]]
+    }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1" },
+  "pinData": {}
+}
